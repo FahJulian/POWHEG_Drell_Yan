@@ -1,0 +1,14 @@
+*.vscode*
+*Makefile*
+*events.csv
+*.dat
+*.info
+*.in
+*.pdf
+lhapdf-config
+generator/build/generator
+stamp-h2
+.pw
+pythia/
+*.lhe
+doc/
