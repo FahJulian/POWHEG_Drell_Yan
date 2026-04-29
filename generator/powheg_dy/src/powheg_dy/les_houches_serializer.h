@@ -1,6 +1,6 @@
 #pragma once
-
-#include "powheg_dy/base.h"
+ 
+#include "powheg_dy/event_handler.h"
 
 #include <string>
 #include <sstream>
@@ -18,6 +18,9 @@ namespace powheg_dy
         }
 
         void serialize(const std::string& filePath);
+
+    private:
+        void _writeEvent(const Event& event, std::stringstream& content) const;
 
     private:
         const Process& m_process;

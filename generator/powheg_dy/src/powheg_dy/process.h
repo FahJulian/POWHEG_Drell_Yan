@@ -1,7 +1,8 @@
 #pragma once
 
-#include "powheg_dy/base.h"
-#include "powheg_dy/event.h"
+#include "powheg_dy/math.h"
+#include "powheg_dy/event_handler.h"
+#include "powheg_dy/phase_space.h"
 
 #include <memory>
 #include <vector>
@@ -14,22 +15,44 @@ namespace powheg_dy
     class Process
     {
     public:
-        Process() = delete; 
-
-        Process(double sqrtS, double mMin, double mMax)
-            : m_sqrtS(sqrtS), m_mMin(mMin), m_mMax(mMax)
-        {
-        }
-
-        ~Process() = default;
+        virtual ~Process() = default;
 
         void init(const std::string& pdfDataLocation, const std::string& pdfSet);
         void run();
         void writeToFile(const std::string& filePath) const;
 
-        double getMMin() const { return m_mMin; }
-        double getMMax() const { return m_mMax; }
-        double getSqrtS() const { return m_sqrtS; }
+        virtual inline int nBornLegs() const = 0;
+        virtual inline int nRealLegs() const = 0;
+        virtual inline double mMin() const = 0;
+        virtual inline double mMax() const = 0;
+        virtual inline double sqrtS() const = 0;
+        virtual inline double S() const = 0;
+
+        virtual inline double zMass() const { return 91.1876; }
+        virtual inline double zWidth() const { return 2.4952; }
+        virtual inline double ALPHA() const { return 1.0 / 137.035999084; }
+        virtual inline double NC() const { return 3.0; }
+        virtual inline double GEV2_TO_PB() const { return 0.389379338e9; }
+        virtual inline double S_W_SQ() const { return 0.23126; }
+        virtual inline double C_W_SQ() const { return 1.0 - S_W_SQ(); }
+        virtual inline double M_Z() const { return 91.1876; }   
+        virtual inline double GAMMA_Z() const { return 2.4952; }    
+        virtual inline double KAPPA() const { return 1.0 / (4.0 * S_W_SQ() * C_W_SQ()); }
+        virtual inline double LAMBDA_SQ_QCD() const { return 0.2*0.2; }
+        virtual inline double C_F() const { return 4.0 / 3.0; }
+
+        // charged lepton axial and vector couplings
+        virtual inline double A_L() const { return -0.5; }
+        virtual inline double V_L() const { return -0.5 + 2.0 * S_W_SQ(); }
+
+        virtual inline double alphaSOneLoop(double qSq, int nF) const
+        {
+            assert(qSq > LAMBDA_SQ_QCD());
+
+            double beta0 = 11.0 - 2.0 / 3.0 * nF;
+            return 4.0 * PI / beta0 / std::log(qSq / LAMBDA_SQ_QCD());
+        }
+        
         double getSigma() const { return m_totalCrossSection; }
         auto getEvents() const { return m_events; }
         const std::unique_ptr<LHAPDF::PDF>& getPdfs() const { return m_pdfs; }
@@ -40,8 +63,10 @@ namespace powheg_dy
         void _computeTotalCrossSection();
 
     private:
-        const double m_sqrtS;   
-        const double m_mMin, m_mMax;
+        std::unique_ptr<PhaseSpaceSampler> m_phaseSpaceSampler;
+        std::unique_ptr<EmissionGenerator> m_emissionGenerator;
+        std::unique_ptr<BornEventGenerator> m_bornGenerator;
+        std::unique_ptr<EventHandler> m_eventHandler;
         int m_nEventTrials = 0;
         double m_maxDSigma = 0.0;
         double m_totalCrossSection = 0.0;   // pb

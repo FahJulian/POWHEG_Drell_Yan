@@ -1,9 +1,8 @@
 #include "born_event.h"
 
 #include "powheg_dy/rand.h"
+#include "powheg_dy/math.h"
 #include "powheg_dy/process.h"
-
-#include <math.h>
 
 namespace powheg_dy
 {
@@ -11,89 +10,37 @@ namespace powheg_dy
     {
         static const std::vector<int> __VALID_PARTONS_ON_LEG1 = { -5, -4, -3, -2, -1, 1, 2, 3, 4, 5 };
 
-        std::tuple<double, double> __neutralCurrentCouplingFactors(bool upType, double mSq)
-        {
-            // quark charge and axial and vector couplings
-            double qQ = upType ? 2.0 / 3.0 : -1.0 / 3.0;
-            double aQ = upType ? 0.5 : -0.5;
-            double vQ = upType ? 0.5 - (4.0 / 3.0) * Physics::S_W_SQ : -0.5 + (2.0 / 3.0) * Physics::S_W_SQ;
-
-            double dZ = (mSq - Physics::M_Z * Physics::M_Z) * (mSq - Physics::M_Z * Physics::M_Z) 
-                + Physics::M_Z * Physics::M_Z * Physics::GAMMA_Z * Physics::GAMMA_Z;
-
-            double ReChi   = Physics::KAPPA * mSq * (mSq - Physics::M_Z * Physics::M_Z) / dZ;
-            double AbsChiSq = Physics::KAPPA * Physics::KAPPA * mSq * mSq / dZ;
-
-            double hU = qQ * qQ
-                    - 2.0 * qQ * Physics::V_L * vQ * ReChi
-                    + (Physics::V_L * Physics::V_L + Physics::A_L * Physics::A_L) * (vQ * vQ + aQ * aQ) * AbsChiSq;
-
-            double hF = -2.0 * qQ * Physics::A_L * aQ * ReChi
-                    + 4.0 * Physics::V_L * Physics::A_L * vQ * aQ * AbsChiSq;
-
-            return {hU, hF};
-        }
-
     } // namespace
 
-    void BornEvent::sampleKinematics()
+    BornEvent BornEventGenerator::computeWeightAndSampleParton(const PhaseSpacePoint& point) const
     {
-        // Sample the invariant mass of the event uniformly from the allowed range
-        m_mBoson = rand(m_process.getMMin(), m_process.getMMax());
+        BornEvent event;
 
-        // Sample boson rapidity uniformly from the kinematically allowed region (x_1,2 \leq 1)
-        double yBosonMax = std::log(m_process.getSqrtS() / m_mBoson);
-        m_yBoson = rand(-yBosonMax, yBosonMax);
-
-        // Sample \cos(\theta) from the probability distr. p(c) = 3(1+c^2)/8
-        double u = rand(0.0, 1.0);
-        m_cosTh = 2.0 * std::sinh(std::asinh(4.0 * u - 2.0) / 3.0);
-
-        // Sample \phi uniformly
-        m_phi = rand(0, 2.0 * Math::PI);
-
-        // Calculate x1 and x2 from the sampled variables
-        m_x1 = m_mBoson / m_process.getSqrtS() * std::exp(m_yBoson);
-        m_x2 = m_mBoson / m_process.getSqrtS() * std::exp(-m_yBoson);
-    }
-
-    void BornEvent::computeWeightAndSampleParton()
-    {
         // For each quark flavour, compute the individual contribution to the cross section
-        auto channels = _computePartonChannelContributions();
+        auto channels = _computePartonChannelContributions(point);
 
-        m_dSigma = 0.0;
+        event.dSigma = 0.0;
         for (auto [partonId, dSigma] : channels)
-            m_dSigma += dSigma;
+            event.dSigma += dSigma;
 
         // Sample the parton channel by their relative contribution to dSigma
-        double u = rand(0.0, m_dSigma);
+        double u = rand(0.0, event.dSigma);
         for (auto [partonId, dSigma] : channels)
         {
-            m_partonId = partonId;
+            event.partonId = partonId;
             if (u < dSigma)
                 break;
 
             u -= dSigma;
         }
+
+        return event;
     }
 
-    double BornEvent::_computeInverseSamplingDensity()
+    std::vector<std::tuple<int, double>> BornEventGenerator::_computePartonChannelContributions(const PhaseSpacePoint& point) const
     {
-        double jacobianM = m_process.getMMax() - m_process.getMMin();
-        double jacobianY = 2.0 * std::log(m_process.getSqrtS() / m_mBoson);
-        double jacobianCosTh = 8.0 / 3.0 / (1.0 + m_cosTh * m_cosTh);
-        double jacobianPhi = 2.0 * Math::PI;
-
-        return jacobianM * jacobianY * jacobianCosTh * jacobianPhi;  
-    }
-
-    std::vector<std::tuple<int, double>> BornEvent::_computePartonChannelContributions()
-    {
-        double mSq = m_mBoson * m_mBoson;
-        double physicsPrefactor = Physics::ALPHA * Physics::ALPHA / 2.0 / Physics::NC 
-            / m_process.getSqrtS() / m_process.getSqrtS() / m_mBoson;
-        double samplingPrefactor  = _computeInverseSamplingDensity();
+        double physicsPrefactor = m_process.ALPHA() * m_process.ALPHA() / 2.0 / m_process.NC() 
+            / m_process.sqrtS() / m_process.sqrtS() / point.mBoson;
 
         std::vector<std::tuple<int, double>> channels;
         channels.reserve(__VALID_PARTONS_ON_LEG1.size());
@@ -101,20 +48,43 @@ namespace powheg_dy
         for (int partonId : __VALID_PARTONS_ON_LEG1)
         {
             // Compute the luminosity factors
-            double f  = m_process.getPdfs()->xfxQ2( partonId, m_x1, mSq) / m_x1;
-            double fb = m_process.getPdfs()->xfxQ2(-partonId, m_x2, mSq) / m_x2;
+            double f  = m_process.getPdfs()->xfxQ2( partonId, point.x1, point.sHat) / point.x1;
+            double fb = m_process.getPdfs()->xfxQ2(-partonId, point.x2, point.sHat) / point.x2;
 
             // Compute the coupling factors
             bool upType = std::abs(partonId) % 2 == 0;
-            auto [c1, c2] = __neutralCurrentCouplingFactors(upType, mSq);
+            auto [c1, c2] = _neutralCurrentCouplingFactors(upType, point.sHat);
 
             // Compute the event weight
-            double weight = f * fb * (c1 * (1.0 + m_cosTh * m_cosTh) + 2.0 * c2 * m_cosTh);
+            double weight = f * fb * (c1 * (1.0 + point.cosTh * point.cosTh) + 2.0 * c2 * point.cosTh);
 
-            channels.push_back({ partonId, samplingPrefactor * physicsPrefactor * weight });
+            channels.push_back({ partonId, point.invSamplingFact * physicsPrefactor * weight });
         }
 
         return channels;
     }
+
+    std::tuple<double, double> BornEventGenerator::_neutralCurrentCouplingFactors(bool upType, double mSq) const
+        {
+            // quark charge and axial and vector couplings
+            double qQ = upType ? 2.0 / 3.0 : -1.0 / 3.0;
+            double aQ = upType ? 0.5 : -0.5;
+            double vQ = upType ? 0.5 - (4.0 / 3.0) * m_process.S_W_SQ() : -0.5 + (2.0 / 3.0) * m_process.S_W_SQ();
+
+            double dZ = (mSq - m_process.M_Z() * m_process.M_Z()) * (mSq - m_process.M_Z() * m_process.M_Z()) 
+                + m_process.M_Z() * m_process.M_Z() * m_process.GAMMA_Z() * m_process.GAMMA_Z();
+
+            double ReChi   = m_process.KAPPA() * mSq * (mSq - m_process.M_Z() * m_process.M_Z()) / dZ;
+            double AbsChiSq = m_process.KAPPA() * m_process.KAPPA() * mSq * mSq / dZ;
+
+            double hU = qQ * qQ
+                    - 2.0 * qQ * m_process.V_L() * vQ * ReChi
+                    + (m_process.V_L() * m_process.V_L() + m_process.A_L() * m_process.A_L()) * (vQ * vQ + aQ * aQ) * AbsChiSq;
+
+            double hF = -2.0 * qQ * m_process.A_L() * aQ * ReChi
+                    + 4.0 * m_process.V_L() * m_process.A_L() * vQ * aQ * AbsChiSq;
+
+            return {hU, hF};
+        }
 
 } // namespace powheg_dy

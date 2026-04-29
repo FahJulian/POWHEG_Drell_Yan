@@ -1,10 +1,10 @@
 #include "emission.h"
 
+#include "powheg_dy/math.h"
 #include "powheg_dy/rand.h"
 #include "powheg_dy/process.h"
 #include "powheg_dy/born_event.h"
 
-#include <math.h>
 
 namespace powheg_dy
 {
@@ -17,7 +17,7 @@ namespace powheg_dy
         // The integral over the z distribution
         double __computeZIntegral(double zMin, double zMax)
         {
-            return std::log((1 - zMin) / (1 - zMax));
+            return log((1 - zMin) / (1 - zMax));
         }
 
         // Sample a random Sudakov factor and compute t from it
@@ -35,38 +35,39 @@ namespace powheg_dy
         }
 
         // Compute the franction of events with the given kinematics to accept
-        double __computeAcceptanceRatio(double t, double z, double x, int partonId, 
+        double __computeAcceptanceRatio(const Process& process, double t, double z, double x, int partonId, 
             const std::unique_ptr<LHAPDF::PDF>& pdf)
         {
             double pdfRatio = pdf->xfxQ2(partonId, x / z, t) / pdf->xfxQ2(partonId, x, t);
-            double prefactor = Physics::alphaSOneLoop(t, 5) / 2 / Math::PI * Physics::C_F / __B;
+            double prefactor = process.alphaSOneLoop(t, 5) / 2 / PI * process.C_F() / __B;
             
             return prefactor * (1 + z * z) * pdfRatio;
         }
     }
     
-    Emission Emission::generateFirstEmission(const Process& process, const BornEvent& bornEvent)
+    Emission EmissionGenerator::generateEmission(const PhaseSpacePoint& point, const BornEvent& bornEvent) const
     {
         // For each leg, sample one emission
-        Emission emission1 = _generateEmissionOnLeg(process, bornEvent, 1);
-        Emission emission2 = _generateEmissionOnLeg(process, bornEvent, 2);
+        Emission emission1 = _generateEmissionOnLeg(point, bornEvent, 1);
+        Emission emission2 = _generateEmissionOnLeg(point, bornEvent, 2);
 
         // Choose the emission on the leg with the largest pT^2
-        double weight1 = emission1.isRejected() ? 0.0 : emission1.m_t;
-        double weight2 = emission2.isRejected() ? 0.0 : emission2.m_t;
+        double weight1 = emission1.rejected ? 0.0 : emission1.t;
+        double weight2 = emission2.rejected ? 0.0 : emission2.t;
 
         return weight1 > weight2 ? emission1 : emission2;
     }
 
-    Emission Emission::_generateEmissionOnLeg(const Process& process, const BornEvent& bornEvent, int leg)
+    Emission EmissionGenerator::_generateEmissionOnLeg(const PhaseSpacePoint& point, const BornEvent& bornEvent, int leg) const
     {
-        Emission emission(process, bornEvent, leg);
+        Emission emission;
+        emission.leg = leg;
 
         // For now don't generate an event for charm or bottom bosons since for those B is huge
-        if (std::abs(bornEvent.getPartonId()) > 3) 
+        if (abs(bornEvent.partonId) > 3) 
             return emission.reject();
 
-        double x = leg == 1 ? bornEvent.getX1() : bornEvent.getX2();
+        double x = leg == 1 ? point.x1 : point.x2;
 
         // Determine the kinematic bounds on z: The upper bound is t-dependent, so we use no 
         // upper bound at first and then veto if the bound is exceeded
@@ -76,33 +77,33 @@ namespace powheg_dy
         // Compute the normalization of the z-distribution, i.e. the integral over it
         double normZ = __computeZIntegral(zMin, zMax);
 
-        double tMax = bornEvent.getS();
+        double tMax = point.sHat;
         while (tMax > __T_CUTOFF)
         {
             // Sample a Sudakov factor and compute t from it, check if it is above the cutoff
-            emission.m_t = __sampleSudakovAndComputeT(tMax, normZ);
-            if (emission.m_t < __T_CUTOFF)
+            emission.t = __sampleSudakovAndComputeT(tMax, normZ);
+            if (emission.t < __T_CUTOFF)
                 return emission.reject();
 
             // Sample z from the appropriate probability distribution
-            emission.m_z = __sampleZ(zMin, normZ);
+            emission.z = __sampleZ(zMin, normZ);
 
             // Sample phi uniformly
-            emission.m_phi = rand(0, 2.0 * Math::PI);
+            emission.phi = rand(0, 2.0 * PI);
 
             // Compute the franction of events with the given kinematics to accept
-            double rAcc = __computeAcceptanceRatio(emission.m_t, emission.m_z, x, 
-                leg == 1 ? bornEvent.getPartonId() : -bornEvent.getPartonId(), process.getPdfs());
-            ASSERT (rAcc <= 1.0, "Acceptance ratio is greater than one: Upper bound B too small");
+            double rAcc = __computeAcceptanceRatio(m_process, emission.t, emission.z, x, 
+                leg == 1 ? bornEvent.partonId : -bornEvent.partonId, m_process.getPdfs());
+            assert(rAcc <= 1.0);    // Acceptance ratio is greater than one: Upper bound B too small
 
             // If the kinematics are allowed, accept the emission with the ratio just computed, 
             // else try another emission at the lower scale
-            double r = emission.m_t / bornEvent.getS();
-            double zMaxPhys = std::pow(std::sqrt(1 + r) - std::sqrt(r), 2);
-            if (emission.m_z < zMaxPhys && rand(0.0, 1.0) < rAcc)
+            double r = emission.t / point.sHat;
+            double zMaxPhys = pow(sqrt(1 + r) - sqrt(r), 2);
+            if (emission.z < zMaxPhys && rand(0.0, 1.0) < rAcc)
                 return emission;
             else 
-                tMax = emission.m_t;
+                tMax = emission.t;
         }
 
         // No emission above cutoff could be generated

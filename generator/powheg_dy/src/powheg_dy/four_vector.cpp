@@ -1,6 +1,6 @@
 #include "four_vector.h"
 
-#include <math.h>
+#include "powheg_dy/math.h"
 
 namespace powheg_dy
 {
@@ -93,7 +93,7 @@ namespace powheg_dy
     {
         ThreeVector beta = delta.getThreeVec() / delta.e;
         double betaSq = beta.square();
-        double gamma = 1.0 / std::sqrt(1.0 - betaSq);
+        double gamma = 1.0 / sqrt(1.0 - betaSq);
 
         if (betaSq == 0)
             return *this;

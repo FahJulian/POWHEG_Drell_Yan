@@ -1,44 +1,41 @@
 # pragma once
-
-#include "powheg_dy/base.h"
+ 
+#include "powheg_dy/born_event.h"
+#include "powheg_dy/phase_space.h"
 
 namespace powheg_dy
 {
     class Process;
-    class BornEvent;
+    class BornEventGenerator;
     
-    class Emission
+    struct Emission
     {
-    private:
-        Emission() = delete;
-        Emission(const Process& process, const BornEvent& bornEvent, int leg)
-            : m_process(process), m_bornEvent(bornEvent), m_leg(leg)
+        int leg;
+        double t;
+        double z;
+        double phi;
+
+        bool rejected = false;
+
+        Emission reject() { t = 0.0; z = 1.0; phi = 0.0; rejected = true; return *this; }
+    };
+
+    class EmissionGenerator
+    {
+    public:
+        EmissionGenerator(const Process& process)
+            : m_process(process)
         {
         }
 
     public:
-        Emission reject() { m_t = 0.0; m_z = 1.0; m_phi = 0.0; m_rejected = true; return *this; }
-        bool isRejected() const { return m_rejected; }
-
-        int getLeg() const { return m_leg; }
-        double getT() const { return m_t; }
-        double getZ() const { return m_z; }
-        double getPhi() const { return m_phi; }
+        Emission generateEmission(const PhaseSpacePoint& point, const BornEvent& bornEvent) const;
 
     private:
         const Process& m_process;
-        const BornEvent& m_bornEvent;
-        const int m_leg;
-        double m_t = 0.0;
-        double m_z = 0.0;
-        double m_phi = 0.0;
-        bool m_rejected = false;
     
-    public:    
-        static Emission generateFirstEmission(const Process& process, const BornEvent& bornEvent);
-
     private:
-        static Emission _generateEmissionOnLeg(const Process& process, const BornEvent& bornEvent, int leg);
+        Emission _generateEmissionOnLeg(const PhaseSpacePoint& point, const BornEvent& bornEvent, int leg) const;
     };
 
 } // namespace powheg_dy

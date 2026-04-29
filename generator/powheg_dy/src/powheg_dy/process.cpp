@@ -12,8 +12,8 @@ namespace powheg_dy
 {
     namespace 
     {
-        static constexpr int __N_TRIAL_EVENTS = 1e5;
-        static constexpr int __N_ACCEPTED_EVENTS = 1e4;
+        static constexpr int __N_TRIAL_EVENTS = 5e5;
+        static constexpr int __N_ACCEPTED_EVENTS = 5e4;
         static constexpr double __SECURITY_FACTOR = 1.1;
 
     } // namespace
@@ -22,6 +22,11 @@ namespace powheg_dy
     {
         LHAPDF::setPaths(pdfDataLocation);
         m_pdfs = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
+
+        m_phaseSpaceSampler = std::make_unique<PhaseSpaceSampler>(*this);
+        m_emissionGenerator = std::make_unique<EmissionGenerator>(*this);
+        m_bornGenerator = std::make_unique<BornEventGenerator>(*this);
+        m_eventHandler = std::make_unique<EventHandler>(*this);
     }
 
     void Process::run()
@@ -33,21 +38,20 @@ namespace powheg_dy
         while (m_events.size() < __N_ACCEPTED_EVENTS)
         {   
             m_nEventTrials++;
+            
+            double rands[3] = { rand(), rand(), rand() };
+            PhaseSpacePoint point = m_phaseSpaceSampler->samplePoint(rands);
 
-            BornEvent bornEvent(*this);
-            bornEvent.sampleKinematics();
-            bornEvent.computeWeightAndSampleParton();
+            BornEvent bornEvent = m_bornGenerator->computeWeightAndSampleParton(point);
 
-            ASSERT(bornEvent.getDSigma() <= m_maxDSigma, "Born weight exceeds max weight");
+            assert(bornEvent.dSigma <= m_maxDSigma);
             
             // Unweight: Accept the event at the rate of it's weight over the reference weight
             double u = rand(0.0, 1.0);
-            if (u < bornEvent.getDSigma() / m_maxDSigma)
+            if (u < bornEvent.dSigma / m_maxDSigma)
             {
-                auto emission = Emission::generateFirstEmission(*this, bornEvent);
-
-                Event event(*this, bornEvent, emission);
-                event.reconstructMomenta();
+                Emission emission = m_emissionGenerator->generateEmission(point, bornEvent);
+                Event event = m_eventHandler->reconstructEvent(point, bornEvent, emission);
                 
                 m_events.push_back(event);
             }
@@ -60,12 +64,22 @@ namespace powheg_dy
         std::cout << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
     }
 
+    std::string toString(const Event& event)
+    {
+        FourVector sum = event.p1Out + event.p2Out;
+        double pT = sqrt(sum.pX*sum.pX + sum.pY*sum.pY);
+
+        return std::to_string(event.point.mBoson) + ", "
+            + std::to_string(event.point.cosTh) + ", "
+            + std::to_string(pT);
+    }
+
     void Process::writeToFile(const std::string& filePath) const
     {
         std::string fileContent;
             
         for (const auto& event : m_events)
-            fileContent.append(event.toString() + '\n');
+            fileContent.append(toString(event) + '\n');
         
         File file = File(filePath);
         file.write(fileContent);
@@ -88,12 +102,12 @@ namespace powheg_dy
         
         for (int i = 0; i < __N_TRIAL_EVENTS; i++)
         {   
-            BornEvent bornEvent(*this);
-            bornEvent.sampleKinematics();
-            bornEvent.computeWeightAndSampleParton();
+            double rands[3] = { rand(), rand(), rand() };
+            PhaseSpacePoint point = m_phaseSpaceSampler->samplePoint(rands);
+            BornEvent bornEvent = m_bornGenerator->computeWeightAndSampleParton(point);
 
-            if (bornEvent.getDSigma() > max_dSigma)
-                max_dSigma = bornEvent.getDSigma();
+            if (bornEvent.dSigma > max_dSigma)
+                max_dSigma = bornEvent.dSigma;
         }
 
         m_maxDSigma = __SECURITY_FACTOR * max_dSigma;
@@ -101,7 +115,7 @@ namespace powheg_dy
 
     void Process::_computeTotalCrossSection()
     {
-        m_totalCrossSection = m_maxDSigma * __N_ACCEPTED_EVENTS / m_nEventTrials * Physics::GEV2_TO_PB;
+        m_totalCrossSection = m_maxDSigma * __N_ACCEPTED_EVENTS / m_nEventTrials * GEV2_TO_PB();
     }
 
 } // namespace powheg_dy
