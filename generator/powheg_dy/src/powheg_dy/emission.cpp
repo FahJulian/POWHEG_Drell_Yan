@@ -45,11 +45,11 @@ namespace powheg_dy
         }
     }
     
-    Emission EmissionGenerator::generateEmission(const PhaseSpacePoint& point, const BornEvent& bornEvent) const
+    Emission EmissionGenerator::generateEmission(const BornPhaseSpacePt& point) const
     {
         // For each leg, sample one emission
-        Emission emission1 = _generateEmissionOnLeg(point, bornEvent, 1);
-        Emission emission2 = _generateEmissionOnLeg(point, bornEvent, 2);
+        Emission emission1 = _generateEmissionOnLeg(point, 1);
+        Emission emission2 = _generateEmissionOnLeg(point, 2);
 
         // Choose the emission on the leg with the largest pT^2
         double weight1 = emission1.rejected ? 0.0 : emission1.t;
@@ -58,16 +58,16 @@ namespace powheg_dy
         return weight1 > weight2 ? emission1 : emission2;
     }
 
-    Emission EmissionGenerator::_generateEmissionOnLeg(const PhaseSpacePoint& point, const BornEvent& bornEvent, int leg) const
+    Emission EmissionGenerator::_generateEmissionOnLeg(const BornPhaseSpacePt& point, int leg) const
     {
         Emission emission;
         emission.leg = leg;
 
         // For now don't generate an event for charm or bottom bosons since for those B is huge
-        if (abs(bornEvent.partonId) > 3) 
+        if (point.channel.flavour > 3) 
             return emission.reject();
 
-        double x = leg == 1 ? point.x1 : point.x2;
+        double x = leg == 1 ? point.x1Bar : point.x2Bar;
 
         // Determine the kinematic bounds on z: The upper bound is t-dependent, so we use no 
         // upper bound at first and then veto if the bound is exceeded
@@ -93,7 +93,7 @@ namespace powheg_dy
 
             // Compute the franction of events with the given kinematics to accept
             double rAcc = __computeAcceptanceRatio(m_process, emission.t, emission.z, x, 
-                leg == 1 ? bornEvent.partonId : -bornEvent.partonId, m_process.getPdfs());
+                leg == 1 ? point.channel.id1 : point.channel.id2, m_process.getPdfs());
             assert(rAcc <= 1.0);    // Acceptance ratio is greater than one: Upper bound B too small
 
             // If the kinematics are allowed, accept the emission with the ratio just computed, 

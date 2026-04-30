@@ -29,13 +29,13 @@ namespace powheg_dy
         }
 
     public:
-        Emission generateEmission(const PhaseSpacePoint& point, const BornEvent& bornEvent) const;
+        Emission generateEmission(const BornPhaseSpacePt& point) const;
 
     private:
         const Process& m_process;
     
     private:
-        Emission _generateEmissionOnLeg(const PhaseSpacePoint& point, const BornEvent& bornEvent, int leg) const;
+        Emission _generateEmissionOnLeg(const BornPhaseSpacePt& point, int leg) const;
     };
 
 } // namespace powheg_dy

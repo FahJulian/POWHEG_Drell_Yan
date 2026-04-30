@@ -58,7 +58,7 @@ namespace powheg_dy
     {
         bool hasGluon = !event.emission.rejected;
 
-        double bornScale = hasGluon ? std::sqrt(event.emission.t) : event.point.mBoson;
+        double bornScale = hasGluon ? std::sqrt(event.emission.t) : event.point.mB;
         int nParticles = hasGluon ? 5 : 4;
 
         content << "<event>\n" 
@@ -69,15 +69,15 @@ namespace powheg_dy
         int color = 501;
         int anticolor = hasGluon ? 502 : 501;
 
-        if (event.bornEvent.partonId > 0)     // quark on leg 1 
+        if (event.point.channel.id1 > 0)     // quark on leg 1 
         {
-            __writeParticle(content,  event.bornEvent.partonId, -1, 0, 0, color, 0, event.p1In);
-            __writeParticle(content, -event.bornEvent.partonId, -1, 0, 0, 0, anticolor, event.p2In);
+            __writeParticle(content, event.point.channel.id1, -1, 0, 0, color, 0, event.p1In);
+            __writeParticle(content, event.point.channel.id2, -1, 0, 0, 0, anticolor, event.p2In);
         }
         else                // antiquark on leg 1
         {
-            __writeParticle(content,  event.bornEvent.partonId, -1, 0, 0, 0, anticolor, event.p1In);
-            __writeParticle(content, -event.bornEvent.partonId, -1, 0, 0, color, 0, event.p2In);
+            __writeParticle(content, event.point.channel.id1, -1, 0, 0, 0, anticolor, event.p1In);
+            __writeParticle(content, event.point.channel.id2, -1, 0, 0, color, 0, event.p2In);
         }
 
         __writeParticle(content, 13,  1, 1, 2, 0, 0, event.p1Out);

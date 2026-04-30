@@ -1,7 +1,7 @@
 #include "./powheg_dy/process.h"
 
-const std::string exportFilePath = "/home/julian/documents/uni/master/master_thesis/learning/simple_drell_yan/data/events/events.lhe";
-const std::string pdfDataLocation = "/home/julian/documents/uni/master/master_thesis/learning/simple_drell_yan/data/lhapdf";
+const std::string exportFilePath = "/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/events.lhe";
+const std::string pdfDataLocation = "/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/lhapdf";
 const std::string pdfSet = "NNPDF40_lo_as_01180";
 
 class DYProcess : public powheg_dy::Process
@@ -9,6 +9,7 @@ class DYProcess : public powheg_dy::Process
 public:
     inline int nBornLegs() const override { return 4; }
     inline int nRealLegs() const override { return 5; }
+    inline bool bornOnly() const override { return true; }
     inline double mMin() const override { return 75; }
     inline double mMax() const override { return 105; }
     inline double sqrtS() const override { return 8.0e3; }

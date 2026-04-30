@@ -24,11 +24,10 @@ namespace powheg_dy
         {
         }
 
-        BornEvent computeWeightAndSampleParton(const PhaseSpacePoint& point) const;
+        void computeWeightAndSampleChannel(BornPhaseSpacePt& point) const;
 
     private:
-        std::vector<std::tuple<int, double>> _computePartonChannelContributions(const PhaseSpacePoint& point) const;
-        std::tuple<double, double> _neutralCurrentCouplingFactors(bool upType, double mSq) const;
+        std::vector<std::tuple<BornChannel, double>> _computePartonChannelContributions(const BornPhaseSpacePt& point) const;
 
     private:
         const Process& m_process;

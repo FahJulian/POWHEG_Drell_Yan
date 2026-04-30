@@ -23,7 +23,7 @@ namespace powheg_dy
         LHAPDF::setPaths(pdfDataLocation);
         m_pdfs = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
 
-        m_phaseSpaceSampler = std::make_unique<PhaseSpaceSampler>(*this);
+        m_phaseSpaceSampler = std::make_unique<BornPhaseSpace>(*this);
         m_emissionGenerator = std::make_unique<EmissionGenerator>(*this);
         m_bornGenerator = std::make_unique<BornEventGenerator>(*this);
         m_eventHandler = std::make_unique<EventHandler>(*this);
@@ -40,20 +40,29 @@ namespace powheg_dy
             m_nEventTrials++;
             
             double rands[3] = { rand(), rand(), rand() };
-            PhaseSpacePoint point = m_phaseSpaceSampler->samplePoint(rands);
-
-            BornEvent bornEvent = m_bornGenerator->computeWeightAndSampleParton(point);
-
-            assert(bornEvent.dSigma <= m_maxDSigma);
+            BornPhaseSpacePt point = m_phaseSpaceSampler->samplePoint(rands);
+            m_bornGenerator->computeWeightAndSampleChannel(point);
+            m_phaseSpaceSampler->reconstructMomenta(point);
+            
+            assert(point.weight <= m_maxWeight);
             
             // Unweight: Accept the event at the rate of it's weight over the reference weight
             double u = rand(0.0, 1.0);
-            if (u < bornEvent.dSigma / m_maxDSigma)
-            {
-                Emission emission = m_emissionGenerator->generateEmission(point, bornEvent);
-                Event event = m_eventHandler->reconstructEvent(point, bornEvent, emission);
-                
-                m_events.push_back(event);
+            if (u < point.weight / m_maxWeight)
+            {   
+                if (bornOnly())
+                {
+                    Event event = m_eventHandler->reconstructEvent(point, Emission().reject());
+
+                    m_events.push_back(event);
+                }
+                else
+                {
+                    Emission emission = m_emissionGenerator->generateEmission(point);
+                    Event event = m_eventHandler->reconstructEvent(point, emission);
+
+                    m_events.push_back(event);
+                }
             }
         }
 
@@ -69,20 +78,20 @@ namespace powheg_dy
         FourVector sum = event.p1Out + event.p2Out;
         double pT = sqrt(sum.pX*sum.pX + sum.pY*sum.pY);
 
-        return std::to_string(event.point.mBoson) + ", "
+        return std::to_string(event.point.mB) + ", "
             + std::to_string(event.point.cosTh) + ", "
             + std::to_string(pT);
     }
 
     void Process::writeToFile(const std::string& filePath) const
     {
-        std::string fileContent;
+        // std::string fileContent;
             
-        for (const auto& event : m_events)
-            fileContent.append(toString(event) + '\n');
+        // for (const auto& event : m_events)
+        //     fileContent.append(toString(event) + '\n');
         
-        File file = File(filePath);
-        file.write(fileContent);
+        // File file = File(filePath);
+        // file.write(fileContent);
 
         LesHouchesSerializer(*this).serialize(filePath);
     }
@@ -93,7 +102,7 @@ namespace powheg_dy
         m_events.reserve(__N_ACCEPTED_EVENTS);
         m_nEventTrials = 0;
         m_totalCrossSection = 0.0;
-        m_maxDSigma = 0.0;
+        m_maxWeight = 0.0;
     }
 
     void Process::_determineMaxWeight()
@@ -103,19 +112,19 @@ namespace powheg_dy
         for (int i = 0; i < __N_TRIAL_EVENTS; i++)
         {   
             double rands[3] = { rand(), rand(), rand() };
-            PhaseSpacePoint point = m_phaseSpaceSampler->samplePoint(rands);
-            BornEvent bornEvent = m_bornGenerator->computeWeightAndSampleParton(point);
+            BornPhaseSpacePt point = m_phaseSpaceSampler->samplePoint(rands);
+            m_bornGenerator->computeWeightAndSampleChannel(point);
 
-            if (bornEvent.dSigma > max_dSigma)
-                max_dSigma = bornEvent.dSigma;
+            if (point.weight > max_dSigma)
+                max_dSigma = point.weight;
         }
 
-        m_maxDSigma = __SECURITY_FACTOR * max_dSigma;
+        m_maxWeight = __SECURITY_FACTOR * max_dSigma;
     }
 
     void Process::_computeTotalCrossSection()
     {
-        m_totalCrossSection = m_maxDSigma * __N_ACCEPTED_EVENTS / m_nEventTrials * GEV2_TO_PB();
+        m_totalCrossSection = m_maxWeight * __N_ACCEPTED_EVENTS / m_nEventTrials * GEV2_TO_PB();
     }
 
 } // namespace powheg_dy

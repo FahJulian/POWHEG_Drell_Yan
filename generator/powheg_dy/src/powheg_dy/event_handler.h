@@ -13,13 +13,12 @@ namespace powheg_dy
 
     struct Event
     {
-        Event(const PhaseSpacePoint& point, const BornEvent& bornEvent, const Emission& emission)
-            : point(point), bornEvent(bornEvent), emission(emission)
+        Event(const BornPhaseSpacePt& point, const Emission& emission)
+            : point(point), emission(emission)
         {
         }
 
-        const PhaseSpacePoint point;
-        const BornEvent bornEvent;
+        const BornPhaseSpacePt point;
         const Emission emission;
         FourVector p1In;
         FourVector p2In;
@@ -37,10 +36,10 @@ namespace powheg_dy
         {
         }
 
-        Event reconstructEvent(const PhaseSpacePoint& point, const BornEvent& bornEvent, const Emission& emission) const;
+        Event reconstructEvent(const BornPhaseSpacePt& point, const Emission& emission) const;
 
     private:
-        double _solveBosonRapidityFromMasslessGluon(const PhaseSpacePoint& point, const Emission& emission, double x1PreEm, double x2PreEm, double mT) const;
+        double _solveBosonRapidityFromMasslessGluon(const BornPhaseSpacePt& point, const Emission& emission, double x1PreEm, double x2PreEm, double mT) const;
 
     private:
         const Process& m_process;

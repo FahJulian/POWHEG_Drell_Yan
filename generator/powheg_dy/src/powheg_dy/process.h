@@ -23,6 +23,7 @@ namespace powheg_dy
 
         virtual inline int nBornLegs() const = 0;
         virtual inline int nRealLegs() const = 0;
+        virtual inline bool bornOnly() const = 0;
         virtual inline double mMin() const = 0;
         virtual inline double mMax() const = 0;
         virtual inline double sqrtS() const = 0;
@@ -63,12 +64,12 @@ namespace powheg_dy
         void _computeTotalCrossSection();
 
     private:
-        std::unique_ptr<PhaseSpaceSampler> m_phaseSpaceSampler;
+        std::unique_ptr<BornPhaseSpace> m_phaseSpaceSampler;
         std::unique_ptr<EmissionGenerator> m_emissionGenerator;
         std::unique_ptr<BornEventGenerator> m_bornGenerator;
         std::unique_ptr<EventHandler> m_eventHandler;
         int m_nEventTrials = 0;
-        double m_maxDSigma = 0.0;
+        double m_maxWeight = 0.0;
         double m_totalCrossSection = 0.0;   // pb
 
         std::unique_ptr<LHAPDF::PDF> m_pdfs;

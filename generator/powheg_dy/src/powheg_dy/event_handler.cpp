@@ -12,29 +12,29 @@ namespace powheg_dy
 
     } // namespace
 
-    Event EventHandler::reconstructEvent(const PhaseSpacePoint& point, 
-            const BornEvent& bornEvent, const Emission& emission) const
+    Event EventHandler::reconstructEvent(const BornPhaseSpacePt& point, 
+            const Emission& emission) const
     {
-        Event event(point, bornEvent, emission);
+        Event event(point, emission);
 
         // In the Born event, \cos(\theta) is the angle between the quark and the lepton. Here, 
         // we need the angle between leg 1 and the lepton. Thus, if the quark is actually on 
         // leg 2, we need to flip the sign of \cos(\theta).
-        const double cosThLeg1 = bornEvent.partonId > 0 ? point.cosTh : -point.cosTh;
+        const double cosThLeg1 = point.channel.id1 > 0 ? point.cosTh : -point.cosTh;
 
         const double pT = sqrt(emission.t);
         const double mT = sqrt(point.sHat + emission.t);
 
-        const double x1PreEm = point.x1 / (emission.leg == 1 ? emission.z : 1.0);
-        const double x2PreEm = point.x2 / (emission.leg == 1 ? 1.0 : emission.z);
+        const double x1PreEm = point.x1Bar / (emission.leg == 1 ? emission.z : 1.0);
+        const double x2PreEm = point.x2Bar / (emission.leg == 1 ? 1.0 : emission.z);
 
-        const double yBoson = _solveBosonRapidityFromMasslessGluon(point, emission, x1PreEm, x2PreEm, mT);
+        const double yB = _solveBosonRapidityFromMasslessGluon(point, emission, x1PreEm, x2PreEm, mT);
 
         event.pBoson = {
-            mT * cosh(yBoson),
+            mT * cosh(yB),
             -pT * cos(emission.phi),
             -pT * sin(emission.phi),
-            mT * sinh(yBoson)
+            mT * sinh(yB)
         };
 
         event.p1In = {
@@ -76,11 +76,11 @@ namespace powheg_dy
         return event;
     }
 
-    double EventHandler::_solveBosonRapidityFromMasslessGluon(const PhaseSpacePoint& point, const Emission& emission, 
+    double EventHandler::_solveBosonRapidityFromMasslessGluon(const BornPhaseSpacePt& point, const Emission& emission, 
         double x1PreEm, double x2PreEm, double mT) const
         {
             if (emission.rejected)
-                return point.yBoson;
+                return point.yB;
 
             double a = x1PreEm * m_process.sqrtS();
             double b = x2PreEm * m_process.sqrtS();
