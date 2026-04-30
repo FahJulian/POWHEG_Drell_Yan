@@ -9,12 +9,6 @@ namespace powheg_dy
 {
     class Process;
 
-    struct BornEvent
-    {
-        int partonId;
-        double dSigma;
-    };
-
     class BornEventGenerator
     {
     public:

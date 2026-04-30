@@ -1,4 +1,6 @@
 #include "./powheg_dy/process.h"
+#include "./powheg_dy/rand.h"
+#include "./powheg_dy/real_phase_space.h"
 
 const std::string exportFilePath = "/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/events.lhe";
 const std::string pdfDataLocation = "/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/lhapdf";

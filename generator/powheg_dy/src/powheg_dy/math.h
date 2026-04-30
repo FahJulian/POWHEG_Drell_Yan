@@ -7,6 +7,9 @@ namespace powheg_dy
     int abs(int x);
     double abs(double x);
 
+    int max(int x, int y);
+    double max(double x, double y);
+
     double log(double x);
     double exp(double x);
 

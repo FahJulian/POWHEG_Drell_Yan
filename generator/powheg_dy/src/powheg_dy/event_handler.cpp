@@ -8,7 +8,7 @@ namespace powheg_dy
 {
     namespace 
     {
-        static constexpr double __ALLOWED_KINEMATIC_MISMATCH = 1.0e-10;
+        static constexpr double __ALLOWED_MISMATCH = 1.0e-10;
 
     } // namespace
 
@@ -63,15 +63,15 @@ namespace powheg_dy
 
         const FourVector p2Rest = { p1Rest.e, -p1Rest.getThreeVec() };
 
-        event.p1Out = p1Rest.boost(event.pBoson);
-        event.p2Out = p2Rest.boost(event.pBoson);
+        event.p1Out = p1Rest.boost(event.pBoson.getBeta());
+        event.p2Out = p2Rest.boost(event.pBoson.getBeta());
         event.pGluon = event.p1In + event.p2In - event.pBoson;
 
         const FourVector totalIn = event.p1In + event.p2In;
         const FourVector totalOut = event.p1Out + event.p2Out + event.pGluon;
         double mismatch = (totalIn - totalOut) * (totalIn - totalOut) / point.sHat;
 
-        assert(abs(mismatch) < __ALLOWED_KINEMATIC_MISMATCH);
+        assert(abs(mismatch) < __ALLOWED_MISMATCH);
 
         return event;
     }

@@ -26,7 +26,7 @@ namespace powheg_dy
 
         // angular configuration of the leptons
         double cosTh = 0.0;
-        const double phi = 0.0;     // everything is invariant under rotations around the beam axis. 
+        double phi = 0.0;     // everything is invariant under rotations around the beam axis. 
 
         BornChannel channel;
 

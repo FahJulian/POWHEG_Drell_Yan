@@ -5,6 +5,8 @@
 #include "powheg_dy/process.h"
 #include "powheg_dy/matrix_elements.h"
 
+#include <cmath>
+
 namespace powheg_dy
 {
     namespace
@@ -21,6 +23,8 @@ namespace powheg_dy
         point.weight = 0.0;
         for (auto [partonId, dSigma] : channels)
             point.weight += dSigma;
+
+        assert(point.weight >= 0.0 && std::isfinite(point.weight));
 
         // Sample the parton channel by their relative contribution to dSigma
         double u = rand(0.0, point.weight);

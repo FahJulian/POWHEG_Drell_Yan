@@ -84,14 +84,23 @@ namespace powheg_dy
         return (*this) * (*this);
     }
 
+    double FourVector::rapidity() const
+    {
+        return 0.5 * log((e + pZ) / (e - pZ));
+    }
+
     double ThreeVector::square() const 
     {
         return (*this) * (*this);
     }
 
-    FourVector FourVector::boost(const FourVector& delta) const
+    ThreeVector FourVector::getBeta() const
     {
-        ThreeVector beta = delta.getThreeVec() / delta.e;
+        return getThreeVec() / e;
+    }
+
+    FourVector FourVector::boost(const ThreeVector& beta) const
+    {
         double betaSq = beta.square();
         double gamma = 1.0 / sqrt(1.0 - betaSq);
 

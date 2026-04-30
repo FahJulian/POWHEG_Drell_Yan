@@ -14,6 +14,16 @@ namespace powheg_dy
         return x > 0.0 ? x : -x; 
     }
 
+    int max(int x, int y) 
+    { 
+        return x > y ? x : y; 
+    }
+
+    double max(double x, double y) 
+    { 
+        return x > y ? x : y; 
+    }
+
     double log(double x)
     {
         return std::log(x);

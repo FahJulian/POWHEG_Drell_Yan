@@ -78,8 +78,10 @@ namespace powheg_dy
         FourVector operator-() const;
 
         ThreeVector getThreeVec() const;
+        ThreeVector getBeta() const;
+        double rapidity() const;
         double square() const;
-        FourVector boost(const FourVector& delta) const;
+        FourVector boost(const ThreeVector& beta) const;
     };
 
     FourVector operator+(const FourVector& v1, const FourVector& v2);
