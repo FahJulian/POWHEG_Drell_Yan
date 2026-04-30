@@ -11,7 +11,7 @@ class DYProcess : public powheg_dy::Process
 public:
     inline int nBornLegs() const override { return 4; }
     inline int nRealLegs() const override { return 5; }
-    inline bool bornOnly() const override { return true; }
+    inline bool bornOnly() const override { return false; }
     inline double mMin() const override { return 75; }
     inline double mMax() const override { return 105; }
     inline double sqrtS() const override { return 8.0e3; }

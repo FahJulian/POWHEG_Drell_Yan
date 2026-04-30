@@ -41,6 +41,7 @@ namespace powheg_dy
         virtual inline double KAPPA() const { return 1.0 / (4.0 * S_W_SQ() * C_W_SQ()); }
         virtual inline double LAMBDA_SQ_QCD() const { return 0.2*0.2; }
         virtual inline double C_F() const { return 4.0 / 3.0; }
+        virtual inline double T_F() const { return 0.5; }
 
         // charged lepton axial and vector couplings
         virtual inline double A_L() const { return -0.5; }

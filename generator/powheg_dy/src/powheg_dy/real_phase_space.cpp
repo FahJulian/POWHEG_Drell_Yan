@@ -44,7 +44,7 @@ namespace powheg_dy
         }
 
         double __radJacobian(
-            const RealPhaseSpacePt& real,
+            const RealPhSpPt& real,
             const RadiationVariables& rad
         ) 
         {
@@ -57,7 +57,7 @@ namespace powheg_dy
 
         void __assertRealKinematics(
             const BornPhaseSpacePt& born,
-            const RealPhaseSpacePt& real
+            const RealPhSpPt& real
         ) 
         {
             const FourVector totalIn = real.p1In + real.p2In;
@@ -83,12 +83,12 @@ namespace powheg_dy
 
     } // namespace 
 
-    RealPhaseSpacePt FKSRealPhaseSpace::reconstruct(
+    RealPhSpPt FKSRealPhaseSpace::reconstruct(
         const BornPhaseSpacePt& born, 
         const RadiationVariables& rad
     ) const
     {
-        RealPhaseSpacePt real;
+        RealPhSpPt real;
         real.underlyingBorn = born;
         real.rad = rad;
 

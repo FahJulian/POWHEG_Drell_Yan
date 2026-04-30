@@ -15,7 +15,7 @@ namespace powheg_dy
         double phi = 0.0;
     };
 
-    struct RealPhaseSpacePt
+    struct RealPhSpPt
     {
         BornPhaseSpacePt underlyingBorn;
         RadiationVariables rad;
@@ -45,7 +45,7 @@ namespace powheg_dy
         {
         }
 
-        RealPhaseSpacePt reconstruct(
+        RealPhSpPt reconstruct(
             const BornPhaseSpacePt& born, 
             const RadiationVariables& rad
         ) const;
