@@ -11,9 +11,9 @@ namespace powheg_dy
 
     } // namespace
 
-    BornPhaseSpacePt BornPhaseSpace::samplePoint(double rands[3]) const
+    BornPhSpPt BornPhaseSpace::samplePoint(double rands[3]) const
     {
-        BornPhaseSpacePt point;
+        BornPhSpPt point;
 
         const double zMass = m_process.zMass();
         const double zWidth = m_process.zWidth();
@@ -74,7 +74,7 @@ namespace powheg_dy
         return point;
     }
 
-    void BornPhaseSpace::reconstructMomenta(BornPhaseSpacePt& point) const
+    void BornPhaseSpace::reconstructMomenta(BornPhSpPt& point) const
     {
         const double cosThLeg1 = point.channel.id1 > 0 ? point.cosTh : -point.cosTh;
         

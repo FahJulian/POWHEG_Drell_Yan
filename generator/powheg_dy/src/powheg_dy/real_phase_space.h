@@ -17,7 +17,7 @@ namespace powheg_dy
 
     struct RealPhSpPt
     {
-        BornPhaseSpacePt underlyingBorn;
+        BornPhSpPt underlyingBorn;
         RadiationVariables rad;
 
         double x1 = 0.0;
@@ -46,12 +46,12 @@ namespace powheg_dy
         }
 
         RealPhSpPt reconstruct(
-            const BornPhaseSpacePt& born, 
+            const BornPhSpPt& born, 
             const RadiationVariables& rad
         ) const;
 
         double xiMax(
-            const BornPhaseSpacePt& born,
+            const BornPhSpPt& born,
             double y
         ) const;
 

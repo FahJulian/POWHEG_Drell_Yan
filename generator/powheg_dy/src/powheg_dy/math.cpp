@@ -43,6 +43,11 @@ namespace powheg_dy
     {
         return std::pow(x, n);
     }
+
+    double pow(double x, double y)
+    {
+        return std::pow(x, y);
+    }
     
     double sin(double x)
     {

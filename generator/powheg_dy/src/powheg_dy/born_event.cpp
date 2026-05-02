@@ -3,7 +3,7 @@
 #include "powheg_dy/rand.h"
 #include "powheg_dy/math.h"
 #include "powheg_dy/process.h"
-#include "powheg_dy/matrix_elements.h"
+#include "powheg_dy/matrix_elements/matrix_elements.h"
 
 #include <cmath>
 
@@ -15,7 +15,7 @@ namespace powheg_dy
 
     } // namespace
 
-    void BornEventGenerator::computeWeightAndSampleChannel(BornPhaseSpacePt& point) const
+    void BornEventGenerator::computeWeightAndSampleChannel(BornPhSpPt& point) const
     {
         // For each quark flavour, compute the individual contribution to the cross section
         auto channels = _computePartonChannelContributions(point);
@@ -38,7 +38,7 @@ namespace powheg_dy
         }
     }
 
-    std::vector<std::tuple<BornChannel, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhaseSpacePt& point) const
+    std::vector<std::tuple<BornChannel, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhSpPt& point) const
     {
         double physicsPrefactor = m_process.ALPHA() * m_process.ALPHA() / 2.0 / m_process.NC() 
             / m_process.sqrtS() / m_process.sqrtS() / point.mB;

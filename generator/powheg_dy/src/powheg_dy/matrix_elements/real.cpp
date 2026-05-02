@@ -64,7 +64,7 @@ namespace powheg_dy
     {
         RealOverBornContributions out;
 
-        const BornPhaseSpacePt& born = real.underlyingBorn;
+        const BornPhSpPt& born = real.underlyingBorn;
         const int id1 = born.channel.id1;
         const int id2 = born.channel.id2;
 
@@ -79,8 +79,8 @@ namespace powheg_dy
         const double fReal2G  = process.getPdfs()->xfxQ2(21, real.x2, muF2) / real.x2; 
 
         const double lumQQbar = fReal1Q * fReal2QB;
-        const double lumGQbar = fReal1G  * fReal2QB;
-        const double lumQG    = fReal1Q  * fReal2G;
+        const double lumGQbar = fReal1G * fReal2QB;
+        const double lumQG    = fReal1Q * fReal2G;
 
         out.qqbar = lumQQbar / bornLuminosity * realOverBornQQbar(process, real, muR2);
         out.gqbar = lumGQbar / bornLuminosity * realOverBornGQbar(process, real, muR2);
@@ -108,5 +108,5 @@ namespace powheg_dy
     {
         return real.radJacobian * realOverBorn(process, real, muF2, muR2);
     }
-    
+
 } // namespace powheg_dy

@@ -18,10 +18,10 @@ namespace powheg_dy
         {
         }
 
-        void computeWeightAndSampleChannel(BornPhaseSpacePt& point) const;
+        void computeWeightAndSampleChannel(BornPhSpPt& point) const;
 
     private:
-        std::vector<std::tuple<BornChannel, double>> _computePartonChannelContributions(const BornPhaseSpacePt& point) const;
+        std::vector<std::tuple<BornChannel, double>> _computePartonChannelContributions(const BornPhSpPt& point) const;
 
     private:
         const Process& m_process;

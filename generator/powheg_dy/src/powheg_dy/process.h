@@ -1,8 +1,11 @@
 #pragma once
 
 #include "powheg_dy/math.h"
-#include "powheg_dy/event_handler.h"
+#include "powheg_dy/event.h"
+#include "powheg_dy/born_event.h"
 #include "powheg_dy/phase_space.h"
+#include "powheg_dy/real_phase_space.h"
+#include "powheg_dy/emission_generator.h"
 
 #include <memory>
 #include <vector>
@@ -28,6 +31,7 @@ namespace powheg_dy
         virtual inline double mMax() const = 0;
         virtual inline double sqrtS() const = 0;
         virtual inline double S() const = 0;
+        virtual inline double pt2Cutoff() const = 0;
 
         virtual inline double zMass() const { return 91.1876; }
         virtual inline double zWidth() const { return 2.4952; }
@@ -41,6 +45,7 @@ namespace powheg_dy
         virtual inline double KAPPA() const { return 1.0 / (4.0 * S_W_SQ() * C_W_SQ()); }
         virtual inline double LAMBDA_SQ_QCD() const { return 0.2*0.2; }
         virtual inline double C_F() const { return 4.0 / 3.0; }
+        virtual inline double C_A() const { return 3.0; }
         virtual inline double T_F() const { return 0.5; }
 
         // charged lepton axial and vector couplings
@@ -65,10 +70,10 @@ namespace powheg_dy
         void _computeTotalCrossSection();
 
     private:
-        std::unique_ptr<BornPhaseSpace> m_phaseSpaceSampler;
-        std::unique_ptr<EmissionGenerator> m_emissionGenerator;
+        std::unique_ptr<BornPhaseSpace> m_bornPhSp;
+        std::unique_ptr<FKSRealPhaseSpace> m_realPhSp;
         std::unique_ptr<BornEventGenerator> m_bornGenerator;
-        std::unique_ptr<EventHandler> m_eventHandler;
+        std::unique_ptr<EmissionGenerator> m_emissionGenerator;
         int m_nEventTrials = 0;
         double m_maxWeight = 0.0;
         double m_totalCrossSection = 0.0;   // pb

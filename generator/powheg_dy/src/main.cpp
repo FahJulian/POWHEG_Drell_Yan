@@ -9,6 +9,7 @@ const std::string pdfSet = "NNPDF40_lo_as_01180";
 class DYProcess : public powheg_dy::Process
 {   
 public:
+    inline double pt2Cutoff() const override { return 2.0; }     // GeV^2
     inline int nBornLegs() const override { return 4; }
     inline int nRealLegs() const override { return 5; }
     inline bool bornOnly() const override { return false; }

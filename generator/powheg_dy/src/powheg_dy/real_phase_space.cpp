@@ -16,7 +16,7 @@ namespace powheg_dy
         };
 
         __IncomingFractions __computeRealFractions(
-            const BornPhaseSpacePt& born,
+            const BornPhSpPt& born,
             const RadiationVariables& rad
         )
         {
@@ -33,7 +33,7 @@ namespace powheg_dy
         }
 
         double __kt2(
-            const BornPhaseSpacePt& born,
+            const BornPhSpPt& born,
             const RadiationVariables& rad
         ) 
         {
@@ -56,7 +56,7 @@ namespace powheg_dy
         }
 
         void __assertRealKinematics(
-            const BornPhaseSpacePt& born,
+            const BornPhSpPt& born,
             const RealPhSpPt& real
         ) 
         {
@@ -84,7 +84,7 @@ namespace powheg_dy
     } // namespace 
 
     RealPhSpPt FKSRealPhaseSpace::reconstruct(
-        const BornPhaseSpacePt& born, 
+        const BornPhSpPt& born, 
         const RadiationVariables& rad
     ) const
     {
@@ -139,7 +139,7 @@ namespace powheg_dy
     }
 
     double FKSRealPhaseSpace::xiMax(
-        const BornPhaseSpacePt& born,
+        const BornPhSpPt& born,
         double y
     ) const
     {

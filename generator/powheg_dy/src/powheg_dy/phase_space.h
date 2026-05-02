@@ -16,7 +16,7 @@ namespace powheg_dy
         int flavour = 0;
     };
 
-    struct BornPhaseSpacePt
+    struct BornPhSpPt
     {
         // INDEPENDENT VARIABLES
 
@@ -57,8 +57,8 @@ namespace powheg_dy
         {
         }
 
-        BornPhaseSpacePt samplePoint(double rands[3]) const;
-        void reconstructMomenta(BornPhaseSpacePt& point) const ;
+        BornPhSpPt samplePoint(double rands[3]) const;
+        void reconstructMomenta(BornPhSpPt& point) const ;
         
     private:
         const Process& m_process;

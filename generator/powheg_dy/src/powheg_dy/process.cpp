@@ -13,7 +13,7 @@ namespace powheg_dy
     namespace 
     {
         static constexpr int __N_TRIAL_EVENTS = 5e5;
-        static constexpr int __N_ACCEPTED_EVENTS = 5e4;
+        static constexpr int __N_ACCEPTED_EVENTS = 5e3;
         static constexpr double __SECURITY_FACTOR = 1.1;
 
     } // namespace
@@ -23,10 +23,10 @@ namespace powheg_dy
         LHAPDF::setPaths(pdfDataLocation);
         m_pdfs = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
 
-        m_phaseSpaceSampler = std::make_unique<BornPhaseSpace>(*this);
+        m_bornPhSp = std::make_unique<BornPhaseSpace>(*this);
+        m_realPhSp = std::make_unique<FKSRealPhaseSpace>(*this);
         m_emissionGenerator = std::make_unique<EmissionGenerator>(*this);
         m_bornGenerator = std::make_unique<BornEventGenerator>(*this);
-        m_eventHandler = std::make_unique<EventHandler>(*this);
     }
 
     void Process::run()
@@ -40,29 +40,25 @@ namespace powheg_dy
             m_nEventTrials++;
             
             double rands[3] = { rand(), rand(), rand() };
-            BornPhaseSpacePt point = m_phaseSpaceSampler->samplePoint(rands);
-            m_bornGenerator->computeWeightAndSampleChannel(point);
-            m_phaseSpaceSampler->reconstructMomenta(point);
+            BornPhSpPt born = m_bornPhSp->samplePoint(rands);
+            m_bornGenerator->computeWeightAndSampleChannel(born);
+            m_bornPhSp->reconstructMomenta(born);
             
-            assert(point.weight <= m_maxWeight);
+            assert(born.weight <= m_maxWeight);
             
             // Unweight: Accept the event at the rate of it's weight over the reference weight
             double u = rand(0.0, 1.0);
-            if (u < point.weight / m_maxWeight)
+            if (u < born.weight / m_maxWeight)
             {   
-                if (bornOnly())
-                {
-                    Event event = m_eventHandler->reconstructEvent(point, Emission().reject());
+                Emission emission = bornOnly() ? Emission().reject()
+                    : m_emissionGenerator->generateEmission(born);
+                    
+                RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
 
-                    m_events.push_back(event);
-                }
-                else
-                {
-                    Emission emission = m_emissionGenerator->generateEmission(point);
-                    Event event = m_eventHandler->reconstructEvent(point, emission);
+                m_events.push_back({ born, real, emission });
 
-                    m_events.push_back(event);
-                }
+                if (m_events.size() % 100 == 0)
+                    std::cout << m_events.size() << " Events generated." << std::endl;
             }
         }
 
@@ -75,11 +71,11 @@ namespace powheg_dy
 
     std::string toString(const Event& event)
     {
-        FourVector sum = event.p1Out + event.p2Out;
+        FourVector sum = event.real.pLMinus + event.real.pLPlus;
         double pT = sqrt(sum.pX*sum.pX + sum.pY*sum.pY);
 
-        return std::to_string(event.point.mB) + ", "
-            + std::to_string(event.point.cosTh) + ", "
+        return std::to_string(event.born.mB) + ", "
+            + std::to_string(event.born.cosTh) + ", "
             + std::to_string(pT);
     }
 
@@ -112,7 +108,7 @@ namespace powheg_dy
         for (int i = 0; i < __N_TRIAL_EVENTS; i++)
         {   
             double rands[3] = { rand(), rand(), rand() };
-            BornPhaseSpacePt point = m_phaseSpaceSampler->samplePoint(rands);
+            BornPhSpPt point = m_bornPhSp->samplePoint(rands);
             m_bornGenerator->computeWeightAndSampleChannel(point);
 
             if (point.weight > max_dSigma)

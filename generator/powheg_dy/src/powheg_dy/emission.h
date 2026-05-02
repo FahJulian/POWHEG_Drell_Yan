@@ -1,41 +1,44 @@
-# pragma once
- 
-#include "powheg_dy/born_event.h"
-#include "powheg_dy/phase_space.h"
+#pragma once
+
+#include "real_phase_space.h"
 
 namespace powheg_dy
 {
-    class Process;
-    class BornEventGenerator;
-    
+    enum class RadiationRegion
+    {
+        None,
+
+        // Initial-state singular direction.
+        // Plus  means y -> +1, i.e. emitted parton collinear to incoming leg 1.
+        // Minus means y -> -1, i.e. emitted parton collinear to incoming leg 2.
+        Plus,
+        Minus
+    };
+
     struct Emission
     {
-        int leg;
-        double t;
-        double z;
-        double phi;
+        RadiationVariables rad;
+
+        RadiationRegion reg = RadiationRegion::None;
+        double kt2 = 0.0;
+
+        double exactDensity = 0.0;
+        double upperDensity = 0.0;
+        double acceptanceRatio = 0.0;
 
         bool rejected = false;
 
-        Emission reject() { t = 0.0; z = 1.0; phi = 0.0; rejected = true; return *this; }
-    };
-
-    class EmissionGenerator
-    {
-    public:
-        EmissionGenerator(const Process& process)
-            : m_process(process)
+        Emission reject()
         {
+            rad = {};
+            reg = RadiationRegion::None;
+            kt2 = 0.0;
+            exactDensity = 0.0;
+            upperDensity = 0.0;
+            acceptanceRatio = 0.0;
+            rejected = true;
+            return *this;
         }
-
-    public:
-        Emission generateEmission(const BornPhaseSpacePt& point) const;
-
-    private:
-        const Process& m_process;
-    
-    private:
-        Emission _generateEmissionOnLeg(const BornPhaseSpacePt& point, int leg) const;
     };
 
 } // namespace powheg_dy

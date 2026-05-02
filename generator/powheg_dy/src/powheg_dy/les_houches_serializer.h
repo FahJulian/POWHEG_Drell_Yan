@@ -1,6 +1,6 @@
 #pragma once
  
-#include "powheg_dy/event_handler.h"
+#include "powheg_dy/event.h"
 
 #include <string>
 #include <sstream>

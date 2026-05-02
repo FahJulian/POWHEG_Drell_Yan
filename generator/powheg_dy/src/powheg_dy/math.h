@@ -15,6 +15,7 @@ namespace powheg_dy
 
     double sqrt(double x);
     double pow(double x, int n);
+    double pow(double x, double y);
     
     double sin(double x);
     double cos(double x);
