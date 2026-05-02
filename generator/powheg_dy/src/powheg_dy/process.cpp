@@ -57,13 +57,22 @@ namespace powheg_dy
 
                 m_events.push_back({ born, real, emission });
 
-                if (m_events.size() % 100 == 0)
+                if (m_events.size() % 1000 == 0)
                     std::cout << m_events.size() << " Events generated." << std::endl;
             }
         }
 
+        double rejected = 0.0;
+        for (const auto& event : m_events)
+        {
+            if (event.emission.rejected)
+                rejected++;
+        }
+
+        std::cout << "No emission probability: " << rejected / m_events.size() << std::endl;
+                
         std::cout << "Acceptance ratio: " << double(__N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
-        
+                
         _computeTotalCrossSection();
         
         std::cout << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
@@ -81,15 +90,15 @@ namespace powheg_dy
 
     void Process::writeToFile(const std::string& filePath) const
     {
-        // std::string fileContent;
+        std::string fileContent;
             
-        // for (const auto& event : m_events)
-        //     fileContent.append(toString(event) + '\n');
+        for (const auto& event : m_events)
+            fileContent.append(toString(event) + '\n');
         
-        // File file = File(filePath);
-        // file.write(fileContent);
+        File file = File(filePath);
+        file.write(fileContent);
 
-        LesHouchesSerializer(*this).serialize(filePath);
+        // LesHouchesSerializer(*this).serialize(filePath);
     }
 
     void Process::_clear()

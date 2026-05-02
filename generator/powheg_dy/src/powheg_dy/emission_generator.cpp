@@ -17,7 +17,7 @@ namespace
     static constexpr int __MAX_TRIALS = 100000;
 
     constexpr double __LAMBDA2_OVEREST_FACTOR = 4.0;
-    constexpr double __N_Q = 3.0;
+    constexpr double __N_Q = 8.0;
     constexpr int __MAX_TRIALS_V = 5000;
 
     double __alphaSSudakov(const Process& process, double qSq, int nF)
@@ -241,7 +241,7 @@ namespace
 
     double EmissionGenerator::_VExact(double pt2, double sHat, int nF) const 
     {
-        const double prefactor = PI * __N_Q;      // One emission per region (y pos, y neg) generated, so only half the real prefactor
+        const double prefactor = PI * __N_Q;
         const double alphaS = __alphaSSudakov(m_process, pt2, nF);
 
         const double ratio = pt2 / sHat;
@@ -263,7 +263,7 @@ namespace
     double EmissionGenerator::_VTildeLog(double logPt2, double sHat, int nF) const 
     {
         const double beta0 = (33.0 - 2.0 * nF) / 12.0 / PI;
-        const double prefactor = PI * __N_Q / 2.0 / beta0;          // Only half the real prefactor
+        const double prefactor = PI * __N_Q / 2.0 / beta0;        
         const double logLambda2 = log(__LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD());
 
         const double oneMinusRho = 1.0 - sHat / m_process.S();
@@ -278,7 +278,7 @@ namespace
     double EmissionGenerator::_integrateVTildeLog(double logPt2, double logKtmax2, double sHat, int nF) const 
     {
         const double beta0 = (33.0 - 2.0 * nF) / 12.0 / PI;
-        const double prefactor = PI * __N_Q / 2.0 / beta0;          // Only half the real prefactor 
+        const double prefactor = PI * __N_Q / 2.0 / beta0;          
         const double logLambda2 = log(__LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD());
 
         const double oneMinusRho = 1.0 - sHat / m_process.S();
