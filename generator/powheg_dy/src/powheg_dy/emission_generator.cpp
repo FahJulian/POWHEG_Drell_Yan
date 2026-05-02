@@ -3,7 +3,6 @@
 #include "powheg_dy/math.h"
 #include "powheg_dy/rand.h"
 #include "powheg_dy/process.h"
-#include "powheg_dy/matrix_elements/matrix_elements.h"
 
 #include <boost/math/tools/roots.hpp>
 #include <boost/math/tools/toms748_solve.hpp>
@@ -29,22 +28,9 @@ namespace
         return alphaS * (1.0 + alphaS / 2.0 / PI * bracket);
     }
 
-    double __regionSign(RadiationRegion region)
-    {
-        switch (region)
-        {
-            case RadiationRegion::Plus:  return +1.0;
-            case RadiationRegion::Minus: return -1.0;
-            case RadiationRegion::None:  return  0.0;
-        }
-
-        assert(false);
-        return 0.0;
-    }
-
     Emission __makeAcceptedEmission(
         const RealPhSpPt& real,
-        RadiationRegion region,
+        RadiationChannel channel,
         double exact,
         double upper,
         double ratio
@@ -53,7 +39,7 @@ namespace
         Emission emission;
 
         emission.rad = real.rad;
-        emission.reg = region;
+        emission.channel = channel;
         emission.kt2 = real.kt2;
 
         emission.exactDensity = exact;
@@ -65,24 +51,24 @@ namespace
         return emission;
     }
 
-} // namespace
-
-    Emission EmissionGenerator::generateEmission(const BornPhSpPt& born) const 
+    RadiationChannel __chooseChannel(const MatrixElements::RealOverBornContributions& contributions,
+        const BornChannel& bornChannel)
     {
-        // Generate one emission for each region and pick the harder one
+        // Choose radiation channel, i.e. the emitted parton based on relative weight
+        const double u = rand(0.0, contributions.total());
 
-        const Emission plus = _generateCandidate(born, RadiationRegion::Plus);
-        const Emission minus = _generateCandidate(born, RadiationRegion::Minus);
-
-        const double kt2Plus = plus.rejected ? 0.0 : plus.kt2;
-        const double kt2Minus = minus.rejected ? 0.0 : minus.kt2;
-
-        return kt2Plus > kt2Minus ? plus : minus;
+        if (u < contributions.qqbar)
+            return { bornChannel.id1, bornChannel.id2, 21 };
+        else if (u < contributions.qqbar + contributions.gqbar)
+            return { 21, bornChannel.id2, bornChannel.id2 };
+        else
+            return { bornChannel.id1, 21, bornChannel.id1 };
     }
 
-    Emission EmissionGenerator::_generateCandidate(
-        const BornPhSpPt& born,
-        RadiationRegion region
+} // namespace
+
+    Emission EmissionGenerator::generateEmission(
+        const BornPhSpPt& born
     ) const
     {
         double kt2Max = _globalKt2Max(born);
@@ -93,7 +79,7 @@ namespace
             if (kt2Trial < m_process.pt2Cutoff())
                 return Emission().reject();
             
-            RadiationVariables rad = _sampleTrialRadiation(born, region, kt2Trial);
+            const RadiationVariables rad = _sampleTrialRadiation(born, kt2Trial);
 
             const double xiMax = m_realPhaseSpace.xiMax(born, rad.y);
             if (rad.xi <= __XI_EPS || rad.xi >= 1.0 - __XI_EPS || rad.xi >= xiMax)
@@ -102,9 +88,11 @@ namespace
                 continue;
             }
 
-            RealPhSpPt real = m_realPhaseSpace.reconstruct(born, rad);
+            const RealPhSpPt real = m_realPhaseSpace.reconstruct(born, rad);
 
-            const double exact = _exactRadiationDensity(real);
+            const auto contributions = MatrixElements::realOverBornContributions(m_process, real, kt2Trial, kt2Trial);
+
+            const double exact = real.radJacobian * contributions.total();
             const double upper = _upperRadiationDensity(real, kt2Trial);
 
             assert(upper > 0);
@@ -114,9 +102,11 @@ namespace
 
             if (rand() < ratio)
             {
+                auto channel = __chooseChannel(contributions, born.channel);
+
                 return __makeAcceptedEmission(
                     real,
-                    region,
+                    channel,
                     exact,
                     upper,
                     ratio
@@ -137,22 +127,16 @@ namespace
 
     RadiationVariables EmissionGenerator::_sampleTrialRadiation(
         const BornPhSpPt& born,
-        RadiationRegion region,
         double kt2Trial
     ) const
     {
         RadiationVariables rad;
 
         rad.xi = _sampleTrialXi(born, kt2Trial);
-        rad.y = _computeYForRegion(born, kt2Trial, rad.xi, region);
+        rad.y = _sampleY(born, kt2Trial, rad.xi);
         rad.phi = _sampleTrialPhi();
 
         return rad;
-    }
-
-    double EmissionGenerator::_exactRadiationDensity(const RealPhSpPt& real) const
-    {
-        return real.radJacobian * MatrixElements::realOverBorn(m_process, real, real.kt2, real.kt2);
     }
 
     double EmissionGenerator::_upperRadiationDensity(const RealPhSpPt& real, double kt2Trial) const
@@ -189,12 +173,13 @@ namespace
         return xiPlus + bracket * bracket / 4.0;
     }
 
-    double EmissionGenerator::_computeYForRegion(const BornPhSpPt& born, double pT2, double xi, RadiationRegion region) const
+    double EmissionGenerator::_sampleY(const BornPhSpPt& born, double pT2, double xi) const
     {
         const double xiFactor = (1.0 - xi) / xi / xi;
         const double absY = sqrt(1.0 - 4.0 * pT2 / born.sHat * xiFactor);
+        const double sign = rand() > 0.5 ? 1.0 : -1.0;
 
-        return __regionSign(region) * absY;
+        return sign * absY;
     }
 
     // sample a k_T^2 after the procedure describes in Appendix D of ref. [22]

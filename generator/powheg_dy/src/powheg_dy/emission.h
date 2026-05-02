@@ -4,22 +4,18 @@
 
 namespace powheg_dy
 {
-    enum class RadiationRegion
+    struct RadiationChannel
     {
-        None,
-
-        // Initial-state singular direction.
-        // Plus  means y -> +1, i.e. emitted parton collinear to incoming leg 1.
-        // Minus means y -> -1, i.e. emitted parton collinear to incoming leg 2.
-        Plus,
-        Minus
+        int idPlus = 0;
+        int idMinus = 0;
+        int idRadiated = 0;
     };
 
     struct Emission
     {
         RadiationVariables rad;
+        RadiationChannel channel;
 
-        RadiationRegion reg = RadiationRegion::None;
         double kt2 = 0.0;
 
         double exactDensity = 0.0;
@@ -31,7 +27,7 @@ namespace powheg_dy
         Emission reject()
         {
             rad = {};
-            reg = RadiationRegion::None;
+            channel = { };
             kt2 = 0.0;
             exactDensity = 0.0;
             upperDensity = 0.0;

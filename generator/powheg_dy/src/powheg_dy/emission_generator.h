@@ -4,6 +4,9 @@
 #include "powheg_dy/emission.h"
 #include "powheg_dy/phase_space.h"
 #include "powheg_dy/real_phase_space.h"
+#include "powheg_dy/matrix_elements/matrix_elements.h"
+
+#include <vector>
 
 namespace powheg_dy
 {
@@ -21,23 +24,13 @@ namespace powheg_dy
         Emission generateEmission(const BornPhSpPt& born) const;
 
     private:
-        Emission _generateCandidate(
-            const BornPhSpPt& born,
-            RadiationRegion region
-        ) const;
-
-        double _exactRadiationDensity(const RealPhSpPt& born) const;
         double _upperRadiationDensity(const RealPhSpPt& born, double kt2Trial) const;
 
-        RadiationVariables _sampleTrialRadiation(
-            const BornPhSpPt& born,
-            RadiationRegion region,
-            double kt2Trial
-        ) const;
+        RadiationVariables _sampleTrialRadiation(const BornPhSpPt& born, double kt2Trial) const;
 
         double _sampleTrialKt2(const BornPhSpPt& born, double ptMax2) const;
         double _sampleTrialXi(const BornPhSpPt& born, double pT2) const;
-        double _computeYForRegion(const BornPhSpPt& born, double pT2, double xi, RadiationRegion region) const;
+        double _sampleY(const BornPhSpPt& born, double pT2, double xi) const;
         double _sampleTrialPhi() const;
 
         double _VExact(double pt2, double m2, int nF) const;
