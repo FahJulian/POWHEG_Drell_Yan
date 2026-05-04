@@ -55,7 +55,7 @@ namespace powheg_dy
             double fb = m_process.getPdfs()->xfxQ2(channel.id2, point.x2Bar, point.sHat) / point.x2Bar;
 
             // Compute the event weight
-            double weight = f * fb * MatrixElements::bornAngularFactor(m_process, channel.flavour, point.sHat, point.cosTh);
+            double weight = f * fb * MatrixElements::bornAngularFactorOld(m_process, channel.flavour, point.sHat, point.cosTh);
 
             channels.push_back({ channel, point.jacobian * physicsPrefactor * weight });
         }

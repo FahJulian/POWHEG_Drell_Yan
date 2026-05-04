@@ -10,15 +10,10 @@ namespace powheg_dy
     namespace MatrixElements
     {
         // Angular Born factor without PDFs, flux, phase-space Jacobian, or global \alpha^2 prefactor.
-        double bornAngularFactor(const Process& process, int partonId, double mSq, double cosTheta);
+        double bornAngularFactorOld(const Process& process, int partonId, double mSq, double cosTheta);
 
-        // Finite Drell-Yan virtual correction divided by the Born term, in the same convention
-        // as POWHEG's virtual.f: the global \alpha_s/(2\pi) factor is NOT included here.
         double virtualFiniteOverBorn(double mSq, double muR2);
 
-        // Placeholder for the future true POWHEG Bbar/B. For now this deliberately returns 1.
-        // Do not mistake this for a full NLO K-factor: the integrated real/subtraction and
-        // collinear-remnant terms are not implemented yet.
         double bbarOverBornApproximation(int partonId, double mSq, double muR2);
 
         struct RealOverBornContributions
@@ -33,12 +28,28 @@ namespace powheg_dy
             }
         };
 
+        RealOverBornContributions realOverBornContributionsOld(
+            const Process& process,
+            const RealPhSpPt& real,
+            double muF2,
+            double muR2
+        );
+
+        double realOverBornQQbarOld(const Process& process, const RealPhSpPt& real, double muR2);
+        double realOverBornGQbarOld(const Process& process, const RealPhSpPt& real, double muR2);
+        double realOverBornQGOld(const Process& process, const RealPhSpPt& real, double muR2);
+
+        double realOverBornOld(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
+        double realSudakovDensityOld(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
+
         RealOverBornContributions realOverBornContributions(
             const Process& process,
             const RealPhSpPt& real,
             double muF2,
             double muR2
         );
+
+        double born(const Process& process, const BornPhSpPt& real, double muR2);
 
         double realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2);
         double realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2);

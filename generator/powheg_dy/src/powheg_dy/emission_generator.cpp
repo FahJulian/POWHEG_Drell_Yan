@@ -17,7 +17,7 @@ namespace
     static constexpr int __MAX_TRIALS = 100000;
 
     constexpr double __LAMBDA2_OVEREST_FACTOR = 4.0;
-    constexpr double __N_Q = 8.0;
+    constexpr double __N_Q = 2.5;
     constexpr int __MAX_TRIALS_V = 5000;
 
     double __alphaSSudakov(const Process& process, double qSq, int nF)
@@ -90,7 +90,7 @@ namespace
 
             const RealPhSpPt real = m_realPhaseSpace.reconstruct(born, rad);
 
-            const auto contributions = MatrixElements::realOverBornContributions(m_process, real, kt2Trial, kt2Trial);
+            const auto contributions = MatrixElements::realOverBornContributionsOld(m_process, real, kt2Trial, kt2Trial);
 
             const double exact = real.radJacobian * contributions.total();
             const double upper = _upperRadiationDensity(real, kt2Trial);
@@ -220,7 +220,8 @@ namespace
             const double fLow  = f(uLow);   // >= 0
             const double fHigh = logR;  // = -target < 0
 
-            boost::uintmax_t maxIter = 100;
+            const boost::uintmax_t MAX_ITER = 100;
+            boost::uintmax_t maxIter = MAX_ITER;
             boost::math::tools::eps_tolerance<double> tol(40);
 
             auto bracket = boost::math::tools::toms748_solve(
@@ -232,6 +233,8 @@ namespace
                 tol,
                 maxIter
             );
+
+            assert(maxIter <= MAX_ITER);    // If maxIter > MAX_ITER, the solver failed
 
             const double uRoot = 0.5 * (bracket.first + bracket.second);
             const double trialPt2 = std::exp(uRoot);

@@ -1,5 +1,4 @@
 #pragma once
- 
 
 namespace powheg_dy
 {

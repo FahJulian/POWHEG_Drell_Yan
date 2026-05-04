@@ -13,7 +13,7 @@ namespace powheg_dy
     namespace 
     {
         static constexpr int __N_TRIAL_EVENTS = 5e5;
-        static constexpr int __N_ACCEPTED_EVENTS = 5e3;
+        static constexpr int __N_ACCEPTED_EVENTS = 5e5;
         static constexpr double __SECURITY_FACTOR = 1.1;
 
     } // namespace
