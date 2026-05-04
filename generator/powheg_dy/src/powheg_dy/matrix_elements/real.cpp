@@ -2,9 +2,9 @@
 #include "couplings.h"
 
 #include <math.h>
-#include "powheg_dy/math.h"
+#include "powheg_dy/math/math.h"
 #include "powheg_dy/process.h"
-#include "powheg_dy/bra_ket.h"
+#include "powheg_dy/math/bra_ket.h"
 
 #include <iostream> 
 

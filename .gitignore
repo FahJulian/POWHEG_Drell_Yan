@@ -12,3 +12,4 @@ stamp-h2
 pythia/
 *.lhe
 doc/
+data_500k.txt

@@ -1,6 +1,6 @@
 #pragma once
  
-#include "four_vector.h"
+#include "powheg_dy/math/four_vector.h"
 
 namespace powheg_dy
 {

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "powheg_dy/math.h"
+#include "powheg_dy/math/math.h"
 #include "powheg_dy/event.h"
-#include "powheg_dy/born_event.h"
-#include "powheg_dy/phase_space.h"
-#include "powheg_dy/real_phase_space.h"
-#include "powheg_dy/emission_generator.h"
+#include "powheg_dy/born_event/born_event_generator.h"
+#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/phase_space/real_phase_space.h"
+#include "powheg_dy/emission/emission_generator.h"
 
 #include <memory>
 #include <vector>

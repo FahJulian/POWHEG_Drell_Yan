@@ -1,6 +1,6 @@
 #include "real_phase_space.h"
 
-#include "powheg_dy/math.h"
+#include "powheg_dy/math/math.h"
 #include "powheg_dy/process.h"
 
 namespace powheg_dy

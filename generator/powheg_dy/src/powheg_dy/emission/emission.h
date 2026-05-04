@@ -1,6 +1,6 @@
 #pragma once
 
-#include "real_phase_space.h"
+#include "powheg_dy/phase_space/real_phase_space.h"
 
 namespace powheg_dy
 {

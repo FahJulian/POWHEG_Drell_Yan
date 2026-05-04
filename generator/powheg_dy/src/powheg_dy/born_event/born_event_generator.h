@@ -1,6 +1,6 @@
 #pragma once
  
-#include "powheg_dy/phase_space.h"
+#include "powheg_dy/phase_space/born_phase_space.h"
 
 #include <tuple>
 #include <vector>

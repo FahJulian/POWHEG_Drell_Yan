@@ -65,7 +65,7 @@ def extract_from_lhe(file_path):
 
             if line == '<event>': 
                 in_event = True
-
+                
                 lepton_momenta = []
                 boson_mass = None
                 event_line = 1
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     )
 
     (m_values, cos_th_values, pT_values) = extract_csv_cols(
-        '/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/events.lhe', 3)
+        '/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/events_500k.lhe', 3)
 
     plot_as_hist(
         m_values, 

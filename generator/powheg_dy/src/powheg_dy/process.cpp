@@ -1,10 +1,10 @@
 #include "process.h"
 
-#include "powheg_dy/rand.h"
-#include "powheg_dy/file.h"
-#include "powheg_dy/emission.h"
-#include "powheg_dy/born_event.h"
-#include "powheg_dy/les_houches_serializer.h"
+#include "powheg_dy/math/rand.h"
+#include "powheg_dy/util/file.h"
+#include "powheg_dy/emission/emission.h"
+#include "powheg_dy/born_event/born_event_generator.h"
+#include "powheg_dy/les_houches/les_houches_serializer.h"
 
 #include <iostream>
 
@@ -13,7 +13,7 @@ namespace powheg_dy
     namespace 
     {
         static constexpr int __N_TRIAL_EVENTS = 5e5;
-        static constexpr int __N_ACCEPTED_EVENTS = 5e5;
+        static constexpr int __N_ACCEPTED_EVENTS = 5e3;
         static constexpr double __SECURITY_FACTOR = 1.1;
 
     } // namespace

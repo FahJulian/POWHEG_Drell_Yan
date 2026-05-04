@@ -1,7 +1,7 @@
-#include "born_event.h"
+#include "born_event_generator.h"
 
-#include "powheg_dy/rand.h"
-#include "powheg_dy/math.h"
+#include "powheg_dy/math/rand.h"
+#include "powheg_dy/math/math.h"
 #include "powheg_dy/process.h"
 #include "powheg_dy/matrix_elements/matrix_elements.h"
 

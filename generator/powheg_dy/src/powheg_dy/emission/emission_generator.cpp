@@ -1,7 +1,7 @@
 #include "emission_generator.h"
 
-#include "powheg_dy/math.h"
-#include "powheg_dy/rand.h"
+#include "powheg_dy/math/math.h"
+#include "powheg_dy/math/rand.h"
 #include "powheg_dy/process.h"
 
 #include <boost/math/tools/roots.hpp>

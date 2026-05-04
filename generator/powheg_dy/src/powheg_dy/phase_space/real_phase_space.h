@@ -1,7 +1,7 @@
 #pragma once
 
-#include "powheg_dy/phase_space.h"
-#include "powheg_dy/four_vector.h"
+#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/math/four_vector.h"
 
 namespace powheg_dy
 {

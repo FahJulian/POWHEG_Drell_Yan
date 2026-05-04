@@ -1,6 +1,6 @@
 #include "les_houches_serializer.h"
 
-#include "powheg_dy/file.h"
+#include "powheg_dy/util/file.h"
 #include "powheg_dy/process.h"
 #include "powheg_dy/event.h"
 

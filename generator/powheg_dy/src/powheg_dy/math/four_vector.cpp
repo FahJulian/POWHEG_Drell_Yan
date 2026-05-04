@@ -1,6 +1,6 @@
 #include "four_vector.h"
 
-#include "powheg_dy/math.h"
+#include "powheg_dy/math/math.h"
 
 namespace powheg_dy
 {
