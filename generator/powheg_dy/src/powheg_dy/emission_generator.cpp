@@ -98,7 +98,20 @@ namespace
             assert(upper > 0);
             const double ratio = exact / upper;
 
-            assert(ratio <= 1.0);
+            if (ratio > 1.0)
+            {
+                std::cout << "WARNING: Acceptance ratio is greater than one, accepting emission." << std::endl;
+                
+                auto channel = __chooseChannel(contributions, born.channel);
+
+                return __makeAcceptedEmission(
+                    real,
+                    channel,
+                    exact,
+                    upper,
+                    ratio
+                );
+            }
 
             if (rand() < ratio)
             {
@@ -241,7 +254,7 @@ namespace
 
     double EmissionGenerator::_VExact(double pt2, double sHat, int nF) const 
     {
-        const double prefactor = PI * __N_Q;
+        const double prefactor = 2.0 * PI * __N_Q;
         const double alphaS = __alphaSSudakov(m_process, pt2, nF);
 
         const double ratio = pt2 / sHat;
@@ -263,7 +276,7 @@ namespace
     double EmissionGenerator::_VTildeLog(double logPt2, double sHat, int nF) const 
     {
         const double beta0 = (33.0 - 2.0 * nF) / 12.0 / PI;
-        const double prefactor = PI * __N_Q / 2.0 / beta0;        
+        const double prefactor = 2.0 * PI * __N_Q / 2.0 / beta0;        
         const double logLambda2 = log(__LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD());
 
         const double oneMinusRho = 1.0 - sHat / m_process.S();
@@ -278,7 +291,7 @@ namespace
     double EmissionGenerator::_integrateVTildeLog(double logPt2, double logKtmax2, double sHat, int nF) const 
     {
         const double beta0 = (33.0 - 2.0 * nF) / 12.0 / PI;
-        const double prefactor = PI * __N_Q / 2.0 / beta0;          
+        const double prefactor = 2.0 * PI * __N_Q / 2.0 / beta0;          
         const double logLambda2 = log(__LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD());
 
         const double oneMinusRho = 1.0 - sHat / m_process.S();
