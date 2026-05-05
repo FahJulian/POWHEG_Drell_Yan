@@ -3,8 +3,8 @@
 #include "./powheg_dy/phase_space/real_phase_space.h"
 
 const std::string exportFilePath = "/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/events.lhe";
-const std::string pdfDataLocation = "/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/lhapdf";
-const std::string pdfSet = "NNPDF40_lo_as_01180";
+const std::string pdfDataLocation = "/local/share/lhapdf";
+const std::string pdfSet = "NNPDF40MC_nlo_as_01180";
 
 class DYProcess : public powheg_dy::Process
 {   

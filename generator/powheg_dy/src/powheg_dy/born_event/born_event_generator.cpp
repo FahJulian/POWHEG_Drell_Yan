@@ -6,6 +6,7 @@
 #include "powheg_dy/matrix_elements/matrix_elements.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace powheg_dy
 {
@@ -24,7 +25,8 @@ namespace powheg_dy
         for (auto [partonId, dSigma] : channels)
             point.weight += dSigma;
 
-        assert(point.weight >= 0.0 && std::isfinite(point.weight));
+        assert(std::isfinite(point.weight));
+        assert(point.weight >= 0.0);
 
         // Sample the parton channel by their relative contribution to dSigma
         double u = rand(0.0, point.weight);
@@ -40,24 +42,25 @@ namespace powheg_dy
 
     std::vector<std::tuple<BornChannel, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhSpPt& point) const
     {
-        double physicsPrefactor = m_process.ALPHA() * m_process.ALPHA() / 2.0 / m_process.NC() 
-            / m_process.sqrtS() / m_process.sqrtS() / point.mB;
+        double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_process.S() * point.sHat);
 
         std::vector<std::tuple<BornChannel, double>> channels;
         channels.reserve(__VALID_PARTONS_ON_LEG1.size());
         
         for (int partonId : __VALID_PARTONS_ON_LEG1)
         {
-            BornChannel channel = { partonId, -partonId, abs(partonId) };
+            BornPhSpPt born2 = point; 
+            born2.channel = { partonId, -partonId, abs(partonId) };
 
             // Compute the luminosity factors
-            double f  = m_process.getPdfs()->xfxQ2(channel.id1, point.x1Bar, point.sHat) / point.x1Bar;
-            double fb = m_process.getPdfs()->xfxQ2(channel.id2, point.x2Bar, point.sHat) / point.x2Bar;
+            double f  = m_process.getPdfs()->xfxQ2(born2.channel.id1, point.x1Bar, point.sHat) / point.x1Bar;
+            double fb = m_process.getPdfs()->xfxQ2(born2.channel.id2, point.x2Bar, point.sHat) / point.x2Bar;
 
             // Compute the event weight
-            double weight = f * fb * MatrixElements::bornAngularFactorOld(m_process, channel.flavour, point.sHat, point.cosTh);
+            const double amp2 = MatrixElements::born(m_process, born2);
+            double weight = f * fb * amp2;
 
-            channels.push_back({ channel, point.jacobian * physicsPrefactor * weight });
+            channels.push_back({ born2.channel, point.jacobian * physicsPrefactor * weight });
         }
 
         return channels;

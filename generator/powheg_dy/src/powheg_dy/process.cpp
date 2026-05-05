@@ -12,8 +12,8 @@ namespace powheg_dy
 {
     namespace 
     {
-        static constexpr int __N_TRIAL_EVENTS = 5e5;
-        static constexpr int __N_ACCEPTED_EVENTS = 5e3;
+        static constexpr int __N_ACCEPTED_EVENTS = 1e4;
+        static constexpr int __N_TRIAL_EVENTS = __N_ACCEPTED_EVENTS;
         static constexpr double __SECURITY_FACTOR = 1.1;
 
     } // namespace
@@ -41,8 +41,8 @@ namespace powheg_dy
             
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt born = m_bornPhSp->samplePoint(rands);
-            m_bornGenerator->computeWeightAndSampleChannel(born);
             m_bornPhSp->reconstructMomenta(born);
+            m_bornGenerator->computeWeightAndSampleChannel(born);
             
             assert(born.weight <= m_maxWeight);
             
@@ -52,7 +52,7 @@ namespace powheg_dy
             {   
                 Emission emission = bornOnly() ? Emission().reject()
                     : m_emissionGenerator->generateEmission(born);
-                    
+                
                 RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
 
                 m_events.push_back({ born, real, emission });
@@ -74,7 +74,7 @@ namespace powheg_dy
         std::cout << "Acceptance ratio: " << double(__N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
                 
         _computeTotalCrossSection();
-        
+    
         std::cout << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
     }
 
@@ -118,6 +118,7 @@ namespace powheg_dy
         {   
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt point = m_bornPhSp->samplePoint(rands);
+            m_bornPhSp->reconstructMomenta(point);
             m_bornGenerator->computeWeightAndSampleChannel(point);
 
             if (point.weight > max_dSigma)
@@ -129,6 +130,8 @@ namespace powheg_dy
 
     void Process::_computeTotalCrossSection()
     {
+        // const double e2 = 4.0 * PI * ALPHA();
+        // * e2 * e2 / (4.0 * process.NC());
         m_totalCrossSection = m_maxWeight * __N_ACCEPTED_EVENTS / m_nEventTrials * GEV2_TO_PB();
     }
 

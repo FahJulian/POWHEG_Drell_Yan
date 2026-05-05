@@ -28,32 +28,19 @@ namespace powheg_dy
             }
         };
 
-        RealOverBornContributions realOverBornContributionsOld(
-            const Process& process,
-            const RealPhSpPt& real,
-            double muF2,
-            double muR2
-        );
-
-        double realOverBornQQbarOld(const Process& process, const RealPhSpPt& real, double muR2);
-        double realOverBornGQbarOld(const Process& process, const RealPhSpPt& real, double muR2);
-        double realOverBornQGOld(const Process& process, const RealPhSpPt& real, double muR2);
-
-        double realOverBornOld(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
-        double realSudakovDensityOld(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
-
         RealOverBornContributions realOverBornContributions(
             const Process& process,
             const RealPhSpPt& real,
             double muF2,
-            double muR2
+            double muR2,
+            bool useCMWALphaS
         );
 
-        double born(const Process& process, const BornPhSpPt& real, double muR2);
+        double born(const Process& process, const BornPhSpPt& born);
 
-        double realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2);
-        double realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2);
-        double realOverBornQG(const Process& process, const RealPhSpPt& real, double muR2);
+        double realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
+        double realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
+        double realOverBornQG(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
 
         double realOverBorn(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
         double realSudakovDensity(const Process& process, const RealPhSpPt& real, double muF2, double muR2);

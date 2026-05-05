@@ -64,12 +64,8 @@ namespace powheg_dy
 
         const double integratedPhi = 2.0 * PI;
 
-        // See explanation below:
-        // If your weight formula is still written for dM, use jacobianM.
-        const double jacobianM = jacobianM2 / (2.0 * point.mB);
-
         point.jacobian =
-            jacobianM * jacobianY * jacobianCosTh * integratedPhi;
+            jacobianM2 * jacobianY * jacobianCosTh * integratedPhi;
 
         return point;
     }
@@ -117,6 +113,11 @@ namespace powheg_dy
         const FourVector totalIn = point.p1Bar + point.p2Bar;
         const FourVector totalOut = point.pLMinus + point.pLPlus;
         double mismatch = (totalIn - totalOut) * (totalIn - totalOut) / point.sHat;
+
+        if (point.p1Bar.square() == 0 && point.p1Bar.e == 0)
+        {
+            return;
+        }
 
         assert(abs(mismatch) < __ALLOWED_MISMATCH);
     }

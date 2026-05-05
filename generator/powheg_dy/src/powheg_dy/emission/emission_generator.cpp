@@ -20,14 +20,6 @@ namespace
     constexpr double __N_Q = 2.5;
     constexpr int __MAX_TRIALS_V = 5000;
 
-    double __alphaSSudakov(const Process& process, double qSq, int nF)
-    {
-        double alphaS = process.alphaSOneLoop(qSq, nF);
-        double bracket = (67.0 / 18.0 - PI*PI / 6.0) * process.C_A() - 5.0 / 9.0 * nF;
-
-        return alphaS * (1.0 + alphaS / 2.0 / PI * bracket);
-    }
-
     Emission __makeAcceptedEmission(
         const RealPhSpPt& real,
         RadiationChannel channel,
@@ -90,7 +82,7 @@ namespace
 
             const RealPhSpPt real = m_realPhaseSpace.reconstruct(born, rad);
 
-            const auto contributions = MatrixElements::realOverBornContributionsOld(m_process, real, kt2Trial, kt2Trial);
+            const auto contributions = MatrixElements::realOverBornContributions(m_process, real, kt2Trial, kt2Trial, true);
 
             const double exact = real.radJacobian * contributions.total();
             const double upper = _upperRadiationDensity(real, kt2Trial);
@@ -154,7 +146,7 @@ namespace
 
     double EmissionGenerator::_upperRadiationDensity(const RealPhSpPt& real, double kt2Trial) const
     {
-        const double alphaS = __alphaSSudakov(m_process, kt2Trial, 5);
+        const double alphaS = m_process.alphaSCMW(kt2Trial);
 
         return __N_Q
             * alphaS
@@ -241,8 +233,9 @@ namespace
 
             if (trialPt2 < m_process.pt2Cutoff())
                 return -1.0;
-
-            const double accRatio = _VExact(trialPt2, born.sHat, 5) / _VTildeLog(uRoot, born.sHat, 5);
+            
+            const double alphaSCorr = m_process.alphaSCMW(trialPt2) / m_process.alphaS0(trialPt2, 5);
+            const double accRatio = alphaSCorr * _VExact(trialPt2, born.sHat, 5) / _VTildeLog(uRoot, born.sHat, 5);
             assert(accRatio <= 1.0);
 
             if (rand() < accRatio)
@@ -258,7 +251,7 @@ namespace
     double EmissionGenerator::_VExact(double pt2, double sHat, int nF) const 
     {
         const double prefactor = 2.0 * PI * __N_Q;
-        const double alphaS = __alphaSSudakov(m_process, pt2, nF);
+        const double alphaS = m_process.alphaSCMW(pt2);
 
         const double ratio = pt2 / sHat;
         const double a = sqrt(1 + ratio);

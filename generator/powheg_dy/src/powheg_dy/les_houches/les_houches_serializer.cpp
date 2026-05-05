@@ -64,7 +64,7 @@ namespace powheg_dy
         content << "<event>\n" 
             << "    " << nParticles << " 1001 1.0 "   // Number of particles, process label, weight of the event
             << bornScale << " "
-            << m_process.ALPHA() << " " << m_process.alphaSOneLoop(bornScale*bornScale, 5) << "\n";
+            << m_process.ALPHA() << " " << m_process.alphaS0(bornScale*bornScale, 5) << "\n";
 
         int color = 501;
         int anticolor = hasGluon ? 502 : 501;

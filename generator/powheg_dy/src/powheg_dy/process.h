@@ -34,11 +34,12 @@ namespace powheg_dy
         virtual inline double pt2Cutoff() const = 0;
 
         virtual inline double zMass() const { return 91.1876; }
+        virtual inline double wMass() const { return 80.398; }
         virtual inline double zWidth() const { return 2.4952; }
-        virtual inline double ALPHA() const { return 1.0 / 137.035999084; }
+        virtual inline double ALPHA() const { return 1.0/128.89; }
         virtual inline double NC() const { return 3.0; }
         virtual inline double GEV2_TO_PB() const { return 0.389379338e9; }
-        virtual inline double S_W_SQ() const { return 0.23126; }
+        virtual inline double S_W_SQ() const { return 1.0 - wMass()*wMass()/zMass()/zMass(); }
         virtual inline double C_W_SQ() const { return 1.0 - S_W_SQ(); }
         virtual inline double M_Z() const { return 91.1876; }   
         virtual inline double GAMMA_Z() const { return 2.4952; }    
@@ -47,17 +48,34 @@ namespace powheg_dy
         virtual inline double C_F() const { return 4.0 / 3.0; }
         virtual inline double C_A() const { return 3.0; }
         virtual inline double T_F() const { return 0.5; }
+        virtual inline double CMW_CHARM_THRESHOLDSQ() const { return 1.5*1.5; }
+        virtual inline double CMW_BOTTOM_THRESHOLDSQ() const { return 5.0*5.0; }
 
         // charged lepton axial and vector couplings
         virtual inline double A_L() const { return -0.5; }
         virtual inline double V_L() const { return -0.5 + 2.0 * S_W_SQ(); }
 
-        virtual inline double alphaSOneLoop(double qSq, int nF) const
+        virtual inline double alphaS0(double qSq, int nF) const
         {
             assert(qSq > LAMBDA_SQ_QCD());
 
             double beta0 = 11.0 - 2.0 / 3.0 * nF;
             return 4.0 * PI / beta0 / std::log(qSq / LAMBDA_SQ_QCD());
+        }
+
+        virtual inline double alphaSFromPdf(double qSq) const
+        {
+            return m_pdfs->alphasQ2(qSq);
+        }
+
+        virtual inline double alphaSCMW(double qSq) const
+        {
+            double alphaS = alphaSFromPdf(qSq);
+
+            const int nF = qSq > CMW_BOTTOM_THRESHOLDSQ() ? 5 : qSq > CMW_CHARM_THRESHOLDSQ() ? 4 : 3;
+            double bracket = (67.0 / 18.0 - PI*PI / 6.0) * C_A() - 5.0 / 9.0 * nF;
+
+            return alphaS * (1.0 + alphaS / 2.0 / PI * bracket);
         }
         
         double getSigma() const { return m_totalCrossSection; }

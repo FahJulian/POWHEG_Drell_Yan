@@ -93,7 +93,6 @@ namespace powheg_dy
             }
 
             const double e2 = 4.0 * PI * process.ALPHA();
-
             return amp2 * e2 * e2 / (4.0 * process.NC());
         }
 
@@ -106,7 +105,7 @@ namespace powheg_dy
                 + 2.0 * couplings.forwardBackward * cosTheta;
     }
 
-    double MatrixElements::born(const Process& process, const BornPhSpPt& born, double muR2)
+    double MatrixElements::born(const Process& process, const BornPhSpPt& born)
     {
         // arrange momenta in the same convention as POWHEG's Fortran:
         // argument 1 is the quark, argument 2 is the antiquark.

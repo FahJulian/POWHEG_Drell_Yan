@@ -15,25 +15,6 @@ namespace powheg_dy
         constexpr int __NF = 5;
         constexpr double __EPS = 1.0e-14;
 
-        double __Fqqbar(double xi, double y)
-        {
-            const double oneMinusY2 = max(1.0 - y * y, __EPS);
-            const double xi2 = max(xi * xi, __EPS);
-
-            // The bracket in eq. (7.200)
-            return 2.0 * (1.0 + y * y) / oneMinusY2
-                + 8.0 * (1.0 - xi) / (xi2 * oneMinusY2);
-        }
-
-        double __Fgqbar(double xi, double y)
-        {
-            const double denom = max(xi * (1.0 - y), __EPS);
-
-            // The negative of the bracket in eq. (7.200)
-            return 2.0 * (1.0 - xi * (1.0 - xi) * (1.0 + y)) / denom 
-                + 0.5 * xi * (1.0 - y);
-        }
-
         double _realAmp2_crossed(
             const Process& process,
             int flavour,
@@ -154,35 +135,12 @@ namespace powheg_dy
 
     } // namespace
 
-    double MatrixElements::realOverBornQQbarOld(const Process& process, const RealPhSpPt& real, double muR2)
-    {
-        const double gs2 = 4.0 * PI * process.alphaSOneLoop(muR2, __NF);
-
-        // eq. (7.200), divided by the born factor g^2/4N_C
-        return 4.0 * process.C_F() * gs2 / real.sHatReal * __Fqqbar(real.rad.xi, real.rad.y);
-    }
-
-    double MatrixElements::realOverBornGQbarOld(const Process& process, const RealPhSpPt& real, double muR2)
-    {
-        const double gs2 = 4.0 * PI * process.alphaSOneLoop(muR2, __NF);
-
-        // eq. (7.201), divided by the born factor g^2/4N_C
-        return 4.0 * process.T_F() * gs2 / real.sHatReal * __Fgqbar(real.rad.xi, real.rad.y);
-    }
-
-    double MatrixElements::realOverBornQGOld(const Process& process, const RealPhSpPt& real, double muR2)
-    {
-        const double gs2 = 4.0 * PI * process.alphaSOneLoop(muR2, __NF);
-
-        // The same as realOverBornGQbarOld, but with y \to -y
-        return 4.0 * process.T_F() * gs2 / real.sHatReal * __Fgqbar(real.rad.xi, -real.rad.y);
-    }
-
-    MatrixElements::RealOverBornContributions MatrixElements::realOverBornContributionsOld(
+    MatrixElements::RealOverBornContributions MatrixElements::realOverBornContributions(
         const Process& process,
         const RealPhSpPt& real,
         double muF2,
-        double muR2
+        double muR2, 
+        bool useCMWALphaS
     )
     {
         RealOverBornContributions out;
@@ -205,24 +163,14 @@ namespace powheg_dy
         const double lumGQbar = fReal1G * fReal2QB;
         const double lumQG    = fReal1Q * fReal2G;
 
-        out.qqbar = lumQQbar / bornLuminosity * realOverBornQQbar(process, real, muR2);
-        out.gqbar = lumGQbar / bornLuminosity * realOverBornGQbar(process, real, muR2);
-        out.qg = lumQG / bornLuminosity * realOverBornQG(process, real, muR2);
+        out.qqbar = lumQQbar / bornLuminosity * realOverBornQQbar(process, real, muR2, useCMWALphaS);
+        out.gqbar = lumGQbar / bornLuminosity * realOverBornGQbar(process, real, muR2, useCMWALphaS);
+        out.qg = lumQG / bornLuminosity * realOverBornQG(process, real, muR2, useCMWALphaS);
 
         return out;
     }
 
-    double MatrixElements::realOverBornOld(
-        const Process& process,
-        const RealPhSpPt& real,
-        double muF2,
-        double muR2
-    )
-    {
-        return realOverBornContributionsOld(process, real, muF2, muR2).total();
-    }
-
-    double MatrixElements::realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2)
+    double MatrixElements::realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
     {
         const auto& born = real.underlyingBorn;
 
@@ -237,7 +185,7 @@ namespace powheg_dy
         const FourVector pQbarBorn = leg1IsQuark ? born.p2Bar : born.p1Bar;
 
         // TODO: Change to the corrected alphaS
-        const double alphaS = process.alphaSOneLoop(muR2, 5);
+        const double alphaS = useCMWALphaS ? process.alphaSCMW(muR2) : process.alphaSFromPdf(muR2);
 
         const double realAmp2 = _realAmp2_crossed(
             process,
@@ -263,11 +211,11 @@ namespace powheg_dy
         return born.sHat / real.sHatReal * realAmp2 / bornAmp2;
     }
 
-    double MatrixElements::realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2)
+    double MatrixElements::realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
     {
         const BornPhSpPt& born = real.underlyingBorn;
 
-        const double alphaS = process.alphaSOneLoop(muR2, 5);
+        const double alphaS = useCMWALphaS ? process.alphaSCMW(muR2) : process.alphaSFromPdf(muR2);
 
         FourVector qSlot;
         FourVector qbarSlot;
@@ -315,11 +263,11 @@ namespace powheg_dy
         return born.sHat / real.sHatReal * realAmp2 / bornAmp2;
     }
 
-    double MatrixElements::realOverBornQG(const Process& process, const RealPhSpPt& real, double muR2)
+    double MatrixElements::realOverBornQG(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
     {
         const BornPhSpPt& born = real.underlyingBorn;
 
-        const double alphaS = process.alphaSOneLoop(muR2, 5);
+        const double alphaS = useCMWALphaS ? process.alphaSCMW(muR2) : process.alphaSFromPdf(muR2);
 
         FourVector qSlot;
         FourVector qbarSlot;
