@@ -30,24 +30,24 @@ namespace
         };
     }
 
-    std::array<std::complex<double>, 2> _slashBra(
-        const FourVectorC& p, 
-        const std::array<std::complex<double>, 2>& bra, 
-        int helicity)
-    {
-        assert(helicity == 1 || helicity == -1);
-        const double h = static_cast<double>(helicity);
+    // std::array<std::complex<double>, 2> _slashBra(
+    //     const FourVectorC& p, 
+    //     const std::array<std::complex<double>, 2>& bra, 
+    //     int helicity)
+    // {
+    //     assert(helicity == 1 || helicity == -1);
+    //     const double h = static_cast<double>(helicity);
         
-        const std::complex<double> pSlash11 = p.x0 - h * p.x3;
-        const std::complex<double> pSlash12 = -h * (p.x1 - I * p.x2);
-        const std::complex<double> pSlash21 = -h * (p.x1 + I * p.x2);
-        const std::complex<double> pSlash22 = p.x0 + h * p.x3;
+    //     const std::complex<double> pSlash11 = p.x0 - h * p.x3;
+    //     const std::complex<double> pSlash12 = -h * (p.x1 - I * p.x2);
+    //     const std::complex<double> pSlash21 = -h * (p.x1 + I * p.x2);
+    //     const std::complex<double> pSlash22 = p.x0 + h * p.x3;
 
-        return {
-            pSlash11 * bra[0] + pSlash21 * bra[1],
-            pSlash12 * bra[0] + pSlash22 * bra[1]
-        };
-    }
+    //     return {
+    //         pSlash11 * bra[0] + pSlash21 * bra[1],
+    //         pSlash12 * bra[0] + pSlash22 * bra[1]
+    //     };
+    // }
 
     std::complex<double> _braSlashKet(
         const WeylSpinors& bra,
@@ -58,7 +58,7 @@ namespace
     {
         assert(ketHel == 1 || ketHel == -1);
 
-        const int n = momenta.size();
+        const int n = static_cast<int>(momenta.size());
         const int minusOneToN = (n % 2 == 0) ? 1 : -1;
         const int braHel = -minusOneToN * ketHel;
 

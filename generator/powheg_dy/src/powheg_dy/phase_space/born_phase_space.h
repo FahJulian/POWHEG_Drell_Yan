@@ -1,11 +1,10 @@
 #pragma once
  
+#include "powheg_dy/config.h"
 #include "powheg_dy/math/four_vector.h"
 
 namespace powheg_dy
 {
-    class Process;
-
     struct BornChannel
     {
         // PDG ids of the incoming Born partons
@@ -52,8 +51,8 @@ namespace powheg_dy
     class BornPhaseSpace
     {
     public:
-        BornPhaseSpace(const Process& process)
-            : m_process(process)
+        BornPhaseSpace(const Config& config)
+            : m_config(config)
         {
         }
 
@@ -61,7 +60,7 @@ namespace powheg_dy
         void reconstructMomenta(BornPhSpPt& point) const ;
         
     private:
-        const Process& m_process;
+        const Config& m_config;
     };
 
 

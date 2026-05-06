@@ -1,12 +1,11 @@
 #pragma once
 
-#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/config.h"
 #include "powheg_dy/math/four_vector.h"
+#include "powheg_dy/phase_space/born_phase_space.h"
 
 namespace powheg_dy
 {
-    class Process;
-
     struct RadiationVariables
     {
         // FKS/POWHEG radiation variables
@@ -40,8 +39,8 @@ namespace powheg_dy
     class FKSRealPhaseSpace
     {
     public:
-        FKSRealPhaseSpace(const Process& process)
-            : m_process(process)
+        FKSRealPhaseSpace(const Config& config)
+            : m_config(config)
         {
         }
 
@@ -56,7 +55,7 @@ namespace powheg_dy
         ) const;
 
     private:
-        const Process& m_process;
+        const Config& m_config;
     };
 
 } // namespace powheg_dy

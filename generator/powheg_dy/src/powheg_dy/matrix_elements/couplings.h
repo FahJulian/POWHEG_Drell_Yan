@@ -1,11 +1,9 @@
 #pragma once 
 
-#include <complex>
+#include "powheg_dy/config.h"
 
 namespace powheg_dy
 {
-    class Process;
-    
     struct _ZHelicityCouplings
     {
         double minus = 0.0;     // helicity -1
@@ -17,7 +15,7 @@ namespace powheg_dy
         }
     };
 
-    _ZHelicityCouplings _zCouplings(const Process& process, bool upType, double charge);
+    _ZHelicityCouplings _zCouplings(const Config& config, bool upType, double charge);
     std::complex<double> _photonPropagator(double q2);
-    std::complex<double> _zPropagator(const Process& process, double q2);
+    std::complex<double> _zPropagator(const Config& config, double q2);
 }

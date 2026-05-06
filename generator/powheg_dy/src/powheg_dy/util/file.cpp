@@ -18,7 +18,7 @@ namespace powheg_dy
         buffer << stream.rdbuf();
 
         buffer.seekg(0, buffer.end);
-        int size = buffer.tellg();
+        int size = static_cast<int>(buffer.tellg());
 
         char* content = new char[size];
 

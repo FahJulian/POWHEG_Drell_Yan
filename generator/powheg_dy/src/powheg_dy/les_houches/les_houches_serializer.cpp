@@ -2,6 +2,7 @@
 
 #include "powheg_dy/util/file.h"
 #include "powheg_dy/process.h"
+#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/event.h"
 
 namespace powheg_dy
@@ -44,7 +45,7 @@ namespace powheg_dy
         std::stringstream content;
 
         __writeHeader(content);
-        __writeInitBlock(content, m_process.sqrtS() / 2.0, m_process.getSigma());
+        __writeInitBlock(content, m_config.SQRT_S / 2.0, m_process.getSigma());
 
         for (const auto& event : m_process.getEvents())
             _writeEvent(event, content);
@@ -64,7 +65,7 @@ namespace powheg_dy
         content << "<event>\n" 
             << "    " << nParticles << " 1001 1.0 "   // Number of particles, process label, weight of the event
             << bornScale << " "
-            << m_process.ALPHA() << " " << m_process.alphaS0(bornScale*bornScale, 5) << "\n";
+            << m_config.ALPHA_EW << " " << alphaS0(m_config, bornScale*bornScale, 5) << "\n";
 
         int color = 501;
         int anticolor = hasGluon ? 502 : 501;

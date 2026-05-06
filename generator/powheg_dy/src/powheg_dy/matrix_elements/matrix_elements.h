@@ -5,13 +5,8 @@
 
 namespace powheg_dy
 {
-    class Process; 
-
     namespace MatrixElements
     {
-        // Angular Born factor without PDFs, flux, phase-space Jacobian, or global \alpha^2 prefactor.
-        double bornAngularFactorOld(const Process& process, int partonId, double mSq, double cosTheta);
-
         double virtualFiniteOverBorn(double mSq, double muR2);
 
         double bbarOverBornApproximation(int partonId, double mSq, double muR2);
@@ -29,21 +24,21 @@ namespace powheg_dy
         };
 
         RealOverBornContributions realOverBornContributions(
-            const Process& process,
+            const Config& process,
             const RealPhSpPt& real,
             double muF2,
             double muR2,
             bool useCMWALphaS
         );
 
-        double born(const Process& process, const BornPhSpPt& born);
+        double born(const Config& process, const BornPhSpPt& born);
 
-        double realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
-        double realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
-        double realOverBornQG(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
+        double realOverBornQQbar(const Config& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
+        double realOverBornGQbar(const Config& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
+        double realOverBornQG(const Config& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS);
 
-        double realOverBorn(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
-        double realSudakovDensity(const Process& process, const RealPhSpPt& real, double muF2, double muR2);
+        double realOverBorn(const Config& process, const RealPhSpPt& real, double muF2, double muR2);
+        double realSudakovDensity(const Config& process, const RealPhSpPt& real, double muF2, double muR2);
 
     } // namespace MatrixElements
 

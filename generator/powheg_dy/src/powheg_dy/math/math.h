@@ -1,9 +1,9 @@
 #pragma once
 
+#include "powheg_dy/base.h"
+
 namespace powheg_dy
 {
-    static constexpr double PI = 3.14159265358979323846;
-
     int abs(int x);
     double abs(double x);
 

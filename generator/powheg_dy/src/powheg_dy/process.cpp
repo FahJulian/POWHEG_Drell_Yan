@@ -7,35 +7,61 @@
 #include "powheg_dy/les_houches/les_houches_serializer.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace powheg_dy
 {
-    namespace 
-    {
-        static constexpr int __N_ACCEPTED_EVENTS = 20e3;
-        static constexpr int __N_TRIAL_EVENTS = std::min(2e4, 1.5 * __N_ACCEPTED_EVENTS);
-        static constexpr double __SECURITY_FACTOR = 1.1;
+namespace 
+{
+    static constexpr double GEV_SQ_TO_PB = 0.389379338e9;
+    static constexpr double SECURITY_FACTOR = 1.1;
 
-    } // namespace
-    
-    void Process::init(const std::string& pdfDataLocation, const std::string& pdfSet)
+} // anonymous namespace
+
+    Process::~Process()
     {
-        LHAPDF::setPaths(pdfDataLocation);
-        m_pdfs = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
-        
-        m_bornPhSp = std::make_unique<BornPhaseSpace>(*this);
-        m_realPhSp = std::make_unique<FKSRealPhaseSpace>(*this);
-        m_emissionGenerator = std::make_unique<EmissionGenerator>(*this);
-        m_bornGenerator = std::make_unique<BornEventGenerator>(*this);
+        LHAPDF::setVerbosity(0);
+        Log::info("Using LHAPDF. Please make sure to cite the paper:");
+        Log::info("Eur.Phys.J. C75 (2015) 3, 132  (http://arxiv.org/abs/1412.7420)");
+    }
+    
+    void Process::init(const std::string& pdfSet)
+    {
+        Log::info("Starting intitialization");
+
+        std::stringstream buffer;
+
+        auto* oldCout = std::cout.rdbuf(buffer.rdbuf());
+        auto* oldCerr = std::cerr.rdbuf(buffer.rdbuf());
+
+        m_config.PDF = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
+
+        std::cout.rdbuf(oldCout);
+        std::cerr.rdbuf(oldCerr);
+
+        std::string line;
+        while (std::getline(buffer, line, '\n'))
+            Log::info << line << std::endl;
+
+        setDependentParams(m_config);
+        extractLambdaFromPdf(m_config);
+
+        m_bornPhSp = std::make_shared<BornPhaseSpace>(m_config);
+        m_realPhSp = std::make_shared<FKSRealPhaseSpace>(m_config);
+        m_bornGenerator = std::make_shared<BornEventGenerator>(m_config, m_bornPhSp);
+        m_emissionGenerator = std::make_shared<EmissionGenerator>(m_config, m_realPhSp);
+
+        Log::info << "Intitialization complete" << std::endl << std::endl;
     }
 
     void Process::run()
     {
-        _clear();
+        clear();
 
-        _determineMaxWeight();
+        determineMaxWeight();
         
-        while (m_events.size() < __N_ACCEPTED_EVENTS)
+        Log::info("Starting event generation");
+        while (static_cast<int>(m_events.size()) < m_config.N_ACCEPTED_EVENTS)
         {   
             m_nEventTrials++;
             
@@ -50,7 +76,7 @@ namespace powheg_dy
             double u = rand(0.0, 1.0);
             if (u < born.weight / m_maxWeight)
             {   
-                if (bornOnly())
+                if (m_config.BORNONLY)
                 {
                     Emission emission = Emission().reject();
                     RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
@@ -74,10 +100,13 @@ namespace powheg_dy
                 }
 
                 if (m_events.size() % 1000 == 0)
-                    std::cout << m_events.size() << " Events generated." << std::endl;
+                    Log::info << m_events.size() << " Events generated." << std::endl;
             }
         }
 
+        Log::info("Event generation done.");
+
+        computeTotalCrossSection();
         double rejected = 0.0;
         for (const auto& event : m_events)
         {
@@ -85,13 +114,9 @@ namespace powheg_dy
                 rejected++;
         }
 
-        std::cout << "No emission probability: " << rejected / m_events.size() << std::endl;
-                
-        std::cout << "Acceptance ratio: " << double(__N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
-                
-        _computeTotalCrossSection();
-    
-        std::cout << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
+        Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
+        Log::info << "Acceptance ratio: " << double(m_config.N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
+        Log::info << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
     }
 
     std::string toString(const Event& event)
@@ -114,23 +139,25 @@ namespace powheg_dy
         File file = File(filePath);
         file.write(fileContent);
 
-        // LesHouchesSerializer(*this).serialize(filePath);
+        // LesHouchesSerializer(*this, m_config).serialize(filePath);
     }
 
-    void Process::_clear()
+    void Process::clear()
     {
         m_events.clear();
-        m_events.reserve(__N_ACCEPTED_EVENTS);
+        m_events.reserve(m_config.N_ACCEPTED_EVENTS);
         m_nEventTrials = 0;
         m_totalCrossSection = 0.0;
         m_maxWeight = 0.0;
     }
 
-    void Process::_determineMaxWeight()
+    void Process::determineMaxWeight()
     {
+        Log::info("Determining Born Veto weight");
+
         double max_dSigma = 0.0;
         
-        for (int i = 0; i < __N_TRIAL_EVENTS; i++)
+        for (int i = 0; i < m_config.N_TRIAL_EVENTS; i++)
         {   
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt point = m_bornPhSp->samplePoint(rands);
@@ -141,14 +168,15 @@ namespace powheg_dy
                 max_dSigma = point.weight;
         }
 
-        m_maxWeight = __SECURITY_FACTOR * max_dSigma;
+        m_maxWeight = SECURITY_FACTOR * max_dSigma;
+
+        Log::info("Done determining Born Veto weight.");
     }
 
-    void Process::_computeTotalCrossSection()
+    void Process::computeTotalCrossSection()
     {
-        // const double e2 = 4.0 * PI * ALPHA();
-        // * e2 * e2 / (4.0 * process.NC());
-        m_totalCrossSection = m_maxWeight * __N_ACCEPTED_EVENTS / m_nEventTrials * GEV2_TO_PB();
+        m_totalCrossSection = m_maxWeight * GEV_SQ_TO_PB * 
+            m_config.N_ACCEPTED_EVENTS / m_nEventTrials;
     }
 
 } // namespace powheg_dy

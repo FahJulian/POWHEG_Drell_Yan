@@ -1,8 +1,9 @@
 #include "emission_generator.h"
 
+#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/math/math.h"
 #include "powheg_dy/math/rand.h"
-#include "powheg_dy/process.h"
+#include "powheg_dy/matrix_elements/matrix_elements.h"
 
 #include <boost/math/tools/roots.hpp>
 #include <boost/math/tools/toms748_solve.hpp>
@@ -11,16 +12,16 @@ namespace powheg_dy
 {
 namespace 
 {
-    static constexpr double __XI_EPS     = 1.0e-12;
-    static constexpr double __Y_EPS      = 1.0e-10;
+    static constexpr double EPS_XI     = 1.0e-12;
+    static constexpr double EPS_Y      = 1.0e-10;
 
-    static constexpr int __MAX_TRIALS = 100000;
+    static constexpr int MAX_TRIALS = 100000;
+    constexpr int MAX_TRIALS_V = 5000;
 
-    constexpr double __LAMBDA2_OVEREST_FACTOR = 4.0;
-    constexpr double N_Q = 7.5;
-    constexpr int __MAX_TRIALS_V = 5000;
+    constexpr double LAMBDA_SQ_OVEREST_FACTOR = 4.0;        // like in powheg
+    constexpr double N_Q = 10;
 
-    Emission __makeAcceptedEmission(
+    Emission makeAcceptedEmission(
         const RealPhSpPt& real,
         RadiationChannel channel,
         double exact,
@@ -43,7 +44,7 @@ namespace
         return emission;
     }
 
-    RadiationChannel __chooseChannel(const MatrixElements::RealOverBornContributions& contributions,
+    RadiationChannel chooseChannel(const MatrixElements::RealOverBornContributions& contributions,
         const BornChannel& bornChannel)
     {
         // Choose radiation channel, i.e. the emitted parton based on relative weight
@@ -67,47 +68,47 @@ namespace
         if (region != 1)
             assert(false);      // Only ISR Radiation is implemented
 
-        return _generateEmissionISR(born);
+        return generateISREmission(born);
     }
 
-    Emission EmissionGenerator::_generateEmissionISR(const BornPhSpPt& born
+    Emission EmissionGenerator::generateISREmission(const BornPhSpPt& born
     ) const
     {
-        double kt2Max = _globalKt2Max(born);
+        double kt2Max = globalKt2Max(born);
 
         double logR = 0;
-        for (int trial = 0; trial < __MAX_TRIALS && kt2Max > m_process.pt2Cutoff(); ++trial)
+        for (int trial = 0; trial < MAX_TRIALS && kt2Max > m_config.PT_SQ_CUTOFF; ++trial)
         {
-            const double kt2Trial = _sampleTrialKt2(born, kt2Max, logR);
-            if (kt2Trial < m_process.pt2Cutoff())
+            const double kt2Trial = sampleTrialKt2(born, kt2Max, logR);
+            if (kt2Trial < m_config.PT_SQ_CUTOFF)
                 return Emission().reject();
             
-            const RadiationVariables rad = _sampleTrialRadiation(born, kt2Trial);
+            const RadiationVariables rad = sampleTrialRadiation(born, kt2Trial);
 
-            const double xiMax = m_realPhaseSpace.xiMax(born, rad.y);
-            if (rad.xi <= __XI_EPS || rad.xi >= 1.0 - __XI_EPS || rad.xi >= xiMax)
+            const double xiMax = m_realPhaseSpace->xiMax(born, rad.y);
+            if (rad.xi <= EPS_XI || rad.xi >= 1.0 - EPS_XI || rad.xi >= xiMax)
             {
                 // kt2Max = kt2Trial;
                 continue;
             }
 
-            const RealPhSpPt real = m_realPhaseSpace.reconstruct(born, rad);
+            const RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
 
-            const auto contributions = MatrixElements::realOverBornContributions(m_process, real, kt2Trial, kt2Trial, true);
+            const auto contributions = MatrixElements::realOverBornContributions(m_config, real, kt2Trial, kt2Trial, true);
 
             const double exact = real.radJacobian * contributions.total();
-            const double upper = _upperRadiationDensity(real, kt2Trial);
+            const double upper = upperRadiationDensity(real, kt2Trial);
 
             assert(upper > 0);
             const double ratio = exact / upper;
 
             if (ratio > 1.0)
             {
-                std::cout << "WARNING: Acceptance ratio is greater than one, accepting emission." << std::endl;
+                Log::warn << "Acceptance ratio is greater than one, accepting emission." << std::endl;
                 
-                auto channel = __chooseChannel(contributions, born.channel);
+                auto channel = chooseChannel(contributions, born.channel);
 
-                return __makeAcceptedEmission(
+                return makeAcceptedEmission(
                     real,
                     channel,
                     exact,
@@ -118,9 +119,9 @@ namespace
 
             if (rand() < ratio)
             {
-                auto channel = __chooseChannel(contributions, born.channel);
+                auto channel = chooseChannel(contributions, born.channel);
 
-                return __makeAcceptedEmission(
+                return makeAcceptedEmission(
                     real,
                     channel,
                     exact,
@@ -135,30 +136,30 @@ namespace
         return Emission().reject();
     }
 
-    double EmissionGenerator::_globalKt2Max(const BornPhSpPt& born) const
+    double EmissionGenerator::globalKt2Max(const BornPhSpPt& born) const
     {
         const double sumXbar = born.x1Bar + born.x2Bar;
         return born.sHat * (1 - born.x2Bar * born.x2Bar) * (1 - born.x1Bar * born.x1Bar)
             / (sumXbar * sumXbar);
     }
 
-    RadiationVariables EmissionGenerator::_sampleTrialRadiation(
+    RadiationVariables EmissionGenerator::sampleTrialRadiation(
         const BornPhSpPt& born,
         double kt2Trial
     ) const
     {
         RadiationVariables rad;
 
-        rad.xi = _sampleTrialXi(born, kt2Trial);
-        rad.y = _sampleY(born, kt2Trial, rad.xi);
-        rad.phi = _sampleTrialPhi();
+        rad.xi = sampleTrialXi(born, kt2Trial);
+        rad.y = sampleY(born, kt2Trial, rad.xi);
+        rad.phi = sampleTrialPhi();
 
         return rad;
     }
 
-    double EmissionGenerator::_upperRadiationDensity(const RealPhSpPt& real, double kt2Trial) const
+    double EmissionGenerator::upperRadiationDensity(const RealPhSpPt& real, double kt2Trial) const
     {
-        const double alphaS = m_process.alphaSCMW(kt2Trial);
+        const double alphaS = alphaSCMW(m_config, kt2Trial);
 
         return N_Q
             * alphaS
@@ -166,18 +167,18 @@ namespace
             / (1 - real.rad.y * real.rad.y);
     }
 
-    double EmissionGenerator::_sampleTrialPhi() const
+    double EmissionGenerator::sampleTrialPhi() const
     {
         return rand() * 2.0 * PI;
     }
 
-    // double EmissionGenerator::_sampleTrialXi(const BornPhSpPt& born, double pT2) const
+    // double EmissionGenerator::sampleTrialXi(const BornPhSpPt& born, double pT2) const
     // {
     //     const double b = sqrt(pT2) / born.mB;
     //     const double a = sqrt(1.0 + b * b);
     //     const double xiPlus = 1.0 - (a - b) * (a - b);
     //     const double xiMinus = 1.0 - (a + b) * (a + b);
-    //     const double rho = born.sHat / m_process.S();
+    //     const double rho = born.sHat / m_config.S();
 
     //     const double delta = xiPlus - xiMinus;
     //     const double eta0 = sqrt(delta);
@@ -190,7 +191,7 @@ namespace
     //     return xiPlus + bracket * bracket / 4.0;
     // }
 
-    double EmissionGenerator::_sampleTrialXi(const BornPhSpPt& born, double pT2) const
+    double EmissionGenerator::sampleTrialXi(const BornPhSpPt& born, double pT2) const
     {
         const double r = pT2 / born.sHat;
         const double a = std::sqrt(1.0 + r);
@@ -199,7 +200,7 @@ namespace
         const double xPlus  = (a + b) * (a + b);
         const double xMinus = (a - b) * (a - b);
 
-        // This must match _VExactOverVTilde
+        // This must match vExactOverVTilde
         const double xMin = std::min(born.x1Bar, born.x2Bar) / (2.0 * a);
 
         assert(xMin < xMinus);
@@ -220,7 +221,7 @@ namespace
         return xi;
     }
 
-    double EmissionGenerator::_sampleY(const BornPhSpPt& born, double pT2, double xi) const
+    double EmissionGenerator::sampleY(const BornPhSpPt& born, double pT2, double xi) const
     {
         const double xiFactor = (1.0 - xi) / xi / xi;
         const double absY = sqrt(1.0 - 4.0 * pT2 / born.sHat * xiFactor);
@@ -230,30 +231,30 @@ namespace
     }
 
     // sample a k_T^2 after the procedure describes in Appendix D of ref. [22]
-    double EmissionGenerator::_sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const
+    double EmissionGenerator::sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const
     {
-        assert(ptMax2 >= m_process.pt2Cutoff());
+        assert(ptMax2 >= m_config.PT_SQ_CUTOFF);
 
         const int nF = 5;
-        const double LAMBDA2 = __LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD();
-        const double BETA0 = (11.0 * m_process.C_A() - 4.0 * m_process.T_F() * nF) / 12.0 / PI;
+        const double LAMBDA2 = LAMBDA_SQ_OVEREST_FACTOR * m_config.LAMBDA_MSB_5_SQ;
+        const double BETA0 = (11.0 * m_config.C_A - 4.0 * m_config.T_F * nF) / 12.0 / PI;
 
         // double logR = 0.0;
-        for (int trial = 1; trial <= __MAX_TRIALS_V; trial++)
+        for (int trial = 1; trial <= MAX_TRIALS_V; trial++)
         {
             logR += log(rand());
 
-            const double maxIntegral = _integrateVTilde(m_process.pt2Cutoff(), ptMax2, born.sHat, LAMBDA2, N_Q, BETA0);
+            const double maxIntegral = integrateVTilde(m_config.PT_SQ_CUTOFF, ptMax2, born.sHat, LAMBDA2, N_Q, BETA0);
 
             if (-logR > maxIntegral)
                 return -1.0;
 
             auto f = [&](double pt2) -> double
             {
-                return _integrateVTilde(pt2, ptMax2, born.sHat, LAMBDA2, N_Q, BETA0) + logR;
+                return integrateVTilde(pt2, ptMax2, born.sHat, LAMBDA2, N_Q, BETA0) + logR;
             };
 
-            const double fLow  = f(m_process.pt2Cutoff());   // >= 0
+            const double fLow  = f(m_config.PT_SQ_CUTOFF);   // >= 0
             const double fHigh = logR;  // = -target < 0
 
             const boost::uintmax_t MAX_ITER = 100;
@@ -262,7 +263,7 @@ namespace
 
             auto bracket = boost::math::tools::toms748_solve(
                 f,
-                m_process.pt2Cutoff(),
+                m_config.PT_SQ_CUTOFF,
                 ptMax2,
                 fLow,
                 fHigh,
@@ -274,12 +275,11 @@ namespace
 
             const double trialPt2 = 0.5 * (bracket.first + bracket.second);
 
-            if (trialPt2 < m_process.pt2Cutoff())
+            if (trialPt2 < m_config.PT_SQ_CUTOFF)
                 return -1.0;
             
-            const double alphaS0 = 1.0 / BETA0 / std::log(trialPt2 / LAMBDA2);
-            const double alphaSCorr = m_process.alphaSCMW(trialPt2) / alphaS0;
-            const double accRatio = alphaSCorr * _VExactOverVTilde(born, trialPt2);
+            const double alphaSCorr = alphaSCMW(m_config, trialPt2) / alphaS0customLambda(m_config, trialPt2, 5, LAMBDA2);
+            const double accRatio = alphaSCorr * vExactOverVTilde(born, trialPt2);
             assert(accRatio <= 1.0);
 
             if (rand() < accRatio)
@@ -292,7 +292,7 @@ namespace
         return -1.0;
     }
 
-    double EmissionGenerator::_VExactOverVTilde(const BornPhSpPt& born, double pt2) const
+    double EmissionGenerator::vExactOverVTilde(const BornPhSpPt& born, double pt2) const
     {
         const double ratio = pt2 / born.sHat;
         
@@ -315,7 +315,7 @@ namespace
             return 2.0 * prefactor / std::log(2.0);
     }
 
-    double EmissionGenerator::_integrateVTilde(
+    double EmissionGenerator::integrateVTilde(
         double pt2,
         double kt2max,
         double sBorn,

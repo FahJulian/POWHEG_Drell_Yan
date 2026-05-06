@@ -7,7 +7,7 @@ namespace powheg_dy
 {
     namespace 
     {
-        static constexpr double __ALLOWED_MISMATCH = 1.0e-10;
+        static constexpr double ALLOWED_MISMATCH = 1.0e-10;
 
     } // namespace
 
@@ -15,14 +15,14 @@ namespace powheg_dy
     {
         BornPhSpPt point;
 
-        const double zMass = m_process.zMass();
-        const double zWidth = m_process.zWidth();
+        const double zMass = m_config.M_Z;
+        const double zWidth = m_config.GAMMA_Z;
 
         const double zMass2 = zMass * zMass;
         const double zMassWidth = zMass * zWidth;
 
-        const double m2Low = m_process.mMin() * m_process.mMin();
-        const double m2High = m_process.mMax() * m_process.mMax();
+        const double m2Low = m_config.M_MIN * m_config.M_MIN;
+        const double m2High = m_config.M_MAX * m_config.M_MAX;
 
         // Breit-Wigner-like sampling of m^2 around the Z peak
         const double zlow = atan((m2Low - zMass2) / zMassWidth);
@@ -42,7 +42,7 @@ namespace powheg_dy
             (zhigh - zlow) * zMassWidth / (cosZ * cosZ);
 
         // Sample boson rapidity uniformly from the kinematically allowed range
-        const double yBosonMax = log(m_process.sqrtS() / point.mB);
+        const double yBosonMax = log(m_config.SQRT_S / point.mB);
         point.yB = (2.0 * rands[1] - 1.0) * yBosonMax;
 
         // Sample cos(theta) from p(c) = 3(1+c^2)/8
@@ -50,14 +50,14 @@ namespace powheg_dy
             2.0 * sinh(asinh(4.0 * rands[2] - 2.0) / 3.0);
 
         // Calculate x1Bar and x2Bar
-        point.x1Bar = point.mB / m_process.sqrtS()
+        point.x1Bar = point.mB / m_config.SQRT_S
                 * exp(point.yB);
 
-        point.x2Bar = point.mB / m_process.sqrtS()
+        point.x2Bar = point.mB / m_config.SQRT_S
                 * exp(-point.yB);
 
         const double jacobianY =
-            2.0 * log(m_process.sqrtS() / point.mB);
+            2.0 * log(m_config.SQRT_S / point.mB);
 
         const double jacobianCosTh =
             8.0 / 3.0 / (1.0 + point.cosTh * point.cosTh);
@@ -82,17 +82,17 @@ namespace powheg_dy
         };
 
         point.p1Bar = {
-            0.5 * point.x1Bar * m_process.sqrtS(),
+            0.5 * point.x1Bar * m_config.SQRT_S,
             0.0,
             0.0,
-            0.5 * point.x1Bar * m_process.sqrtS()
+            0.5 * point.x1Bar * m_config.SQRT_S
         };
 
         point.p2Bar = {
-            0.5 * point.x2Bar * m_process.sqrtS(),
+            0.5 * point.x2Bar * m_config.SQRT_S,
             0.0,
             0.0,
-            -0.5 * point.x2Bar * m_process.sqrtS()
+            -0.5 * point.x2Bar * m_config.SQRT_S
         };
 
         const double p = point.mB / 2.0;
@@ -114,12 +114,7 @@ namespace powheg_dy
         const FourVector totalOut = point.pLMinus + point.pLPlus;
         double mismatch = (totalIn - totalOut) * (totalIn - totalOut) / point.sHat;
 
-        if (point.p1Bar.square() == 0 && point.p1Bar.e == 0)
-        {
-            return;
-        }
-
-        assert(abs(mismatch) < __ALLOWED_MISMATCH);
+        assert(abs(mismatch) < ALLOWED_MISMATCH);
     }
 
 } // namespace powheg_dy

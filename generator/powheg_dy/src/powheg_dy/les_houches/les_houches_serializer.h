@@ -1,19 +1,18 @@
 #pragma once
  
+#include "powheg_dy/base.h"
 #include "powheg_dy/event.h"
-
-#include <string>
-#include <sstream>
+#include "powheg_dy/config.h"
 
 namespace powheg_dy
 {
-    class Process;
+    class Process; 
 
     class LesHouchesSerializer
     {
     public:
-        LesHouchesSerializer(const Process& process)
-            : m_process(process)
+        LesHouchesSerializer(const Process& process, const Config& config)
+            : m_process(process), m_config(config)
         {
         }
 
@@ -24,6 +23,7 @@ namespace powheg_dy
 
     private:
         const Process& m_process;
+        const Config& m_config;
     };
 
 } // namespace powheg_dy

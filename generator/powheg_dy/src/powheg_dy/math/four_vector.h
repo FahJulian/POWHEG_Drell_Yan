@@ -65,13 +65,13 @@ namespace powheg_dy
         {
         }
 
-        FourVector(double x0, double x1, double x2, double x3)
-            : x0(x0), x1(x1), x2(x2), x3(x3)
+        FourVector(double xx0, double xx1, double xx2, double xx3)
+            : x0(xx0), x1(xx1), x2(xx2), x3(xx3)
         {
         }
 
-        FourVector(double x0, ThreeVector x)
-            : x0(x0), x1(x.x1), x2(x.x2), x3(x.x3)
+        FourVector(double xx0, ThreeVector xx)
+            : x0(xx0), x1(xx.x1), x2(xx.x2), x3(xx.x3)
         {
         }
 

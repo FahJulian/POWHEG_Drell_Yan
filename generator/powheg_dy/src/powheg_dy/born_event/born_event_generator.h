@@ -1,5 +1,6 @@
 #pragma once
  
+#include "powheg_dy/config.h"
 #include "powheg_dy/phase_space/born_phase_space.h"
 
 #include <tuple>
@@ -7,14 +8,12 @@
 
 namespace powheg_dy
 {
-    class Process;
-
     class BornEventGenerator
     {
     public:
         BornEventGenerator() = delete;
-        BornEventGenerator(const Process& process)
-            : m_process(process)
+        BornEventGenerator(const Config& config, std::shared_ptr<BornPhaseSpace> phaseSpace)
+            : m_config(config), m_phaseSpace(std::move(phaseSpace))
         {
         }
 
@@ -24,7 +23,8 @@ namespace powheg_dy
         std::vector<std::tuple<BornChannel, double>> _computePartonChannelContributions(const BornPhSpPt& point) const;
 
     private:
-        const Process& m_process;
+        const Config& m_config;
+        std::shared_ptr<BornPhaseSpace> m_phaseSpace;
     };
 
 } // namespace powheg_dy

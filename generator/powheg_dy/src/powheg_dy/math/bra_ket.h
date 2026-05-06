@@ -19,9 +19,9 @@ namespace powheg_dy
         {
         }
 
-        FourVectorC(std::complex<double> x0, std::complex<double> x1, 
-            std::complex<double> x2, std::complex<double> x3)
-            : x0(x0), x1(x1), x2(x2), x3(x3)
+        FourVectorC(std::complex<double> xx0, std::complex<double> xx1, 
+            std::complex<double> xx2, std::complex<double> xx3)
+            : x0(xx0), x1(xx1), x2(xx2), x3(xx3)
         {
         }
         

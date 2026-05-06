@@ -1,9 +1,10 @@
 #include "matrix_elements.h"
+
 #include "couplings.h"
 
-#include <math.h>
+#include "powheg_dy/alpha_s.h"
+#include "powheg_dy/config.h"
 #include "powheg_dy/math/math.h"
-#include "powheg_dy/process.h"
 #include "powheg_dy/math/bra_ket.h"
 
 #include <iostream> 
@@ -16,7 +17,7 @@ namespace powheg_dy
         constexpr double __EPS = 1.0e-14;
 
         double _realAmp2_crossed(
-            const Process& process,
+            const Config& config,
             int flavour,
             const FourVector& qSlot,
             const FourVector& qbarSlot,
@@ -42,16 +43,16 @@ namespace powheg_dy
             const double qQ = (upType) ? 2.0 / 3.0 : -1.0 / 3.0;
             const double qL = -1.0;
 
-            const auto zQ = _zCouplings(process, upType, qQ);
-            const auto zL = _zCouplings(process, false, qL);
+            const auto zQ = _zCouplings(config, upType, qQ);
+            const auto zL = _zCouplings(config, false, qL);
 
-            const double sw = std::sqrt(process.S_W_SQ());
-            const double cw = std::sqrt(process.C_W_SQ());
+            const double sw = std::sqrt(config.S_W_SQ);
+            const double cw = std::sqrt(config.C_W_SQ);
 
             const double q2 = (pLMinus + pLPlus).square();
 
             const std::complex<double> propGamma = _photonPropagator(q2);
-            const std::complex<double> propZ     = _zPropagator(process, q2);
+            const std::complex<double> propZ     = _zPropagator(config, q2);
 
             double amp2 = 0.0;
             for (int pol = 1; pol <= 2; pol++)
@@ -75,14 +76,14 @@ namespace powheg_dy
                 }
             }
 
-            const double e2  = 4.0 * PI * process.ALPHA();
+            const double e2  = 4.0 * PI * config.ALPHA_EW;
             const double gs2 = 4.0 * PI * alphaS;
 
-            return amp2 * e2 * e2 * gs2 * colorFactor / 4.0 / process.NC();
+            return amp2 * e2 * e2 * gs2 * colorFactor / 4.0 / config.N_C;
         }
 
         double _bornAmp2(
-            const Process& process,
+            const Config& config,
             int flavour,
             const FourVector& pQ,
             const FourVector& pQbar,
@@ -100,16 +101,16 @@ namespace powheg_dy
             const double qQ = (upType) ? 2.0 / 3.0 : -1.0 / 3.0;
             const double qL = -1.0;
 
-            const auto zQ = _zCouplings(process, upType, qQ);
-            const auto zL = _zCouplings(process, false, qL);
+            const auto zQ = _zCouplings(config, upType, qQ);
+            const auto zL = _zCouplings(config, false, qL);
 
-            const double sw = std::sqrt(process.S_W_SQ());
-            const double cw = std::sqrt(process.C_W_SQ());
+            const double sw = std::sqrt(config.S_W_SQ);
+            const double cw = std::sqrt(config.C_W_SQ);
 
             const double q2 = (pLMinus + pLPlus).square();
 
             const std::complex<double> propGamma = _photonPropagator(q2);
-            const std::complex<double> propZ     = _zPropagator(process, q2);
+            const std::complex<double> propZ     = _zPropagator(config, q2);
 
             double amp2 = 0.0;
             for (int helL = -1; helL <= +1; helL += 2)
@@ -128,15 +129,15 @@ namespace powheg_dy
                 }
             }
 
-            const double e2 = 4.0 * PI * process.ALPHA();
+            const double e2 = 4.0 * PI * config.ALPHA_EW;
 
-            return amp2 * e2 * e2 / (4.0 * process.NC());
+            return amp2 * e2 * e2 / (4.0 * config.N_C);
         }
 
     } // namespace
 
     MatrixElements::RealOverBornContributions MatrixElements::realOverBornContributions(
-        const Process& process,
+        const Config& config,
         const RealPhSpPt& real,
         double muF2,
         double muR2, 
@@ -149,28 +150,28 @@ namespace powheg_dy
         const int id1 = born.channel.id1;
         const int id2 = born.channel.id2;
 
-        const double fBorn1 = process.getPdfs()->xfxQ2(id1, born.x1Bar, muF2) / born.x1Bar;
-        const double fBorn2 = process.getPdfs()->xfxQ2(id2, born.x2Bar, muF2) / born.x2Bar;
+        const double fBorn1 = config.PDF->xfxQ2(id1, born.x1Bar, muF2) / born.x1Bar;
+        const double fBorn2 = config.PDF->xfxQ2(id2, born.x2Bar, muF2) / born.x2Bar;
         const double bornLuminosity = fBorn1 * fBorn2;
 
-        const double fReal1Q  = process.getPdfs()->xfxQ2(id1, real.x1, muF2) / real.x1; 
-        const double fReal2QB = process.getPdfs()->xfxQ2(id2, real.x2, muF2) / real.x2; 
+        const double fReal1Q  = config.PDF->xfxQ2(id1, real.x1, muF2) / real.x1; 
+        const double fReal2QB = config.PDF->xfxQ2(id2, real.x2, muF2) / real.x2; 
 
-        const double fReal1G  = process.getPdfs()->xfxQ2(21, real.x1, muF2) / real.x1; 
-        const double fReal2G  = process.getPdfs()->xfxQ2(21, real.x2, muF2) / real.x2; 
+        const double fReal1G  = config.PDF->xfxQ2(21, real.x1, muF2) / real.x1; 
+        const double fReal2G  = config.PDF->xfxQ2(21, real.x2, muF2) / real.x2; 
 
         const double lumQQbar = fReal1Q * fReal2QB;
         const double lumGQbar = fReal1G * fReal2QB;
         const double lumQG    = fReal1Q * fReal2G;
 
-        out.qqbar = lumQQbar / bornLuminosity * realOverBornQQbar(process, real, muR2, useCMWALphaS);
-        out.gqbar = lumGQbar / bornLuminosity * realOverBornGQbar(process, real, muR2, useCMWALphaS);
-        out.qg = lumQG / bornLuminosity * realOverBornQG(process, real, muR2, useCMWALphaS);
+        out.qqbar = lumQQbar / bornLuminosity * realOverBornQQbar(config, real, muR2, useCMWALphaS);
+        out.gqbar = lumGQbar / bornLuminosity * realOverBornGQbar(config, real, muR2, useCMWALphaS);
+        out.qg = lumQG / bornLuminosity * realOverBornQG(config, real, muR2, useCMWALphaS);
 
         return out;
     }
 
-    double MatrixElements::realOverBornQQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
+    double MatrixElements::realOverBornQQbar(const Config& config, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
     {
         const auto& born = real.underlyingBorn;
 
@@ -185,10 +186,10 @@ namespace powheg_dy
         const FourVector pQbarBorn = leg1IsQuark ? born.p2Bar : born.p1Bar;
 
         // TODO: Change to the corrected alphaS
-        const double alphaS = useCMWALphaS ? process.alphaSCMW(muR2) : process.alphaSFromPdf(muR2);
+        const double alphaS = useCMWALphaS ? alphaSCMW(config, muR2) : alphaSPowheg(config, muR2);
 
         const double realAmp2 = _realAmp2_crossed(
-            process,
+            config,
             born.channel.flavour,
             pQReal,
             pQbarReal,
@@ -196,11 +197,11 @@ namespace powheg_dy
             real.pLMinus,
             real.pLPlus,
             alphaS,
-            process.C_F()
+            config.C_F
         );
 
         const double bornAmp2 = _bornAmp2(
-            process,
+            config,
             born.channel.flavour,
             pQBorn,
             pQbarBorn,
@@ -211,11 +212,11 @@ namespace powheg_dy
         return born.sHat / real.sHatReal * realAmp2 / bornAmp2;
     }
 
-    double MatrixElements::realOverBornGQbar(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
+    double MatrixElements::realOverBornGQbar(const Config& config, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
     {
         const BornPhSpPt& born = real.underlyingBorn;
 
-        const double alphaS = useCMWALphaS ? process.alphaSCMW(muR2) : process.alphaSFromPdf(muR2);
+        const double alphaS = useCMWALphaS ? alphaSCMW(config, muR2) : alphaSPowheg(config, muR2);
 
         FourVector qSlot;
         FourVector qbarSlot;
@@ -240,7 +241,7 @@ namespace powheg_dy
         }
 
         const double realAmp2 = _realAmp2_crossed(
-            process,
+            config,
             born.channel.flavour,
             qSlot,
             qbarSlot,
@@ -248,11 +249,11 @@ namespace powheg_dy
             real.pLMinus,
             real.pLPlus,
             alphaS,
-            process.T_F()
+            config.T_F
         );
 
         const double bornAmp2 = _bornAmp2(
-            process,
+            config,
             born.channel.flavour,
             pQBorn,
             pQbarBorn,
@@ -263,11 +264,11 @@ namespace powheg_dy
         return born.sHat / real.sHatReal * realAmp2 / bornAmp2;
     }
 
-    double MatrixElements::realOverBornQG(const Process& process, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
+    double MatrixElements::realOverBornQG(const Config& config, const RealPhSpPt& real, double muR2, bool useCMWALphaS)
     {
         const BornPhSpPt& born = real.underlyingBorn;
 
-        const double alphaS = useCMWALphaS ? process.alphaSCMW(muR2) : process.alphaSFromPdf(muR2);
+        const double alphaS = useCMWALphaS ? alphaSCMW(config, muR2) : alphaSPowheg(config, muR2);
 
         FourVector qSlot;
         FourVector qbarSlot;
@@ -292,7 +293,7 @@ namespace powheg_dy
         }
 
         const double realAmp2 = _realAmp2_crossed(
-            process,
+            config,
             born.channel.flavour,
             qSlot,
             qbarSlot,
@@ -300,11 +301,11 @@ namespace powheg_dy
             real.pLMinus,
             real.pLPlus,
             alphaS,
-            process.T_F()
+            config.T_F
         );
 
         const double bornAmp2 = _bornAmp2(
-            process,
+            config,
             born.channel.flavour,
             pQBorn,
             pQbarBorn,

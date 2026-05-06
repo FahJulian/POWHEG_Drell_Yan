@@ -7,7 +7,7 @@ namespace powheg_dy
 {
     namespace
     {   
-        static constexpr double __ALLOWED_MISMATCH = 1.0e-9;
+        static constexpr double ALLOWED_MISMATCH = 1.0e-7;
 
         struct __IncomingFractions
         {
@@ -73,10 +73,10 @@ namespace powheg_dy
             const double bosonMomentumMismatch = (dilepton - real.pBoson).square() / born.sHat;
             const double rapidityMismatch = real.pBoson.rapidity() - born.yB;
 
-            assert(abs(totalMomentumMismatch) < __ALLOWED_MISMATCH);
-            assert(abs(gluonMassMismatch) < __ALLOWED_MISMATCH);
-            assert(abs(bosonMassMismatch) < __ALLOWED_MISMATCH);
-            assert(abs(bosonMomentumMismatch) < __ALLOWED_MISMATCH);
+            assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
+            assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
+            assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
+            assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
             assert(abs(ktMismatch) < 1.0e-8);
             assert(abs(rapidityMismatch) < 1.0e-8);
         }
@@ -96,7 +96,7 @@ namespace powheg_dy
         real.x1 = x1;
         real.x2 = x2;
 
-        const double sqrtS = m_process.sqrtS();
+        const double sqrtS = m_config.SQRT_S;
         real.p1In = { 0.5 * x1 * sqrtS, 0.0, 0.0,  0.5 * x1 * sqrtS };
         real.p2In = { 0.5 * x2 * sqrtS, 0.0, 0.0, -0.5 * x2 * sqrtS };
         

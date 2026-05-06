@@ -12,7 +12,7 @@ namespace powheg_dy
 {
     namespace
     {
-        static const std::vector<int> __VALID_PARTONS_ON_LEG1 = { -5, -4, -3, -2, -1, 1, 2, 3, 4, 5 };
+        static const std::vector<int> VALID_PARTONS_ON_LEG1 = { -5, -4, -3, -2, -1, 1, 2, 3, 4, 5 };
 
     } // namespace
 
@@ -42,22 +42,23 @@ namespace powheg_dy
 
     std::vector<std::tuple<BornChannel, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhSpPt& point) const
     {
-        double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_process.S() * point.sHat);
+        double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_config.S * point.sHat);
 
         std::vector<std::tuple<BornChannel, double>> channels;
-        channels.reserve(__VALID_PARTONS_ON_LEG1.size());
+        channels.reserve(VALID_PARTONS_ON_LEG1.size());
         
-        for (int partonId : __VALID_PARTONS_ON_LEG1)
+        for (int partonId : VALID_PARTONS_ON_LEG1)
         {
             BornPhSpPt born2 = point; 
             born2.channel = { partonId, -partonId, abs(partonId) };
+            m_phaseSpace->reconstructMomenta(born2);
 
             // Compute the luminosity factors
-            double f  = m_process.getPdfs()->xfxQ2(born2.channel.id1, point.x1Bar, point.sHat) / point.x1Bar;
-            double fb = m_process.getPdfs()->xfxQ2(born2.channel.id2, point.x2Bar, point.sHat) / point.x2Bar;
+            double f  = m_config.PDF->xfxQ2(born2.channel.id1, point.x1Bar, point.sHat) / point.x1Bar;
+            double fb = m_config.PDF->xfxQ2(born2.channel.id2, point.x2Bar, point.sHat) / point.x2Bar;
 
             // Compute the event weight
-            const double amp2 = MatrixElements::born(m_process, born2);
+            const double amp2 = MatrixElements::born(m_config, born2);
             double weight = f * fb * amp2;
 
             channels.push_back({ born2.channel, point.jacobian * physicsPrefactor * weight });
