@@ -12,8 +12,8 @@ namespace powheg_dy
 {
     namespace 
     {
-        static constexpr int __N_ACCEPTED_EVENTS = 1e4;
-        static constexpr int __N_TRIAL_EVENTS = __N_ACCEPTED_EVENTS;
+        static constexpr int __N_ACCEPTED_EVENTS = 20e3;
+        static constexpr int __N_TRIAL_EVENTS = std::min(2e4, 1.5 * __N_ACCEPTED_EVENTS);
         static constexpr double __SECURITY_FACTOR = 1.1;
 
     } // namespace
@@ -22,7 +22,7 @@ namespace powheg_dy
     {
         LHAPDF::setPaths(pdfDataLocation);
         m_pdfs = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
-
+        
         m_bornPhSp = std::make_unique<BornPhaseSpace>(*this);
         m_realPhSp = std::make_unique<FKSRealPhaseSpace>(*this);
         m_emissionGenerator = std::make_unique<EmissionGenerator>(*this);
@@ -50,12 +50,28 @@ namespace powheg_dy
             double u = rand(0.0, 1.0);
             if (u < born.weight / m_maxWeight)
             {   
-                Emission emission = bornOnly() ? Emission().reject()
-                    : m_emissionGenerator->generateEmission(born);
-                
-                RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
+                if (bornOnly())
+                {
+                    Emission emission = Emission().reject();
+                    RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
 
-                m_events.push_back({ born, real, emission });
+                    m_events.push_back({ born, real, emission });
+                }
+                else
+                {
+                    Emission highestPtEm = Emission().reject();
+
+                    // Highest bid procedure, for Drell Yan only ISR radiation 
+                    for (int region = 1; region < 2; region++)
+                    {
+                        Emission emission = m_emissionGenerator->generateEmission(born, region);
+                        if (emission.kt2 > highestPtEm.kt2)
+                            highestPtEm = emission;
+                    }
+                    
+                    RealPhSpPt real = m_realPhSp->reconstruct(born, highestPtEm.rad);
+                    m_events.push_back({ born, real, highestPtEm });
+                }
 
                 if (m_events.size() % 1000 == 0)
                     std::cout << m_events.size() << " Events generated." << std::endl;

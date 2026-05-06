@@ -21,21 +21,31 @@ namespace powheg_dy
         {
         }
 
-        Emission generateEmission(const BornPhSpPt& born) const;
-
+        Emission generateEmission(const BornPhSpPt& born, int region) const;
+        
     private:
+        Emission _generateEmissionISR(const BornPhSpPt& born) const;
+
         double _upperRadiationDensity(const RealPhSpPt& born, double kt2Trial) const;
 
         RadiationVariables _sampleTrialRadiation(const BornPhSpPt& born, double kt2Trial) const;
 
-        double _sampleTrialKt2(const BornPhSpPt& born, double ptMax2) const;
+        double _sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const;
         double _sampleTrialXi(const BornPhSpPt& born, double pT2) const;
         double _sampleY(const BornPhSpPt& born, double pT2, double xi) const;
         double _sampleTrialPhi() const;
 
         double _VExact(double pt2, double m2, int nF) const;
-        double _VTildeLog(double logPt2, double sHat, int nF) const;
-        double _integrateVTildeLog(double logPt2, double logKtmax2, double mB2, int nF) const;
+        double _VTildeLog(const BornPhSpPt& born, double logPt2, int nF) const;
+        double _integrateVTilde(
+            double pt2,
+            double kt2max,
+            double sBorn,
+            double lambda2,
+            double nQ,
+            double beta0
+        ) const;
+        double _VExactOverVTilde(const BornPhSpPt& born, double pt2) const;
 
         double _globalKt2Max(const BornPhSpPt& born) const;
 

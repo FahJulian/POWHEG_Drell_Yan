@@ -17,7 +17,7 @@ namespace
     static constexpr int __MAX_TRIALS = 100000;
 
     constexpr double __LAMBDA2_OVEREST_FACTOR = 4.0;
-    constexpr double __N_Q = 2.5;
+    constexpr double N_Q = 7.5;
     constexpr int __MAX_TRIALS_V = 5000;
 
     Emission __makeAcceptedEmission(
@@ -60,14 +60,25 @@ namespace
 } // namespace
 
     Emission EmissionGenerator::generateEmission(
-        const BornPhSpPt& born
+        const BornPhSpPt& born,
+        int region
+    ) const
+    {
+        if (region != 1)
+            assert(false);      // Only ISR Radiation is implemented
+
+        return _generateEmissionISR(born);
+    }
+
+    Emission EmissionGenerator::_generateEmissionISR(const BornPhSpPt& born
     ) const
     {
         double kt2Max = _globalKt2Max(born);
 
+        double logR = 0;
         for (int trial = 0; trial < __MAX_TRIALS && kt2Max > m_process.pt2Cutoff(); ++trial)
         {
-            const double kt2Trial = _sampleTrialKt2(born, kt2Max);
+            const double kt2Trial = _sampleTrialKt2(born, kt2Max, logR);
             if (kt2Trial < m_process.pt2Cutoff())
                 return Emission().reject();
             
@@ -76,7 +87,7 @@ namespace
             const double xiMax = m_realPhaseSpace.xiMax(born, rad.y);
             if (rad.xi <= __XI_EPS || rad.xi >= 1.0 - __XI_EPS || rad.xi >= xiMax)
             {
-                kt2Max = kt2Trial;
+                // kt2Max = kt2Trial;
                 continue;
             }
 
@@ -117,8 +128,8 @@ namespace
                     ratio
                 );
             }
-            else
-                kt2Max = kt2Trial;
+            // else
+            //     kt2Max = kt2Trial;
         }
         
         return Emission().reject();
@@ -126,8 +137,9 @@ namespace
 
     double EmissionGenerator::_globalKt2Max(const BornPhSpPt& born) const
     {
-        const double rho = born.sHat / m_process.S();
-        return 0.25 * m_process.S() * (1.0 - rho) * (1.0 - rho);
+        const double sumXbar = born.x1Bar + born.x2Bar;
+        return born.sHat * (1 - born.x2Bar * born.x2Bar) * (1 - born.x1Bar * born.x1Bar)
+            / (sumXbar * sumXbar);
     }
 
     RadiationVariables EmissionGenerator::_sampleTrialRadiation(
@@ -148,7 +160,7 @@ namespace
     {
         const double alphaS = m_process.alphaSCMW(kt2Trial);
 
-        return __N_Q
+        return N_Q
             * alphaS
             / real.rad.xi 
             / (1 - real.rad.y * real.rad.y);
@@ -159,23 +171,53 @@ namespace
         return rand() * 2.0 * PI;
     }
 
+    // double EmissionGenerator::_sampleTrialXi(const BornPhSpPt& born, double pT2) const
+    // {
+    //     const double b = sqrt(pT2) / born.mB;
+    //     const double a = sqrt(1.0 + b * b);
+    //     const double xiPlus = 1.0 - (a - b) * (a - b);
+    //     const double xiMinus = 1.0 - (a + b) * (a + b);
+    //     const double rho = born.sHat / m_process.S();
+
+    //     const double delta = xiPlus - xiMinus;
+    //     const double eta0 = sqrt(delta);
+    //     const double etaMax = sqrt((1 - rho) - xiPlus) + sqrt((1 - rho) - xiMinus);
+
+    //     const double u = rand();
+    //     const double eta = eta0 * pow(etaMax / eta0, u);
+
+    //     const double bracket = (eta - delta / eta);
+    //     return xiPlus + bracket * bracket / 4.0;
+    // }
+
     double EmissionGenerator::_sampleTrialXi(const BornPhSpPt& born, double pT2) const
     {
-        const double b = sqrt(pT2) / born.mB;
-        const double a = sqrt(1.0 + b * b);
-        const double xiPlus = 1.0 - (a - b) * (a - b);
-        const double xiMinus = 1.0 - (a + b) * (a + b);
-        const double rho = born.sHat / m_process.S();
+        const double r = pT2 / born.sHat;
+        const double a = std::sqrt(1.0 + r);
+        const double b = std::sqrt(r);
 
-        const double delta = xiPlus - xiMinus;
-        const double eta0 = sqrt(delta);
-        const double etaMax = sqrt((1 - rho) - xiPlus) + sqrt((1 - rho) - xiMinus);
+        const double xPlus  = (a + b) * (a + b);
+        const double xMinus = (a - b) * (a - b);
+
+        // This must match _VExactOverVTilde
+        const double xMin = std::min(born.x1Bar, born.x2Bar) / (2.0 * a);
+
+        assert(xMin < xMinus);
+
+        const double delta = xPlus - xMinus;
+
+        const double eta0   = std::sqrt(delta);
+        const double etaMax = std::sqrt(xPlus - xMin) + std::sqrt(xMinus - xMin);
 
         const double u = rand();
-        const double eta = eta0 * pow(etaMax / eta0, u);
+        const double eta = eta0 * std::pow(etaMax / eta0, u);
 
-        const double bracket = (eta - delta / eta);
-        return xiPlus + bracket * bracket / 4.0;
+        const double bracket = eta - delta / eta;
+
+        const double x = xMinus - 0.25 * bracket * bracket;
+        const double xi = 1.0 - x;
+
+        return xi;
     }
 
     double EmissionGenerator::_sampleY(const BornPhSpPt& born, double pT2, double xi) const
@@ -188,28 +230,30 @@ namespace
     }
 
     // sample a k_T^2 after the procedure describes in Appendix D of ref. [22]
-    double EmissionGenerator::_sampleTrialKt2(const BornPhSpPt& born, double ptMax2) const
+    double EmissionGenerator::_sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const
     {
         assert(ptMax2 >= m_process.pt2Cutoff());
 
+        const int nF = 5;
+        const double LAMBDA2 = __LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD();
+        const double BETA0 = (11.0 * m_process.C_A() - 4.0 * m_process.T_F() * nF) / 12.0 / PI;
+
+        // double logR = 0.0;
         for (int trial = 1; trial <= __MAX_TRIALS_V; trial++)
         {
-            const double logR = log(rand());
+            logR += log(rand());
 
-            const double uLow  = log(m_process.pt2Cutoff());
-            const double uHigh = log(ptMax2);
-
-            const double maxIntegral = _integrateVTildeLog(uLow, uHigh, born.sHat, 5);
+            const double maxIntegral = _integrateVTilde(m_process.pt2Cutoff(), ptMax2, born.sHat, LAMBDA2, N_Q, BETA0);
 
             if (-logR > maxIntegral)
                 return -1.0;
 
-            auto f = [&](double u) -> double
+            auto f = [&](double pt2) -> double
             {
-                return _integrateVTildeLog(u, uHigh, born.sHat, 5) + logR;
+                return _integrateVTilde(pt2, ptMax2, born.sHat, LAMBDA2, N_Q, BETA0) + logR;
             };
 
-            const double fLow  = f(uLow);   // >= 0
+            const double fLow  = f(m_process.pt2Cutoff());   // >= 0
             const double fHigh = logR;  // = -target < 0
 
             const boost::uintmax_t MAX_ITER = 100;
@@ -218,8 +262,8 @@ namespace
 
             auto bracket = boost::math::tools::toms748_solve(
                 f,
-                uLow,
-                uHigh,
+                m_process.pt2Cutoff(),
+                ptMax2,
                 fLow,
                 fHigh,
                 tol,
@@ -228,77 +272,85 @@ namespace
 
             assert(maxIter <= MAX_ITER);    // If maxIter > MAX_ITER, the solver failed
 
-            const double uRoot = 0.5 * (bracket.first + bracket.second);
-            const double trialPt2 = std::exp(uRoot);
+            const double trialPt2 = 0.5 * (bracket.first + bracket.second);
 
             if (trialPt2 < m_process.pt2Cutoff())
                 return -1.0;
             
-            const double alphaSCorr = m_process.alphaSCMW(trialPt2) / m_process.alphaS0(trialPt2, 5);
-            const double accRatio = alphaSCorr * _VExact(trialPt2, born.sHat, 5) / _VTildeLog(uRoot, born.sHat, 5);
+            const double alphaS0 = 1.0 / BETA0 / std::log(trialPt2 / LAMBDA2);
+            const double alphaSCorr = m_process.alphaSCMW(trialPt2) / alphaS0;
+            const double accRatio = alphaSCorr * _VExactOverVTilde(born, trialPt2);
             assert(accRatio <= 1.0);
 
             if (rand() < accRatio)
                 return trialPt2;
-            else 
-                ptMax2 = trialPt2;
+            // else 
+                // ptMax2 = trialPt2;
         }
 
         assert(false); // Max trials exceeded!
         return -1.0;
     }
 
-    double EmissionGenerator::_VExact(double pt2, double sHat, int nF) const 
+    double EmissionGenerator::_VExactOverVTilde(const BornPhSpPt& born, double pt2) const
     {
-        const double prefactor = 2.0 * PI * __N_Q;
-        const double alphaS = m_process.alphaSCMW(pt2);
-
-        const double ratio = pt2 / sHat;
-        const double a = sqrt(1 + ratio);
-        const double b = sqrt(ratio);
+        const double ratio = pt2 / born.sHat;
+        
+        const double a = std::sqrt(1.0 + ratio);
+        const double b = std::sqrt(ratio);
 
         const double xPlus = (a + b) * (a + b);
         const double xMinus = (a - b) * (a - b);
-        const double rho = sHat / m_process.S();
 
-        const double sqrtPlus = sqrt(xPlus - rho);
-        const double sqrtMinus = sqrt(xMinus - rho);
+        const double xMin = std::min(born.x1Bar, born.x2Bar) / 2.0 / a;
 
-        const double logFactor = log((sqrtPlus + sqrtMinus) / (sqrtPlus - sqrtMinus));
+        const double rootPlus = std::sqrt(xPlus - xMin);
+        const double rootMinus = std::sqrt(xMinus - xMin);
 
-        return prefactor * alphaS * logFactor;
+        const double prefactor = std::log((rootPlus + rootMinus) / (rootPlus - rootMinus));
+
+        if (pt2 < born.sHat)
+            return 2.0 * prefactor / std::log(2.0 / ratio);
+        else 
+            return 2.0 * prefactor / std::log(2.0);
     }
 
-    double EmissionGenerator::_VTildeLog(double logPt2, double sHat, int nF) const 
+    double EmissionGenerator::_integrateVTilde(
+        double pt2,
+        double kt2max,
+        double sBorn,
+        double lambda2,
+        double nQ,
+        double beta0
+    ) const
     {
-        const double beta0 = (33.0 - 2.0 * nF) / 12.0 / PI;
-        const double prefactor = 2.0 * PI * __N_Q / 2.0 / beta0;        
-        const double logLambda2 = log(__LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD());
+        const double Lpt  = std::log(pt2 / lambda2);
+        const double Lmax = std::log(kt2max / lambda2);
+        const double Ls   = std::log(sBorn / lambda2);
 
-        const double oneMinusRho = 1.0 - sHat / m_process.S();
-        const double ktmaxGlobal2 = m_process.S() / 4.0 * oneMinusRho * oneMinusRho;
-        const double logQ2 = log(ktmaxGlobal2 + sHat);
+        const double prefactor = M_PI * nQ / beta0;
 
-        return prefactor 
-            / (logPt2 - logLambda2)
-            * (logQ2 - logPt2);
-    }
+        double integral = 0.0;
+        if (pt2 < sBorn) 
+        {
+            if (sBorn < kt2max) 
+            {
+                integral = std::log(2.0 * sBorn / lambda2) * std::log(Ls / Lpt)
+                    - std::log(sBorn / pt2)
+                    + std::log(2.0) * std::log(Lmax / Ls);
+            } 
+            else 
+            {
+                integral = std::log(2.0 * sBorn / lambda2) * std::log(Lmax / Lpt)
+                    - std::log(kt2max / pt2);
+            }
+        } 
+        else 
+        {
+            integral = std::log(2.0) * std::log(Lmax / Lpt);
+        }
 
-    double EmissionGenerator::_integrateVTildeLog(double logPt2, double logKtmax2, double sHat, int nF) const 
-    {
-        const double beta0 = (33.0 - 2.0 * nF) / 12.0 / PI;
-        const double prefactor = 2.0 * PI * __N_Q / 2.0 / beta0;          
-        const double logLambda2 = log(__LAMBDA2_OVEREST_FACTOR * m_process.LAMBDA_SQ_QCD());
-
-        const double oneMinusRho = 1.0 - sHat / m_process.S();
-        const double ktmaxGlobal2 = m_process.S() / 4.0 * oneMinusRho * oneMinusRho;
-        const double logQ2 = log(ktmaxGlobal2 + sHat);
-
-        return prefactor * (
-            (logQ2 - logLambda2) 
-            * log((logKtmax2 - logLambda2) / (logPt2 - logLambda2))
-            - logKtmax2 + logPt2
-        );
+        return prefactor * integral;
     }
 
 } // namespace powheg_dy
