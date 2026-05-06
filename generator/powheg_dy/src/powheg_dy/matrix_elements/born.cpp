@@ -2,7 +2,6 @@
 
 #include "couplings.h"
 
-#include "powheg_dy/math/math.h"
 #include "powheg_dy/math/bra_ket.h"
 
 namespace powheg_dy

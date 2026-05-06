@@ -1,6 +1,5 @@
 #include "born_phase_space.h"
 
-#include "powheg_dy/math/math.h"
 #include "powheg_dy/process.h"
 
 namespace powheg_dy
@@ -25,16 +24,16 @@ namespace powheg_dy
         const double m2High = m_config.M_MAX * m_config.M_MAX;
 
         // Breit-Wigner-like sampling of m^2 around the Z peak
-        const double zlow = atan((m2Low - zMass2) / zMassWidth);
-        const double zhigh = atan((m2High - zMass2) / zMassWidth);
+        const double zlow = std::atan((m2Low - zMass2) / zMassWidth);
+        const double zhigh = std::atan((m2High - zMass2) / zMassWidth);
 
         const double z = zlow + (zhigh - zlow) * rands[0];
 
-        const double cosZ = cos(z);
+        const double cosZ = std::cos(z);
 
-        const double m2 = zMassWidth * tan(z) + zMass2;
+        const double m2 = zMassWidth * std::tan(z) + zMass2;
 
-        point.mB = sqrt(m2);
+        point.mB = std::sqrt(m2);
         point.sHat = m2;
 
         // Jacobian dm^2 / dr
@@ -42,22 +41,22 @@ namespace powheg_dy
             (zhigh - zlow) * zMassWidth / (cosZ * cosZ);
 
         // Sample boson rapidity uniformly from the kinematically allowed range
-        const double yBosonMax = log(m_config.SQRT_S / point.mB);
+        const double yBosonMax = std::log(m_config.SQRT_S / point.mB);
         point.yB = (2.0 * rands[1] - 1.0) * yBosonMax;
 
         // Sample cos(theta) from p(c) = 3(1+c^2)/8
         point.cosTh =
-            2.0 * sinh(asinh(4.0 * rands[2] - 2.0) / 3.0);
+            2.0 * std::sinh(std::asinh(4.0 * rands[2] - 2.0) / 3.0);
 
         // Calculate x1Bar and x2Bar
         point.x1Bar = point.mB / m_config.SQRT_S
-                * exp(point.yB);
+                * std::exp(point.yB);
 
         point.x2Bar = point.mB / m_config.SQRT_S
-                * exp(-point.yB);
+                * std::exp(-point.yB);
 
         const double jacobianY =
-            2.0 * log(m_config.SQRT_S / point.mB);
+            2.0 * std::log(m_config.SQRT_S / point.mB);
 
         const double jacobianCosTh =
             8.0 / 3.0 / (1.0 + point.cosTh * point.cosTh);
@@ -75,10 +74,10 @@ namespace powheg_dy
         const double cosThLeg1 = point.channel.id1 > 0 ? point.cosTh : -point.cosTh;
         
         point.pB = {
-            point.mB * cosh(point.yB),
+            point.mB * std::cosh(point.yB),
             0.0,
             0.0,
-            point.mB * sinh(point.yB)
+            point.mB * std::sinh(point.yB)
         };
 
         point.p1Bar = {
@@ -96,12 +95,12 @@ namespace powheg_dy
         };
 
         const double p = point.mB / 2.0;
-        const double sinTh = sqrt(1.0 - cosThLeg1 * cosThLeg1);
+        const double sinTh = std::sqrt(1.0 - cosThLeg1 * cosThLeg1);
 
         const FourVector p1Rest = {
             p,
-            p * sinTh * cos(point.phi),
-            p * sinTh * sin(point.phi),
+            p * sinTh * std::cos(point.phi),
+            p * sinTh * std::sin(point.phi),
             p * cosThLeg1
         };
 

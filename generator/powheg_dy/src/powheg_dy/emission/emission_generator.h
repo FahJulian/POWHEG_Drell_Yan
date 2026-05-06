@@ -6,8 +6,6 @@
 #include "powheg_dy/phase_space/born_phase_space.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
 
-#include <vector>
-
 namespace powheg_dy
 {
     class EmissionGenerator

@@ -1,12 +1,8 @@
 #include "born_event_generator.h"
 
-#include "powheg_dy/math/rand.h"
-#include "powheg_dy/math/math.h"
 #include "powheg_dy/process.h"
+#include "powheg_dy/math/rand.h"
 #include "powheg_dy/matrix_elements/matrix_elements.h"
-
-#include <cmath>
-#include <iostream>
 
 namespace powheg_dy
 {
@@ -16,52 +12,55 @@ namespace powheg_dy
 
     } // namespace
 
-    void BornEventGenerator::computeWeightAndSampleChannel(BornPhSpPt& point) const
+    void BornEventGenerator::computeWeightAndSampleChannel(BornPhSpPt& born) const
     {
         // For each quark flavour, compute the individual contribution to the cross section
-        auto channels = _computePartonChannelContributions(point);
+        auto channels = _computePartonChannelContributions(born);
 
-        point.weight = 0.0;
+        double totalWeight = 0.0;
         for (auto [partonId, dSigma] : channels)
-            point.weight += dSigma;
+            totalWeight += dSigma;
 
-        assert(std::isfinite(point.weight));
-        assert(point.weight >= 0.0);
+        assert(std::isfinite(totalWeight));
+        assert(totalWeight >= 0.0);
 
         // Sample the parton channel by their relative contribution to dSigma
-        double u = rand(0.0, point.weight);
-        for (auto [channel, dSigma] : channels)
+        double u = rand(0.0, totalWeight);
+        for (const auto& [borncopy, dSigma] : channels)
         {
-            point.channel = channel;
             if (u < dSigma)
+            {   
+                born = borncopy;
+                born.weight = totalWeight;
                 break;
+            }
 
             u -= dSigma;
         }
     }
 
-    std::vector<std::tuple<BornChannel, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhSpPt& point) const
+    std::vector<std::tuple<BornPhSpPt, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhSpPt& born) const
     {
-        double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_config.S * point.sHat);
+        double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_config.S * born.sHat);
 
-        std::vector<std::tuple<BornChannel, double>> channels;
+        std::vector<std::tuple<BornPhSpPt, double>> channels;
         channels.reserve(VALID_PARTONS_ON_LEG1.size());
         
         for (int partonId : VALID_PARTONS_ON_LEG1)
         {
-            BornPhSpPt born2 = point; 
-            born2.channel = { partonId, -partonId, abs(partonId) };
-            m_phaseSpace->reconstructMomenta(born2);
+            BornPhSpPt borncopy = born; 
+            borncopy.channel = { partonId, -partonId, abs(partonId) };
+            m_phaseSpace->reconstructMomenta(borncopy);
 
             // Compute the luminosity factors
-            double f  = m_config.PDF->xfxQ2(born2.channel.id1, point.x1Bar, point.sHat) / point.x1Bar;
-            double fb = m_config.PDF->xfxQ2(born2.channel.id2, point.x2Bar, point.sHat) / point.x2Bar;
+            double f  = m_config.PDF->xfxQ2(borncopy.channel.id1, borncopy.x1Bar, borncopy.sHat) / borncopy.x1Bar;
+            double fb = m_config.PDF->xfxQ2(borncopy.channel.id2, borncopy.x2Bar, borncopy.sHat) / borncopy.x2Bar;
 
             // Compute the event weight
-            const double amp2 = MatrixElements::born(m_config, born2);
+            const double amp2 = MatrixElements::born(m_config, borncopy);
             double weight = f * fb * amp2;
 
-            channels.push_back({ born2.channel, point.jacobian * physicsPrefactor * weight });
+            channels.push_back({ borncopy, borncopy.jacobian * physicsPrefactor * weight });
         }
 
         return channels;

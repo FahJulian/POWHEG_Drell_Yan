@@ -1,10 +1,8 @@
 #pragma once
  
+#include "powheg_dy/base.h"
 #include "powheg_dy/config.h"
 #include "powheg_dy/phase_space/born_phase_space.h"
-
-#include <tuple>
-#include <vector>
 
 namespace powheg_dy
 {
@@ -20,7 +18,7 @@ namespace powheg_dy
         void computeWeightAndSampleChannel(BornPhSpPt& point) const;
 
     private:
-        std::vector<std::tuple<BornChannel, double>> _computePartonChannelContributions(const BornPhSpPt& point) const;
+        std::vector<std::tuple<BornPhSpPt, double>> _computePartonChannelContributions(const BornPhSpPt& point) const;
 
     private:
         const Config& m_config;

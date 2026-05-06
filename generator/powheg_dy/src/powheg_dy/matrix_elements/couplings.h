@@ -1,5 +1,6 @@
 #pragma once 
 
+#include "powheg_dy/base.h"
 #include "powheg_dy/config.h"
 
 namespace powheg_dy

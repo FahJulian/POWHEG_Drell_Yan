@@ -67,7 +67,6 @@ namespace
             
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt born = m_bornPhSp->samplePoint(rands);
-            m_bornPhSp->reconstructMomenta(born);
             m_bornGenerator->computeWeightAndSampleChannel(born);
             
             assert(born.weight <= m_maxWeight);
@@ -107,6 +106,7 @@ namespace
         Log::info("Event generation done.");
 
         computeTotalCrossSection();
+        
         double rejected = 0.0;
         for (const auto& event : m_events)
         {
@@ -161,7 +161,6 @@ namespace
         {   
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt point = m_bornPhSp->samplePoint(rands);
-            m_bornPhSp->reconstructMomenta(point);
             m_bornGenerator->computeWeightAndSampleChannel(point);
 
             if (point.weight > max_dSigma)

@@ -1,9 +1,5 @@
 #include "bra_ket.h"
 
-#include <vector>
-#include <math.h>
-#include <assert.h>
-
 namespace powheg_dy
 {
 namespace 

@@ -8,19 +8,13 @@
 #include "powheg_dy/phase_space/real_phase_space.h"
 #include "powheg_dy/born_event/born_event_generator.h"
 
-#include <memory>
-#include <vector>
-#include <string>
-
-#include <LHAPDF/LHAPDF.h>
-
 namespace powheg_dy
 {
     class Process
     {
     public:
         ~Process();
-        
+
         void init(const std::string& pdfSet);
         void run();
         void writeToFile(const std::string& filePath) const;

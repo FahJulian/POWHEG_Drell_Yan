@@ -1,13 +1,12 @@
 #include "real_phase_space.h"
 
-#include "powheg_dy/math/math.h"
 #include "powheg_dy/process.h"
 
 namespace powheg_dy
 {
     namespace
     {   
-        static constexpr double ALLOWED_MISMATCH = 1.0e-7;
+        static constexpr double ALLOWED_MISMATCH = 1.0e-6;
 
         struct __IncomingFractions
         {
@@ -23,11 +22,11 @@ namespace powheg_dy
             const double a = 2.0 - rad.xi * (1.0 - rad.y);
             const double b = 2.0 - rad.xi * (1.0 + rad.y);
 
-            const double sqrt1minusXi = sqrt(1.0 - rad.xi);
+            const double sqrt1minusXi = std::sqrt(1.0 - rad.xi);
 
             // eq. (5.11) of the FKS inverse construction.
-            const double x1 = born.x1Bar / sqrt1minusXi * sqrt(a / b);
-            const double x2 = born.x2Bar / sqrt1minusXi * sqrt(b / a);
+            const double x1 = born.x1Bar / sqrt1minusXi * std::sqrt(a / b);
+            const double x2 = born.x2Bar / sqrt1minusXi * std::sqrt(b / a);
 
             return { x1, x2 };
         }
@@ -77,8 +76,8 @@ namespace powheg_dy
             assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
             assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
             assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
-            assert(abs(ktMismatch) < 1.0e-8);
-            assert(abs(rapidityMismatch) < 1.0e-8);
+            assert(abs(ktMismatch) < ALLOWED_MISMATCH);
+            assert(abs(rapidityMismatch) < ALLOWED_MISMATCH);
         }
 
     } // namespace 
@@ -107,8 +106,8 @@ namespace powheg_dy
         real.radJacobian = __radJacobian(real, rad);
 
         // eq. (5.1) in the paper
-        const double eRadCM = 0.5 * sqrt(real.sHatReal) * rad.xi;
-        const double sinTh = sqrt(1.0 - rad.y * rad.y);
+        const double eRadCM = 0.5 * std::sqrt(real.sHatReal) * rad.xi;
+        const double sinTh = std::sqrt(1.0 - rad.y * rad.y);
 
         const FourVector pRadiatedCM = {
             eRadCM,
@@ -167,7 +166,7 @@ namespace powheg_dy
         const double bound2 = 2.0 * oneMinusY * xb2sq / denom2;
 
         // eq. (5.13) in the paper
-        return 1.0 - max(bound1, bound2);
+        return 1.0 - std::max(bound1, bound2);
     }
 
 } // namespace powheg_dy

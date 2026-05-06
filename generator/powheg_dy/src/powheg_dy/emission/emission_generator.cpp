@@ -1,7 +1,6 @@
 #include "emission_generator.h"
 
 #include "powheg_dy/alpha_s.h"
-#include "powheg_dy/math/math.h"
 #include "powheg_dy/math/rand.h"
 #include "powheg_dy/matrix_elements/matrix_elements.h"
 
@@ -88,7 +87,7 @@ namespace
             const double xiMax = m_realPhaseSpace->xiMax(born, rad.y);
             if (rad.xi <= EPS_XI || rad.xi >= 1.0 - EPS_XI || rad.xi >= xiMax)
             {
-                // kt2Max = kt2Trial;
+                kt2Max = kt2Trial;
                 continue;
             }
 
@@ -129,8 +128,8 @@ namespace
                     ratio
                 );
             }
-            // else
-            //     kt2Max = kt2Trial;
+            else
+                kt2Max = kt2Trial;
         }
         
         return Emission().reject();
@@ -172,25 +171,6 @@ namespace
         return rand() * 2.0 * PI;
     }
 
-    // double EmissionGenerator::sampleTrialXi(const BornPhSpPt& born, double pT2) const
-    // {
-    //     const double b = sqrt(pT2) / born.mB;
-    //     const double a = sqrt(1.0 + b * b);
-    //     const double xiPlus = 1.0 - (a - b) * (a - b);
-    //     const double xiMinus = 1.0 - (a + b) * (a + b);
-    //     const double rho = born.sHat / m_config.S();
-
-    //     const double delta = xiPlus - xiMinus;
-    //     const double eta0 = sqrt(delta);
-    //     const double etaMax = sqrt((1 - rho) - xiPlus) + sqrt((1 - rho) - xiMinus);
-
-    //     const double u = rand();
-    //     const double eta = eta0 * pow(etaMax / eta0, u);
-
-    //     const double bracket = (eta - delta / eta);
-    //     return xiPlus + bracket * bracket / 4.0;
-    // }
-
     double EmissionGenerator::sampleTrialXi(const BornPhSpPt& born, double pT2) const
     {
         const double r = pT2 / born.sHat;
@@ -224,7 +204,7 @@ namespace
     double EmissionGenerator::sampleY(const BornPhSpPt& born, double pT2, double xi) const
     {
         const double xiFactor = (1.0 - xi) / xi / xi;
-        const double absY = sqrt(1.0 - 4.0 * pT2 / born.sHat * xiFactor);
+        const double absY = std::sqrt(std::abs(1.0 - 4.0 * pT2 / born.sHat * xiFactor));
         const double sign = rand() > 0.5 ? 1.0 : -1.0;
 
         return sign * absY;
@@ -239,10 +219,10 @@ namespace
         const double LAMBDA2 = LAMBDA_SQ_OVEREST_FACTOR * m_config.LAMBDA_MSB_5_SQ;
         const double BETA0 = (11.0 * m_config.C_A - 4.0 * m_config.T_F * nF) / 12.0 / PI;
 
-        // double logR = 0.0;
+        // logR = 0.0;
         for (int trial = 1; trial <= MAX_TRIALS_V; trial++)
         {
-            logR += log(rand());
+            logR = std::log(rand());
 
             const double maxIntegral = integrateVTilde(m_config.PT_SQ_CUTOFF, ptMax2, born.sHat, LAMBDA2, N_Q, BETA0);
 
@@ -284,8 +264,8 @@ namespace
 
             if (rand() < accRatio)
                 return trialPt2;
-            // else 
-                // ptMax2 = trialPt2;
+            else 
+                ptMax2 = trialPt2;
         }
 
         assert(false); // Max trials exceeded!

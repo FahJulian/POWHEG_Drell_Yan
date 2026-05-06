@@ -1,7 +1,5 @@
 #include "rand.h"
 
-#include <random>
-
 namespace powheg_dy
 {
     double rand()

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "powheg_dy/base.h"
 #include "powheg_dy/config.h"
 #include "powheg_dy/math/four_vector.h"
 #include "powheg_dy/phase_space/born_phase_space.h"

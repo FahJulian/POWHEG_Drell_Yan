@@ -1,22 +1,27 @@
 #pragma once
 
 #include <array>
+#include <tuple>
 #include <math.h>
 #include <memory>
 #include <string>
 #include <vector>
+#include <random>
 #include <complex>
+#include <fstream>
 #include <sstream>
 #include <iostream>
+
+#include <LHAPDF/LHAPDF.h>
 
 namespace powheg_dy
 {
     namespace Log
     {
-        class logger
+        class Logger
         {
         public:
-            logger(const char* prefix)
+            Logger(const char* prefix)
                 : m_prefix(prefix)
             {
             }
@@ -37,13 +42,9 @@ namespace powheg_dy
             std::string m_prefix = "";
         };
 
-        // std::cout << "\033[31mThis is red\033[0m\n";
-        // std::cout << "\033[32mThis is green\033[0m\n";
-        // std::cout << "\033[33mThis is yellow\033[0m\n";
-        // std::cout << "\033[34mThis is blue\033[0m\n";
-        static const logger info("\033[32m[INFO]    ");
-        static const logger warn("\033[33m[WARNING] ");
-        static const logger err ("\033[31m[ERROR]   ");
+        static const Logger info("\033[32m[INFO]    ");
+        static const Logger warn("\033[33m[WARNING] ");
+        static const Logger err ("\033[31m[ERROR]   ");
 
     } // namespace Log
 

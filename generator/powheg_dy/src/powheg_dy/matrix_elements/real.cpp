@@ -2,9 +2,8 @@
 
 #include "couplings.h"
 
-#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/config.h"
-#include "powheg_dy/math/math.h"
+#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/math/bra_ket.h"
 
 #include <iostream> 

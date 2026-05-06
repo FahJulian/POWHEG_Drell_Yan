@@ -1,8 +1,5 @@
 #include "file.h"
 
-#include <sstream>
-#include <fstream>
-
 namespace powheg_dy
 {
     File::File(const std::string& filePath)

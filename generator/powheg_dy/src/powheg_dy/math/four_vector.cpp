@@ -1,7 +1,5 @@
 #include "four_vector.h"
 
-#include "powheg_dy/math/math.h"
-
 namespace powheg_dy
 {
     FourVector operator+(const FourVector& v1, const FourVector& v2)
@@ -86,7 +84,7 @@ namespace powheg_dy
 
     double FourVector::rapidity() const
     {
-        return 0.5 * log((e + pZ) / (e - pZ));
+        return 0.5 * std::log((e + pZ) / (e - pZ));
     }
 
     double ThreeVector::square() const 
@@ -102,7 +100,7 @@ namespace powheg_dy
     FourVector FourVector::boost(const ThreeVector& beta) const
     {
         double betaSq = beta.square();
-        double gamma = 1.0 / sqrt(1.0 - betaSq);
+        double gamma = 1.0 / std::sqrt(1.0 - betaSq);
 
         if (betaSq == 0)
             return *this;
