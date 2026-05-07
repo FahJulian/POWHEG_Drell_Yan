@@ -19,7 +19,7 @@ namespace powheg_dy
         void serialize(const std::string& filePath);
 
     private:
-        void _writeEvent(const Event& event, std::stringstream& content) const;
+        void writeEvent(const Event& event, std::stringstream& content) const;
 
     private:
         const Process& m_process;

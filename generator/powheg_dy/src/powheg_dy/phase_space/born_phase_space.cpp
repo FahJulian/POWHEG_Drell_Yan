@@ -4,11 +4,11 @@
 
 namespace powheg_dy
 {
-    namespace 
-    {
-        static constexpr double ALLOWED_MISMATCH = 1.0e-10;
+namespace 
+{
+    static constexpr double ALLOWED_MISMATCH = 1.0e-10;
 
-    } // namespace
+} // anonymous namespace
 
     BornPhSpPt BornPhaseSpace::samplePoint(double rands[3]) const
     {
@@ -111,7 +111,7 @@ namespace powheg_dy
 
         const FourVector totalIn = point.p1Bar + point.p2Bar;
         const FourVector totalOut = point.pLMinus + point.pLPlus;
-        double mismatch = (totalIn - totalOut) * (totalIn - totalOut) / point.sHat;
+        double mismatch = dot(totalIn - totalOut, totalIn - totalOut) / point.sHat;
 
         assert(abs(mismatch) < ALLOWED_MISMATCH);
     }

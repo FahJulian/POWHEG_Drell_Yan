@@ -6,21 +6,24 @@
 
 namespace powheg_dy
 {
+    class Process;
+
     class BornEventGenerator
     {
     public:
         BornEventGenerator() = delete;
-        BornEventGenerator(const Config& config, std::shared_ptr<BornPhaseSpace> phaseSpace)
-            : m_config(config), m_phaseSpace(std::move(phaseSpace))
+        BornEventGenerator(const Process& process, const Config& config, std::shared_ptr<BornPhaseSpace> phaseSpace)
+            : m_process(process), m_config(config), m_phaseSpace(std::move(phaseSpace))
         {
         }
 
         void computeWeightAndSampleChannel(BornPhSpPt& point) const;
 
     private:
-        std::vector<std::tuple<BornPhSpPt, double>> _computePartonChannelContributions(const BornPhSpPt& point) const;
+        std::vector<std::tuple<BornPhSpPt, double>> computePartonChannelContributions(const BornPhSpPt& point) const;
 
     private:
+        const Process& m_process;
         const Config& m_config;
         std::shared_ptr<BornPhaseSpace> m_phaseSpace;
     };

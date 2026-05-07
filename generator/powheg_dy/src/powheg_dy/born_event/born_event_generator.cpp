@@ -2,7 +2,7 @@
 
 #include "powheg_dy/process.h"
 #include "powheg_dy/math/rand.h"
-#include "powheg_dy/matrix_elements/matrix_elements.h"
+#include "powheg_dy/matrix_elements.h"
 
 namespace powheg_dy
 {
@@ -10,12 +10,12 @@ namespace powheg_dy
     {
         static const std::vector<int> VALID_PARTONS_ON_LEG1 = { -5, -4, -3, -2, -1, 1, 2, 3, 4, 5 };
 
-    } // namespace
+    } // anonymous namespace
 
     void BornEventGenerator::computeWeightAndSampleChannel(BornPhSpPt& born) const
     {
         // For each quark flavour, compute the individual contribution to the cross section
-        auto channels = _computePartonChannelContributions(born);
+        auto channels = computePartonChannelContributions(born);
 
         double totalWeight = 0.0;
         for (auto [partonId, dSigma] : channels)
@@ -39,7 +39,7 @@ namespace powheg_dy
         }
     }
 
-    std::vector<std::tuple<BornPhSpPt, double>> BornEventGenerator::_computePartonChannelContributions(const BornPhSpPt& born) const
+    std::vector<std::tuple<BornPhSpPt, double>> BornEventGenerator::computePartonChannelContributions(const BornPhSpPt& born) const
     {
         double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_config.S * born.sHat);
 
@@ -57,7 +57,7 @@ namespace powheg_dy
             double fb = m_config.PDF->xfxQ2(borncopy.channel.id2, borncopy.x2Bar, borncopy.sHat) / borncopy.x2Bar;
 
             // Compute the event weight
-            const double amp2 = MatrixElements::born(m_config, borncopy);
+            const double amp2 = m_process.born(borncopy);
             double weight = f * fb * amp2;
 
             channels.push_back({ borncopy, borncopy.jacobian * physicsPrefactor * weight });

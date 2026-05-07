@@ -5,7 +5,7 @@
 
 namespace powheg_dy
 {
-    struct _ZHelicityCouplings
+    struct ZHelicityCouplings
     {
         double minus = 0.0;     // helicity -1
         double plus  = 0.0;     // helicity +1
@@ -16,7 +16,7 @@ namespace powheg_dy
         }
     };
 
-    _ZHelicityCouplings _zCouplings(const Config& config, bool upType, double charge);
-    std::complex<double> _photonPropagator(double q2);
-    std::complex<double> _zPropagator(const Config& config, double q2);
+    ZHelicityCouplings zCouplings(const Config& config, bool upType, double charge);
+    std::complex<double> photonPropagator(double q2);
+    std::complex<double> zPropagator(const Config& config, double q2);
 }

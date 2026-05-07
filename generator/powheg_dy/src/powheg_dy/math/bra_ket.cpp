@@ -7,7 +7,7 @@ namespace
     static constexpr double TINY = 1.0e-20;
     static constexpr std::complex<double> I = { 0.0, 1.0 };
 
-    std::array<std::complex<double>, 2> _slashKet(
+    std::array<std::complex<double>, 2> slashKet(
         const FourVectorC& p, 
         const std::array<std::complex<double>, 2>& ket, 
         int helicity)
@@ -26,7 +26,7 @@ namespace
         };
     }
 
-    // std::array<std::complex<double>, 2> _slashBra(
+    // std::array<std::complex<double>, 2> slashBra(
     //     const FourVectorC& p, 
     //     const std::array<std::complex<double>, 2>& bra, 
     //     int helicity)
@@ -45,7 +45,7 @@ namespace
     //     };
     // }
 
-    std::complex<double> _braSlashKet(
+    std::complex<double> braSlashKet(
         const WeylSpinors& bra,
         const WeylSpinors& ket,
         int ketHel,
@@ -63,14 +63,14 @@ namespace
 
         for (int i = n - 1; i >= 0; --i)
         {
-            k = _slashKet(momenta[i], k, ketHel);
+            k = slashKet(momenta[i], k, ketHel);
             ketHel = -ketHel;
         }
 
         return b[0] * k[0] + b[1] * k[1];
     }
 
-} // namespace
+} // anonymous namespace
 
     FourVector polVec(const FourVector& p, double mass, int pol)
     {
@@ -277,21 +277,21 @@ namespace
         const FourVector pProp2 = pKet - pGluon;
 
         FourVectorC curr1 = {
-            _braSlashKet(bra, ket, helicity, { eps, pProp1, { 1.0,  0.0,  0.0,  0.0 } }),
-            _braSlashKet(bra, ket, helicity, { eps, pProp1, { 0.0, -1.0,  0.0,  0.0 } }),
-            _braSlashKet(bra, ket, helicity, { eps, pProp1, { 0.0,  0.0, -1.0,  0.0 } }),
-            _braSlashKet(bra, ket, helicity, { eps, pProp1, { 0.0,  0.0,  0.0, -1.0 } }),
+            braSlashKet(bra, ket, helicity, { eps, pProp1, { 1.0,  0.0,  0.0,  0.0 } }),
+            braSlashKet(bra, ket, helicity, { eps, pProp1, { 0.0, -1.0,  0.0,  0.0 } }),
+            braSlashKet(bra, ket, helicity, { eps, pProp1, { 0.0,  0.0, -1.0,  0.0 } }),
+            braSlashKet(bra, ket, helicity, { eps, pProp1, { 0.0,  0.0,  0.0, -1.0 } }),
         };
 
         FourVectorC curr2 = {
-            _braSlashKet(bra, ket, helicity, { { 1.0,  0.0,  0.0,  0.0 }, pProp2, eps }),
-            _braSlashKet(bra, ket, helicity, { { 0.0, -1.0,  0.0,  0.0 }, pProp2, eps }),
-            _braSlashKet(bra, ket, helicity, { { 0.0,  0.0, -1.0,  0.0 }, pProp2, eps }),
-            _braSlashKet(bra, ket, helicity, { { 0.0,  0.0,  0.0, -1.0 }, pProp2, eps }),
+            braSlashKet(bra, ket, helicity, { { 1.0,  0.0,  0.0,  0.0 }, pProp2, eps }),
+            braSlashKet(bra, ket, helicity, { { 0.0, -1.0,  0.0,  0.0 }, pProp2, eps }),
+            braSlashKet(bra, ket, helicity, { { 0.0,  0.0, -1.0,  0.0 }, pProp2, eps }),
+            braSlashKet(bra, ket, helicity, { { 0.0,  0.0,  0.0, -1.0 }, pProp2, eps }),
         };
 
-        const double denom1 = 2.0 * pGluon * pBra;
-        const double denom2 = -2.0 * pGluon * pKet;
+        const double denom1 = 2.0 * dot(pGluon, pBra);
+        const double denom2 = -2.0 * dot(pGluon, pKet);
 
         return curr1 / denom1 + curr2 / denom2;
     }

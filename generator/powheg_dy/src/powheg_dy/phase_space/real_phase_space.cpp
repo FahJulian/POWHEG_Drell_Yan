@@ -4,83 +4,83 @@
 
 namespace powheg_dy
 {
-    namespace
-    {   
-        static constexpr double ALLOWED_MISMATCH = 1.0e-6;
+namespace
+{   
+    static constexpr double ALLOWED_MISMATCH = 1.0e-6;
 
-        struct __IncomingFractions
-        {
-            double x1;
-            double x2;
-        };
+    struct IncomingFractions
+    {
+        double x1;
+        double x2;
+    };
 
-        __IncomingFractions __computeRealFractions(
-            const BornPhSpPt& born,
-            const RadiationVariables& rad
-        )
-        {
-            const double a = 2.0 - rad.xi * (1.0 - rad.y);
-            const double b = 2.0 - rad.xi * (1.0 + rad.y);
+    IncomingFractions computeRealFractions(
+        const BornPhSpPt& born,
+        const RadiationVariables& rad
+    )
+    {
+        const double a = 2.0 - rad.xi * (1.0 - rad.y);
+        const double b = 2.0 - rad.xi * (1.0 + rad.y);
 
-            const double sqrt1minusXi = std::sqrt(1.0 - rad.xi);
+        const double sqrt1minusXi = std::sqrt(1.0 - rad.xi);
 
-            // eq. (5.11) of the FKS inverse construction.
-            const double x1 = born.x1Bar / sqrt1minusXi * std::sqrt(a / b);
-            const double x2 = born.x2Bar / sqrt1minusXi * std::sqrt(b / a);
+        // eq. (5.11) of the FKS inverse construction.
+        const double x1 = born.x1Bar / sqrt1minusXi * std::sqrt(a / b);
+        const double x2 = born.x2Bar / sqrt1minusXi * std::sqrt(b / a);
 
-            return { x1, x2 };
-        }
+        return { x1, x2 };
+    }
 
-        double __kt2(
-            const BornPhSpPt& born,
-            const RadiationVariables& rad
-        ) 
-        {
-            // eq. (7.233) in the paper
-            return born.sHat / (4.0 * (1.0 - rad.xi))
-                 * rad.xi * rad.xi
-                 * (1.0 - rad.y * rad.y);
-        }
+    double kt2(
+        const BornPhSpPt& born,
+        const RadiationVariables& rad
+    ) 
+    {
+        // eq. (7.233) in the paper
+        return born.sHat / (4.0 * (1.0 - rad.xi))
+                * rad.xi * rad.xi
+                * (1.0 - rad.y * rad.y);
+    }
 
-        double __radJacobian(
-            const RealPhSpPt& real,
-            const RadiationVariables& rad
-        ) 
-        {
-            // eq. (5.10) in the paper
-            return real.sHatReal
-                / std::pow(4.0 * PI, 3)
-                * rad.xi
-                / (1.0 - rad.xi);
-        }
+    double radJacobian(
+        const RealPhSpPt& real,
+        const RadiationVariables& rad
+    ) 
+    {
+        // eq. (5.10) in the paper
+        return real.sHatReal
+            / std::pow(4.0 * PI, 3)
+            * rad.xi
+            / (1.0 - rad.xi);
+    }
 
-        void __assertRealKinematics(
-            const BornPhSpPt& born,
-            const RealPhSpPt& real
-        ) 
-        {
-            const FourVector totalIn = real.p1In + real.p2In;
-            const FourVector totalOut = real.pLMinus + real.pLPlus + real.pRadiated;
-            const FourVector dilepton = real.pLMinus + real.pLPlus;
-            const double kt2FromMomentum =  real.pRadiated.pX * real.pRadiated.pX
-                + real.pRadiated.pY * real.pRadiated.pY;
+    void assertRealKinematics(
+        const BornPhSpPt& born,
+        const RealPhSpPt& real
+    ) 
+    {
+        const FourVector totalIn = real.p1In + real.p2In;
+        const FourVector totalOut = real.pLMinus + real.pLPlus + real.pRadiated;
+        const FourVector dilepton = real.pLMinus + real.pLPlus;
+        const double kt2FromMomentum =  real.pRadiated.pX * real.pRadiated.pX
+            + real.pRadiated.pY * real.pRadiated.pY;
 
-            const double totalMomentumMismatch = (totalIn - totalOut).square() / born.sHat;
-            const double gluonMassMismatch = real.pRadiated.square() / born.sHat;
-            const double bosonMassMismatch = (dilepton.square() - born.sHat) / born.sHat;
-            const double ktMismatch = (kt2FromMomentum - real.kt2) / born.sHat;
-            const double bosonMomentumMismatch = (dilepton - real.pBoson).square() / born.sHat;
-            const double rapidityMismatch = real.pBoson.rapidity() - born.yB;
+        const double totalMomentumMismatch = (totalIn - totalOut).square() / born.sHat;
+        const double gluonMassMismatch = real.pRadiated.square() / born.sHat;
+        const double bosonMassMismatch = (dilepton.square() - born.sHat) / born.sHat;
+        const double ktMismatch = (kt2FromMomentum - real.kt2) / born.sHat;
+        const double bosonMomentumMismatch = (dilepton - real.pBoson).square() / born.sHat;
+        const double rapidityMismatch = real.pBoson.rapidity() - born.yB;
 
-            assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
-            assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
-            assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
-            assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
-            assert(abs(ktMismatch) < ALLOWED_MISMATCH);
-            assert(abs(rapidityMismatch) < ALLOWED_MISMATCH);
-        }
+        assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
+        assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
+        assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
+        assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
+        assert(abs(ktMismatch) < ALLOWED_MISMATCH);
+        assert(abs(rapidityMismatch) < ALLOWED_MISMATCH);
+    }
 
-    } // namespace 
+} // anonymous namespace 
 
     RealPhSpPt FKSRealPhaseSpace::reconstruct(
         const BornPhSpPt& born, 
@@ -91,7 +91,7 @@ namespace powheg_dy
         real.underlyingBorn = born;
         real.rad = rad;
 
-        const auto [x1, x2] = __computeRealFractions(born, rad);
+        const auto [x1, x2] = computeRealFractions(born, rad);
         real.x1 = x1;
         real.x2 = x2;
 
@@ -102,8 +102,8 @@ namespace powheg_dy
         const FourVector realIncoming = real.p1In + real.p2In;
         real.sHatReal = realIncoming.square();
         
-        real.kt2 = __kt2(born, rad);
-        real.radJacobian = __radJacobian(real, rad);
+        real.kt2 = kt2(born, rad);
+        real.radJacobian = radJacobian(real, rad);
 
         // eq. (5.1) in the paper
         const double eRadCM = 0.5 * std::sqrt(real.sHatReal) * rad.xi;
@@ -132,7 +132,7 @@ namespace powheg_dy
         real.pLMinus = born.pLMinus.boost(longBoost).boost(transvBoost).boost(-longBoost);  
         real.pLPlus  = born.pLPlus .boost(longBoost).boost(transvBoost).boost(-longBoost);  
         
-        __assertRealKinematics(born, real);
+        assertRealKinematics(born, real);
 
         return real;
     }

@@ -2,8 +2,6 @@
 
 #include "powheg_dy/base.h"
 
-#include "LHAPDF/LHAPDF.h"
-
 namespace powheg_dy
 {
     struct Config

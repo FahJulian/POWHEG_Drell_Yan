@@ -1,8 +1,9 @@
 #include "emission_generator.h"
 
+#include "powheg_dy/process.h"
 #include "powheg_dy/alpha_s.h"
 #include "powheg_dy/math/rand.h"
-#include "powheg_dy/matrix_elements/matrix_elements.h"
+#include "powheg_dy/matrix_elements.h"
 
 #include <boost/math/tools/roots.hpp>
 #include <boost/math/tools/toms748_solve.hpp>
@@ -43,7 +44,7 @@ namespace
         return emission;
     }
 
-    RadiationChannel chooseChannel(const MatrixElements::RealOverBornContributions& contributions,
+    RadiationChannel chooseChannel(const RealOverBornContributions& contributions,
         const BornChannel& bornChannel)
     {
         // Choose radiation channel, i.e. the emitted parton based on relative weight
@@ -57,7 +58,7 @@ namespace
             return { bornChannel.id1, 21, bornChannel.id1 };
     }
 
-} // namespace
+} // anonymous namespace
 
     Emission EmissionGenerator::generateEmission(
         const BornPhSpPt& born,
@@ -93,7 +94,7 @@ namespace
 
             const RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
 
-            const auto contributions = MatrixElements::realOverBornContributions(m_config, real, kt2Trial, kt2Trial, true);
+            const auto contributions = m_process.realOverBornContributions(real, kt2Trial, kt2Trial, true);
 
             const double exact = real.radJacobian * contributions.total();
             const double upper = upperRadiationDensity(real, kt2Trial);

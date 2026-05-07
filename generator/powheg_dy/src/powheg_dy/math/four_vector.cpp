@@ -22,12 +22,12 @@ namespace powheg_dy
         return { v1.x1 - v2.x1, v1.x2 - v2.x2, v1.x3 - v2.x3 };
     }
 
-    double operator*(const FourVector& v1, const FourVector& v2)
+    double dot(const FourVector& v1, const FourVector& v2)
     {
         return v1.x0 * v2.x0 - v1.x1 * v2.x1 - v1.x2 * v2.x2 - v1.x3 * v2.x3;
     }
 
-    double operator*(const ThreeVector& v1, const ThreeVector& v2)
+    double dot(const ThreeVector& v1, const ThreeVector& v2)
     {
         return v1.x1 * v2.x1 + v1.x2 * v2.x2 + v1.x3 * v2.x3;
     }
@@ -79,7 +79,7 @@ namespace powheg_dy
 
     double FourVector::square() const 
     {
-        return (*this) * (*this);
+        return dot(*this, *this);
     }
 
     double FourVector::rapidity() const
@@ -89,7 +89,7 @@ namespace powheg_dy
 
     double ThreeVector::square() const 
     {
-        return (*this) * (*this);
+        return dot(*this, *this);
     }
 
     ThreeVector FourVector::getBeta() const
@@ -105,7 +105,7 @@ namespace powheg_dy
         if (betaSq == 0)
             return *this;
 
-        double dotProd = beta * getThreeVec();
+        double dotProd = dot(beta, getThreeVec());
         double factor = (gamma - 1.0) / betaSq * dotProd + gamma * x0;
 
         return {

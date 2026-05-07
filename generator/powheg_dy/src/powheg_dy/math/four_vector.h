@@ -89,8 +89,8 @@ namespace powheg_dy
     ThreeVector operator+(const ThreeVector& v1, const ThreeVector& v2);
     FourVector operator-(const FourVector& v1, const FourVector& v2);
     ThreeVector operator-(const ThreeVector& v1, const ThreeVector& v2);
-    double operator*(const FourVector& v1, const FourVector& v2);
-    double operator*(const ThreeVector& v1, const ThreeVector& v2);
+    double dot(const FourVector& v1, const FourVector& v2);
+    double dot(const ThreeVector& v1, const ThreeVector& v2);
     FourVector operator*(const FourVector& v, double a);
     ThreeVector operator*(const ThreeVector& v, double a);
     FourVector operator*(double a, const FourVector& v);

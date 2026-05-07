@@ -3,6 +3,7 @@
 #include "powheg_dy/base.h"
 #include "powheg_dy/event.h"
 #include "powheg_dy/config.h"
+#include "powheg_dy/matrix_elements.h"
 #include "powheg_dy/emission/emission_generator.h"
 #include "powheg_dy/phase_space/born_phase_space.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
@@ -14,6 +15,11 @@ namespace powheg_dy
     {
     public:
         ~Process();
+
+        virtual RealOverBornContributions realOverBornContributions(
+            const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const = 0;
+
+        virtual double born(const BornPhSpPt& born) const = 0;
 
         void init(const std::string& pdfSet);
         void run();
@@ -42,6 +48,7 @@ namespace powheg_dy
 
         std::vector<Event> m_events;
 
+    protected:
         Config m_config;
     };  
 

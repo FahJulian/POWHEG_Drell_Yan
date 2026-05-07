@@ -8,11 +8,14 @@
 
 namespace powheg_dy
 {
+    class Process;
+
     class EmissionGenerator
     {
     public:
-        EmissionGenerator(const Config& config, std::shared_ptr<FKSRealPhaseSpace> realPhaseSpace)
-            : m_config(config),
+        EmissionGenerator(const Process& process, const Config& config, std::shared_ptr<FKSRealPhaseSpace> realPhaseSpace)
+            : m_process(process),
+              m_config(config),
               m_realPhaseSpace(std::move(realPhaseSpace))
         {
         }
@@ -35,6 +38,7 @@ namespace powheg_dy
         double globalKt2Max(const BornPhSpPt& born) const;
 
     private:
+        const Process& m_process;
         const Config& m_config;
         std::shared_ptr<FKSRealPhaseSpace> m_realPhaseSpace;
     };

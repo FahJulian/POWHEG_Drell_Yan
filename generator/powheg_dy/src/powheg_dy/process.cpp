@@ -48,8 +48,8 @@ namespace
 
         m_bornPhSp = std::make_shared<BornPhaseSpace>(m_config);
         m_realPhSp = std::make_shared<FKSRealPhaseSpace>(m_config);
-        m_bornGenerator = std::make_shared<BornEventGenerator>(m_config, m_bornPhSp);
-        m_emissionGenerator = std::make_shared<EmissionGenerator>(m_config, m_realPhSp);
+        m_bornGenerator = std::make_shared<BornEventGenerator>(*this, m_config, m_bornPhSp);
+        m_emissionGenerator = std::make_shared<EmissionGenerator>(*this, m_config, m_realPhSp);
 
         Log::info << "Intitialization complete" << std::endl << std::endl;
     }
