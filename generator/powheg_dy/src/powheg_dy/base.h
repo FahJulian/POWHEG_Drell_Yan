@@ -11,8 +11,24 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
 
 #include <LHAPDF/LHAPDF.h>
+
+#define POWHEG_DEBUG
+
+#undef assert
+
+#ifdef POWHEG_DEBUG
+# define assert2(expr, message) if (!(expr)) throw std::runtime_error(message)
+# define assert1(expr) assert2(expr, #expr) 
+#else 
+#define assert2(expr, message)
+#define assert1(expr)
+#endif
+
+#define GET_MACRO(_1, _2, name, ...) name
+#define assert(...) GET_MACRO(__VA_ARGS__, assert2, assert1)(__VA_ARGS__) 
 
 namespace powheg_dy
 {

@@ -33,6 +33,8 @@ namespace powheg_dy
 
     private:
         void clear();
+        void analyse();
+        void generateEvents();
         void determineMaxWeight();
         void computeTotalCrossSection();
 

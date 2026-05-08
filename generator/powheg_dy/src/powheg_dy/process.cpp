@@ -56,67 +56,19 @@ namespace
 
     void Process::run()
     {
-        clear();
-
-        determineMaxWeight();
-        
-        Log::info("Starting event generation");
-        while (static_cast<int>(m_events.size()) < m_config.N_ACCEPTED_EVENTS)
-        {   
-            m_nEventTrials++;
-            
-            double rands[3] = { rand(), rand(), rand() };
-            BornPhSpPt born = m_bornPhSp->samplePoint(rands);
-            m_bornGenerator->computeWeightAndSampleChannel(born);
-            
-            assert(born.weight <= m_maxWeight);
-            
-            // Unweight: Accept the event at the rate of it's weight over the reference weight
-            double u = rand(0.0, 1.0);
-            if (u < born.weight / m_maxWeight)
-            {   
-                if (m_config.BORNONLY)
-                {
-                    Emission emission = Emission().reject();
-                    RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
-
-                    m_events.push_back({ born, real, emission });
-                }
-                else
-                {
-                    Emission highestPtEm = Emission().reject();
-
-                    // Highest bid procedure, for Drell Yan only ISR radiation 
-                    for (int region = 1; region < 2; region++)
-                    {
-                        Emission emission = m_emissionGenerator->generateEmission(born, region);
-                        if (emission.kt2 > highestPtEm.kt2)
-                            highestPtEm = emission;
-                    }
-                    
-                    RealPhSpPt real = m_realPhSp->reconstruct(born, highestPtEm.rad);
-                    m_events.push_back({ born, real, highestPtEm });
-                }
-
-                if (m_events.size() % 1000 == 0)
-                    Log::info << m_events.size() << " Events generated." << std::endl;
-            }
-        }
-
-        Log::info("Event generation done.");
-
-        computeTotalCrossSection();
-        
-        double rejected = 0.0;
-        for (const auto& event : m_events)
+        try
         {
-            if (event.emission.rejected)
-                rejected++;
+            clear();
+            determineMaxWeight();
+            generateEvents();
+            computeTotalCrossSection();
+            analyse();
         }
-
-        Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
-        Log::info << "Acceptance ratio: " << double(m_config.N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
-        Log::info << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
+        catch(const std::runtime_error& e)
+        {
+            Log::err << e.what() << std::endl;
+            Log::err << "Aborting..." << std::endl;
+        }
     }
 
     std::string toString(const Event& event)
@@ -172,10 +124,72 @@ namespace
         Log::info("Done determining Born Veto weight.");
     }
 
+    void Process::generateEvents()  
+    {
+        Log::info("Starting event generation");
+        while (static_cast<int>(m_events.size()) < m_config.N_ACCEPTED_EVENTS)
+        {   
+            m_nEventTrials++;
+            
+            double rands[3] = { rand(), rand(), rand() };
+            BornPhSpPt born = m_bornPhSp->samplePoint(rands);
+            m_bornGenerator->computeWeightAndSampleChannel(born);
+            
+            assert(born.weight >= m_maxWeight);
+            
+            // Unweight: Accept the event at the rate of it's weight over the reference weight
+            double u = rand(0.0, 1.0);
+            if (u < born.weight / m_maxWeight)
+            {   
+                if (m_config.BORNONLY)
+                {
+                    Emission emission = Emission().reject();
+                    RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
+
+                    m_events.push_back({ born, real, emission });
+                }
+                else
+                {
+                    Emission highestPtEm = Emission().reject();
+
+                    // Highest bid procedure, for Drell Yan only ISR radiation 
+                    for (int region = 1; region < 2; region++)
+                    {
+                        Emission emission = m_emissionGenerator->generateEmission(born, region);
+                        if (emission.kt2 > highestPtEm.kt2)
+                            highestPtEm = emission;
+                    }
+                    
+                    RealPhSpPt real = m_realPhSp->reconstruct(born, highestPtEm.rad);
+                    m_events.push_back({ born, real, highestPtEm });
+                }
+
+                if (m_events.size() % 1000 == 0)
+                    Log::info << m_events.size() << " Events generated." << std::endl;
+            }
+        }
+
+        Log::info("Event generation done.");
+    }
+
     void Process::computeTotalCrossSection()
     {
         m_totalCrossSection = m_maxWeight * GEV_SQ_TO_PB * 
             m_config.N_ACCEPTED_EVENTS / m_nEventTrials;
+    }
+
+    void Process::analyse()
+    {
+        double rejected = 0.0;
+        for (const auto& event : m_events)
+        {
+            if (event.emission.rejected)
+                rejected++;
+        }
+
+        Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
+        Log::info << "Acceptance ratio: " << double(m_config.N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
+        Log::info << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
     }
 
 } // namespace powheg_dy
