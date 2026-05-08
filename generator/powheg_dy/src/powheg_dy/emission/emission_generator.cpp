@@ -52,7 +52,7 @@ namespace
 
         if (u < contributions.qqbar)
             return { bornChannel.id1, bornChannel.id2, 21 };
-        else if (u < contributions.qqbar + contributions.gqbar)
+        else if (u < contributions.qqbar + contributions.gluonLeg1)
             return { 21, bornChannel.id2, bornChannel.id2 };
         else
             return { bornChannel.id1, 21, bornChannel.id1 };
@@ -104,7 +104,7 @@ namespace
 
             if (ratio > 1.0)
             {
-                Log::warn << "Acceptance ratio is greater than one, accepting emission." << std::endl;
+                Log::warn << "Acceptance ratio " << ratio << " is greater than one, accepting emission." << std::endl;
                 
                 auto channel = chooseChannel(contributions, born.channel);
 

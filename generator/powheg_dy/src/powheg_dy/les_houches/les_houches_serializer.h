@@ -20,6 +20,11 @@ namespace powheg_dy
 
     private:
         void writeEvent(const Event& event, std::stringstream& content) const;
+        void writeEventHeader(std::stringstream& content, int nParticles, double scalup, double alphaSScale) const;
+        void writeEventBorn(const Event& event, std::stringstream& content) const;
+        void writeEventqqbar(const Event& event, std::stringstream& content) const;
+        void writeEventGluonLeg1(const Event& event, std::stringstream& content) const;
+        void writeEventGluonLeg2(const Event& event, std::stringstream& content) const;
 
     private:
         const Process& m_process;

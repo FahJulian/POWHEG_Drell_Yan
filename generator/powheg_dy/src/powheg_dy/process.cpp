@@ -75,22 +75,24 @@ namespace
         FourVector sum = event.real.pLMinus + event.real.pLPlus;
         double pT = sqrt(sum.pX*sum.pX + sum.pY*sum.pY);
 
-        return std::to_string(event.born.mB) + ", "
+        return std::to_string(event.born.mBoson) + ", "
             + std::to_string(event.born.cosTh) + ", "
             + std::to_string(pT);
     }
 
     void Process::writeToFile(const std::string& filePath) const
     {
-        std::string fileContent;
+        // std::string fileContent;
             
-        for (const auto& event : m_events)
-            fileContent.append(toString(event) + '\n');
+        // for (const auto& event : m_events)
+        //     fileContent.append(toString(event) + '\n');
         
-        File file = File(filePath);
-        file.write(fileContent);
+        // File file = File(filePath);
+        // file.write(fileContent);
 
-        // LesHouchesSerializer(*this, m_config).serialize(filePath);
+        Log::info << "Generating LHE file at " << filePath << std::endl;
+        LesHouchesSerializer(*this, m_config).serialize(filePath);
+        Log::info("Done generating LHE file");
     }
 
     void Process::clear()
@@ -120,7 +122,7 @@ namespace
 
         m_maxWeight = SECURITY_FACTOR * max_dSigma;
 
-        Log::info("Done determining Born Veto weight.");
+        Log::info << "Done determining Born Veto weight." << std::endl << std::endl;
     }
 
     void Process::generateEvents()  
@@ -168,7 +170,7 @@ namespace
             }
         }
 
-        Log::info("Event generation done.");
+        Log::info << "Event generation done." << std::endl << std::endl;
     }
 
     void Process::computeTotalCrossSection()

@@ -9,6 +9,17 @@ namespace powheg_dy
 {
 namespace 
 {
+    std::array<char, 8 * sizeof(long long)> STRING_CAST_BUFFER;
+
+    std::string doubleToString(double value, int precision, bool scientific)
+    {
+        auto result = std::to_chars(STRING_CAST_BUFFER.begin(), STRING_CAST_BUFFER.end(),
+            value, scientific ? std::chars_format::scientific : std::chars_format::fixed, precision);
+            
+        std::string str = std::string(STRING_CAST_BUFFER.begin(), result.ptr - STRING_CAST_BUFFER.begin());
+        return value < 0 ? str : " " + str;
+    }
+
     void writeHeader(std::stringstream& content)
     {
         content <<
@@ -22,20 +33,37 @@ namespace
     {
         content
             << "<init>\n"
-            << "    2212 2212 " << eBeam << " " << eBeam << " 0 0 0 0 3 1\n"
-            << "    " << sigma << " 0.0 1.0 1001\n"
+            << "     2212     2212  " 
+            << doubleToString(eBeam, 5, true) << "  " 
+            << doubleToString(eBeam, 5, true) 
+            << "     -1     -1     -1     -1     -4      1\n"
+            << "    " << doubleToString(sigma, 5, 0) << "     "
+            << doubleToString(0.0, 5, true) << "  " 
+            << doubleToString(1.0, 5, true) << "  " 
+            << "10011\n"
             << "</init>\n";
     }
 
     void writeParticle(std::stringstream& content, int id, int status, int mother1, 
-        int mother2, int color1, int color2, const FourVector& p, double mass = 0.0, double spin = 9.0)
+        int mother2, int color1, int color2, const FourVector& p, double mass, double spin = 9.0)
     {
+
+        std::string idString = (id < -9) ? std::to_string(id) 
+            : (id < 0) ? " " + std::to_string(id) 
+            : (id < 10) ? "  " + std::to_string(id) 
+            : " " + std::to_string(id);
+        std::string statusString = status < 0 ? std::to_string(status) : " " + std::to_string(status);
+        std::string color1String = color1 == 0 ? "  0" : std::to_string(color1);
+        std::string color2String = color2 == 0 ? "  0" : std::to_string(color2);
+
         content 
-            << "    " << id << " " << status << " " 
-            << mother1 << " " << mother2 << " " 
-            << color1 << " " << color2 << " "
-            << p.x << " " << p.y << " " << p.z << " " << p.e << " "
-            << mass << " " << 0.0 << " "<< spin << "\n";
+            << "     " << idString << "   " << statusString << "     " 
+            << mother1 << "     " << mother2 << "   " 
+            << color1String << "   " << color2String << "  "
+            << doubleToString(p.x, 9, true) << "  " << doubleToString(p.y, 9, true) << "  " 
+            << doubleToString(p.z, 9, true) << "  " << doubleToString(p.e, 9, true) << "  "
+            << doubleToString(mass, 9, true) << " " << doubleToString(0.0, 5, true) << "  "
+            << doubleToString(spin, 3, true) << "\n";
     }
 
 } // anonymous namespace
@@ -55,38 +83,147 @@ namespace
         File(filePath).write(content.str());
     }
 
+    void LesHouchesSerializer::writeEventHeader(std::stringstream& content, int nParticles, double scalup, double alphaSScale) const
+    {
+        // Number of particles, process label, weight of the event
+        content << "<event>\n" 
+            << "       " << nParticles << " 1001  " 
+            << doubleToString(1.0, 5, true) << "  "
+            << doubleToString(scalup, 5, true) << "  "
+            << doubleToString(m_config.ALPHA_EW, 5, true) << "  " 
+            << doubleToString(alphaS(m_config, alphaSScale*alphaSScale), 5, true) << "\n";
+    }
+
     void LesHouchesSerializer::writeEvent(const Event& event, std::stringstream& content) const
     {
-        bool hasGluon = !event.emission.rejected;
-
-        double bornScale = hasGluon ? std::sqrt(event.emission.kt2) : event.born.mB;
-        int nParticles = hasGluon ? 5 : 4;
-
-        content << "<event>\n" 
-            << "    " << nParticles << " 1001 1.0 "   // Number of particles, process label, weight of the event
-            << bornScale << " "
-            << m_config.ALPHA_EW << " " << alphaS0(m_config, bornScale*bornScale, 5) << "\n";
-
-        int color = 501;
-        int anticolor = hasGluon ? 502 : 501;
-
-        if (event.born.channel.id1 > 0)     // quark on leg 1 
+        if (event.emission.rejected)
         {
-            writeParticle(content, event.born.channel.id1, -1, 0, 0, color, 0, event.real.p1In);
-            writeParticle(content, event.born.channel.id2, -1, 0, 0, 0, anticolor, event.real.p2In);
+            writeEventBorn(event, content);
         }
-        else                // antiquark on leg 1
+        else 
         {
-            writeParticle(content, event.born.channel.id1, -1, 0, 0, 0, anticolor, event.real.p1In);
-            writeParticle(content, event.born.channel.id2, -1, 0, 0, color, 0, event.real.p2In);
+            if (event.emission.channel.idRadiated == 21)
+                writeEventqqbar(event, content);
+            else if (event.emission.channel.id1 == 21)
+                writeEventGluonLeg1(event, content);
+            else 
+                writeEventGluonLeg2(event, content);
+        }
+    }
+
+    void LesHouchesSerializer::writeEventBorn(const Event& event, std::stringstream& content) const
+    {
+        const int color = 501;
+        const int anticolor = 501;
+
+        // No hardest event below the cutoff was generated -> Set SCALUP to the cutoff
+        writeEventHeader(content, 5, std::sqrt(m_config.PT_SQ_CUTOFF), event.born.mBoson);
+
+        if (event.born.channel.id1 > 0)     // quark on leg 1
+        {
+            writeParticle(content, event.born.channel.id1, -1, 0, 0, color, 0, event.born.p1Bar, 0.0);
+            writeParticle(content, event.born.channel.id2, -1, 0, 0, 0, anticolor, event.born.p2Bar, 0.0);
+        }
+        else                                // antiquark on leg 1
+        {
+            writeParticle(content, event.born.channel.id1, -1, 0, 0, 0, anticolor, event.born.p1Bar, 0.0);
+            writeParticle(content, event.born.channel.id2, -1, 0, 0, color, 0, event.born.p2Bar, 0.0);
         }
 
-        writeParticle(content, 13,  1, 1, 2, 0, 0, event.real.pLMinus);
-        writeParticle(content, -13, 1, 1, 2, 0, 0, event.real.pLPlus);
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.born.pBoson, event.born.mBoson);
 
-        if (hasGluon)
-            // TODO: This is totally wrong, the radiated particle may not be the gluon anymore
-            writeParticle(content, 21, 1, 1, 2, color, anticolor, event.real.pRadiated);
+        writeParticle(content, 13,  1, 3, 3, 0, 0, event.born.pLMinus, 0.0);
+        writeParticle(content, -13, 1, 3, 3, 0, 0, event.born.pLPlus, 0.0);
+
+        content << "</event>\n";
+    }
+
+    void LesHouchesSerializer::writeEventqqbar(const Event& event, std::stringstream& content) const
+    {
+        const int color1 = 501;
+        const int color2 = 511;
+
+        writeEventHeader(content, 6, std::sqrt(event.emission.kt2), event.born.mBoson);
+
+        if (event.emission.channel.id1 > 0)     // quark on leg 1
+        {
+            writeParticle(content, event.emission.channel.id1, -1, 0, 0, color1, 0, event.real.p1In, 0.0);
+            writeParticle(content, event.emission.channel.id2, -1, 0, 0, 0, color2, event.real.p2In, 0.0);
+        }
+        else                                    // antiquark on leg 1
+        {
+            writeParticle(content, event.emission.channel.id1, -1, 0, 0, 0, color2, event.real.p1In, 0.0);
+            writeParticle(content, event.emission.channel.id2, -1, 0, 0, color1, 0, event.real.p2In, 0.0);
+        }
+
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
+
+        writeParticle(content, 13,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -13, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+
+        writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, color1, color2, event.real.pRadiated, 0.0);
+
+        content << "</event>\n";
+    }
+
+    void LesHouchesSerializer::writeEventGluonLeg1(const Event& event, std::stringstream& content) const
+    {
+        const int colorIn = 501;
+        const int colorOut = 511;
+        
+        writeEventHeader(content, 6, std::sqrt(event.emission.kt2), event.born.mBoson);
+
+        if (event.emission.channel.id2 > 0)     // quark on leg 2
+        {
+            writeParticle(content, event.emission.channel.id1, -1, 0, 0, colorOut, colorIn, event.real.p1In, 0.0);
+            writeParticle(content, event.emission.channel.id2, -1, 0, 0, colorIn, 0, event.real.p2In, 0.0);
+        }
+        else                                    // antiquark on leg 2
+        {
+            writeParticle(content, event.emission.channel.id1, -1, 0, 0, colorIn, colorOut, event.real.p1In, 0.0);
+            writeParticle(content, event.emission.channel.id2, -1, 0, 0, 0, colorIn, event.real.p2In, 0.0);
+        }
+
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
+
+        writeParticle(content, 13,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -13, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+
+        if (event.emission.channel.id2 > 0)     // Final state quark
+            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
+        else                                    // Final state antiquark
+            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
+
+        content << "</event>\n";
+    }
+
+    void LesHouchesSerializer::writeEventGluonLeg2(const Event& event, std::stringstream& content) const
+    {
+        const int colorIn = 501;
+        const int colorOut = 511;
+        
+        writeEventHeader(content, 6, std::sqrt(event.emission.kt2), event.born.mBoson);
+
+        if (event.emission.channel.id1 > 0)     // quark on leg 1
+        {
+            writeParticle(content, event.emission.channel.id1, -1, 0, 0, colorIn, 0, event.real.p1In, 0.0);
+            writeParticle(content, event.emission.channel.id2, -1, 0, 0, colorOut, colorIn, event.real.p2In, 0.0);
+        }
+        else                                    // antiquark on leg 1
+        {
+            writeParticle(content, event.emission.channel.id1, -1, 0, 0, 0, colorIn, event.real.p1In, 0.0);
+            writeParticle(content, event.emission.channel.id2, -1, 0, 0, colorIn, colorOut, event.real.p2In, 0.0);
+        }
+
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
+
+        writeParticle(content, 13,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -13, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+
+        if (event.emission.channel.id1 > 0)     // Final state quark
+            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
+        else                                    // Final state antiquark
+            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
 
         content << "</event>\n";
     }

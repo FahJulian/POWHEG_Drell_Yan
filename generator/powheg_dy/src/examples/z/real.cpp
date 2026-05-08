@@ -106,8 +106,8 @@ namespace
         const double lumQG    = fReal1Q * fReal2G;
 
         out.qqbar = lumQQbar / bornLuminosity * realOverBornQQbar(real, muR2, useCMWALphaS);
-        out.gqbar = lumGQbar / bornLuminosity * realOverBornGQbar(real, muR2, useCMWALphaS);
-        out.qg = lumQG / bornLuminosity * realOverBornQG(real, muR2, useCMWALphaS);
+        out.gluonLeg1 = lumGQbar / bornLuminosity * realOverBornGQbar(real, muR2, useCMWALphaS);
+        out.gluonLeg2 = lumQG / bornLuminosity * realOverBornQG(real, muR2, useCMWALphaS);
 
         return out;
     }

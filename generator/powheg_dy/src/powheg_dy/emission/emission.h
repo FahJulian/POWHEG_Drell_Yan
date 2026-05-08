@@ -7,8 +7,8 @@ namespace powheg_dy
 {
     struct RadiationChannel
     {
-        int idPlus = 0;
-        int idMinus = 0;
+        int id1 = 0;
+        int id2 = 0;
         int idRadiated = 0;
     };
 

@@ -33,7 +33,7 @@ namespace
 
         const double m2 = zMassWidth * std::tan(z) + zMass2;
 
-        point.mB = std::sqrt(m2);
+        point.mBoson = std::sqrt(m2);
         point.sHat = m2;
 
         // Jacobian dm^2 / dr
@@ -41,7 +41,7 @@ namespace
             (zhigh - zlow) * zMassWidth / (cosZ * cosZ);
 
         // Sample boson rapidity uniformly from the kinematically allowed range
-        const double yBosonMax = std::log(m_config.SQRT_S / point.mB);
+        const double yBosonMax = std::log(m_config.SQRT_S / point.mBoson);
         point.yB = (2.0 * rands[1] - 1.0) * yBosonMax;
 
         // Sample cos(theta) from p(c) = 3(1+c^2)/8
@@ -49,14 +49,14 @@ namespace
             2.0 * std::sinh(std::asinh(4.0 * rands[2] - 2.0) / 3.0);
 
         // Calculate x1Bar and x2Bar
-        point.x1Bar = point.mB / m_config.SQRT_S
+        point.x1Bar = point.mBoson / m_config.SQRT_S
                 * std::exp(point.yB);
 
-        point.x2Bar = point.mB / m_config.SQRT_S
+        point.x2Bar = point.mBoson / m_config.SQRT_S
                 * std::exp(-point.yB);
 
         const double jacobianY =
-            2.0 * std::log(m_config.SQRT_S / point.mB);
+            2.0 * std::log(m_config.SQRT_S / point.mBoson);
 
         const double jacobianCosTh =
             8.0 / 3.0 / (1.0 + point.cosTh * point.cosTh);
@@ -73,11 +73,11 @@ namespace
     {
         const double cosThLeg1 = point.channel.id1 > 0 ? point.cosTh : -point.cosTh;
         
-        point.pB = {
-            point.mB * std::cosh(point.yB),
+        point.pBoson = {
+            point.mBoson * std::cosh(point.yB),
             0.0,
             0.0,
-            point.mB * std::sinh(point.yB)
+            point.mBoson * std::sinh(point.yB)
         };
 
         point.p1Bar = {
@@ -94,7 +94,7 @@ namespace
             -0.5 * point.x2Bar * m_config.SQRT_S
         };
 
-        const double p = point.mB / 2.0;
+        const double p = point.mBoson / 2.0;
         const double sinTh = std::sqrt(1.0 - cosThLeg1 * cosThLeg1);
 
         const FourVector p1Rest = {
@@ -106,8 +106,8 @@ namespace
 
         const FourVector p2Rest = { p1Rest.e, -p1Rest.getThreeVec() };
 
-        point.pLMinus = p1Rest.boost(point.pB.getBeta());
-        point.pLPlus = p2Rest.boost(point.pB.getBeta());
+        point.pLMinus = p1Rest.boost(point.pBoson.getBeta());
+        point.pLPlus = p2Rest.boost(point.pBoson.getBeta());
 
         const FourVector totalIn = point.p1Bar + point.p2Bar;
         const FourVector totalOut = point.pLMinus + point.pLPlus;

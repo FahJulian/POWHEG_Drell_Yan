@@ -21,7 +21,7 @@ namespace powheg_dy
         // INDEPENDENT VARIABLES
 
         // mass and rapidity of the intermediate gauge boson
-        double mB = 0.0;
+        double mBoson = 0.0;
         double yB = 0.0;
 
         // angular configuration of the leptons
@@ -40,7 +40,7 @@ namespace powheg_dy
         // born-level momenta of the participating particles
         FourVector p1Bar;
         FourVector p2Bar;
-        FourVector pB;
+        FourVector pBoson;
         FourVector pLMinus;
         FourVector pLPlus;
 
