@@ -66,7 +66,6 @@ namespace
         }
         catch(const std::runtime_error& e)
         {
-            Log::err << e.what() << std::endl;
             Log::err << "Aborting..." << std::endl;
         }
     }
@@ -135,7 +134,7 @@ namespace
             BornPhSpPt born = m_bornPhSp->samplePoint(rands);
             m_bornGenerator->computeWeightAndSampleChannel(born);
             
-            assert(born.weight >= m_maxWeight);
+            assert(born.weight <= m_maxWeight, "Born weight " << born.weight << " exceeds max weight " << m_maxWeight);
             
             // Unweight: Accept the event at the rate of it's weight over the reference weight
             double u = rand(0.0, 1.0);

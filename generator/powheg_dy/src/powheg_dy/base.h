@@ -20,7 +20,12 @@
 #undef assert
 
 #ifdef POWHEG_DEBUG
-# define assert2(expr, message) if (!(expr)) throw std::runtime_error(message)
+# define assert2(expr, message) \
+    if (!(expr)) \
+    { \
+        Log::err << message << std::endl; \
+        throw std::runtime_error(""); \
+    } 
 # define assert1(expr) assert2(expr, #expr) 
 #else 
 #define assert2(expr, message)
