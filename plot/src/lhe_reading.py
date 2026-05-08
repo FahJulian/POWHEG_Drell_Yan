@@ -1,10 +1,12 @@
 import numpy as np
 
 class Data:
-    momenta_l_minus = []
-    momenta_l_plus = []
-    momenta_boson = []
-    masses_boson = []
+    def __init__(self):
+        self.momenta_l_minus = []
+        self.momenta_l_plus = []
+        self.momenta_boson = []
+        self.masses_boson = []
+    
 
 def remove_whitespace(line):
     line = line.replace('\n', '')
@@ -31,13 +33,13 @@ def read_lhe(filepath):
 
     data = Data()
     with open(filepath, mode='r') as file:
-        for line in file.readlines():
+        for line in file:
             line = remove_whitespace(line)
 
             if line.startswith('#'): continue
 
             if in_event:
-                if event_line == '</event>':
+                if line == '</event>':
                     in_event = False
                     continue
                 elif event_line != 1:

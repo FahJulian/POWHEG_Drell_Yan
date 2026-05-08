@@ -17,8 +17,8 @@ namespace powheg_dy
         bool BORNONLY = false;
         bool ALPHA_S_FROM_PDF = false;
 
-        int N_ACCEPTED_EVENTS = 5e3;
-        int N_TRIAL_EVENTS = static_cast<int>(std::min(1.0e5, 1.5 * N_ACCEPTED_EVENTS));
+        int N_ACCEPTED_EVENTS = 100e3;
+        int N_TRIAL_EVENTS = static_cast<int>(std::min(1.0e5, 2.0 * N_ACCEPTED_EVENTS));
         
         /////////// dependent params ////////////
         double S;

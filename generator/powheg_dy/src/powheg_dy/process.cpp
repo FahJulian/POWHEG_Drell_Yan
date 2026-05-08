@@ -92,7 +92,7 @@ namespace
 
         Log::info << "Generating LHE file at " << filePath << std::endl;
         LesHouchesSerializer(*this, m_config).serialize(filePath);
-        Log::info("Done generating LHE file");
+        Log::info << "Done generating LHE file" << std::endl << std::endl;
     }
 
     void Process::clear()
@@ -190,7 +190,7 @@ namespace
 
         Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
         Log::info << "Acceptance ratio: " << double(m_config.N_ACCEPTED_EVENTS) / m_nEventTrials << std::endl;
-        Log::info << "Total cross section: " << m_totalCrossSection << " pb." << std::endl;
+        Log::info << "Total cross section: " << m_totalCrossSection << " pb." << std::endl << std::endl;
     }
 
 } // namespace powheg_dy

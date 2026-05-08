@@ -57,7 +57,7 @@ namespace
         std::string color2String = color2 == 0 ? "  0" : std::to_string(color2);
 
         content 
-            << "     " << idString << "   " << statusString << "     " 
+            << "     " << idString << "    " << statusString << "     " 
             << mother1 << "     " << mother2 << "   " 
             << color1String << "   " << color2String << "  "
             << doubleToString(p.x, 9, true) << "  " << doubleToString(p.y, 9, true) << "  " 
@@ -83,15 +83,17 @@ namespace
         File(filePath).write(content.str());
     }
 
-    void LesHouchesSerializer::writeEventHeader(std::stringstream& content, int nParticles, double scalup, double alphaSScale) const
+    void LesHouchesSerializer::writeEventHeader(std::stringstream& content, int nParticles, double scalup) const
     {
         // Number of particles, process label, weight of the event
         content << "<event>\n" 
-            << "       " << nParticles << " 1001  " 
+            << "       " << nParticles << " 10011  " 
             << doubleToString(1.0, 5, true) << "  "
             << doubleToString(scalup, 5, true) << "  "
-            << doubleToString(m_config.ALPHA_EW, 5, true) << "  " 
-            << doubleToString(alphaS(m_config, alphaSScale*alphaSScale), 5, true) << "\n";
+            // << doubleToString(m_config.ALPHA_EW, 5, true) << "  " 
+            << doubleToString(-1.0, 5, true) << "  " 
+            << doubleToString(alphaSCMW(m_config, scalup * scalup), 5, true) << "\n";
+            // << doubleToString(alphaS(m_config, alphaSScale * alphaSScale), 5, true) << "\n";
     }
 
     void LesHouchesSerializer::writeEvent(const Event& event, std::stringstream& content) const
@@ -117,7 +119,7 @@ namespace
         const int anticolor = 501;
 
         // No hardest event below the cutoff was generated -> Set SCALUP to the cutoff
-        writeEventHeader(content, 5, std::sqrt(m_config.PT_SQ_CUTOFF), event.born.mBoson);
+        writeEventHeader(content, 5, std::sqrt(m_config.PT_SQ_CUTOFF));
 
         if (event.born.channel.id1 > 0)     // quark on leg 1
         {
@@ -132,8 +134,8 @@ namespace
 
         writeParticle(content, 23, 2, 1, 2, 0, 0, event.born.pBoson, event.born.mBoson);
 
-        writeParticle(content, 13,  1, 3, 3, 0, 0, event.born.pLMinus, 0.0);
-        writeParticle(content, -13, 1, 3, 3, 0, 0, event.born.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.born.pLMinus, 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.born.pLPlus, 0.0);
 
         content << "</event>\n";
     }
@@ -143,7 +145,7 @@ namespace
         const int color1 = 501;
         const int color2 = 511;
 
-        writeEventHeader(content, 6, std::sqrt(event.emission.kt2), event.born.mBoson);
+        writeEventHeader(content, 6, std::sqrt(event.emission.kt2));
 
         if (event.emission.channel.id1 > 0)     // quark on leg 1
         {
@@ -158,8 +160,8 @@ namespace
 
         writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
 
-        writeParticle(content, 13,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -13, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
         writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, color1, color2, event.real.pRadiated, 0.0);
 
@@ -171,7 +173,7 @@ namespace
         const int colorIn = 501;
         const int colorOut = 511;
         
-        writeEventHeader(content, 6, std::sqrt(event.emission.kt2), event.born.mBoson);
+        writeEventHeader(content, 6, std::sqrt(event.emission.kt2));
 
         if (event.emission.channel.id2 > 0)     // quark on leg 2
         {
@@ -186,8 +188,8 @@ namespace
 
         writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
 
-        writeParticle(content, 13,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -13, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
         if (event.emission.channel.id2 > 0)     // Final state quark
             writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
@@ -202,7 +204,7 @@ namespace
         const int colorIn = 501;
         const int colorOut = 511;
         
-        writeEventHeader(content, 6, std::sqrt(event.emission.kt2), event.born.mBoson);
+        writeEventHeader(content, 6, std::sqrt(event.emission.kt2));
 
         if (event.emission.channel.id1 > 0)     // quark on leg 1
         {
@@ -217,8 +219,8 @@ namespace
 
         writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
 
-        writeParticle(content, 13,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -13, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
         if (event.emission.channel.id1 > 0)     // Final state quark
             writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
