@@ -13,3 +13,4 @@ pythia/
 *.lhe
 doc/
 data_500k.txt
+*__pycache__/
