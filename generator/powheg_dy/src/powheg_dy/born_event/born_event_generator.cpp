@@ -50,7 +50,7 @@ namespace powheg_dy
         {
             BornPhSpPt borncopy = born; 
             borncopy.channel = { partonId, -partonId, abs(partonId) };
-            m_phaseSpace->reconstructMomenta(borncopy);
+            m_bornPhaseSpace->reconstructMomenta(borncopy);
 
             // Compute the luminosity factors
             double f  = m_config.PDF->xfxQ2(borncopy.channel.id1, borncopy.x1Bar, borncopy.sHat) / borncopy.x1Bar;

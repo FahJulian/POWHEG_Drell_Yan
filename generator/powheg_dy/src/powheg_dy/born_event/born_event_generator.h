@@ -13,7 +13,7 @@ namespace powheg_dy
     public:
         BornEventGenerator() = delete;
         BornEventGenerator(const Process& process, const Config& config, std::shared_ptr<BornPhaseSpace> phaseSpace)
-            : m_process(process), m_config(config), m_phaseSpace(std::move(phaseSpace))
+            : m_process(process), m_config(config), m_bornPhaseSpace(std::move(phaseSpace))
         {
         }
 
@@ -25,7 +25,7 @@ namespace powheg_dy
     private:
         const Process& m_process;
         const Config& m_config;
-        std::shared_ptr<BornPhaseSpace> m_phaseSpace;
+        std::shared_ptr<BornPhaseSpace> m_bornPhaseSpace;
     };
 
 } // namespace powheg_dy
