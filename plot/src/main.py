@@ -13,8 +13,8 @@ def extract_pt_values(momenta : np.array):
     return np.sqrt(px_values * px_values + py_values * py_values)
 
 if __name__ == '__main__':
-    data = lhe_reading.read_lhe('/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/events_10k.lhe')
-    data_powheg = lhe_reading.read_lhe('/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/pwgevents_10k.lhe')
+    data = lhe_reading.read_lhe('/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/05_08/events_100k.lhe')
+    data_powheg = lhe_reading.read_lhe('/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/data/events/05_08/pwgevents_100k.lhe')
 
     plotting.hist(data_powheg.masses_boson, OUT_FOLDER + 'm_hist_pwhg.pdf', nbins=20, data_range=(75, 105), density=True)
     plotting.hist(extract_pt_values(data_powheg.momenta_boson), OUT_FOLDER + 'boson_pt_hist_pwhg.pdf', nbins=20, data_range=(0, 150), density=True)

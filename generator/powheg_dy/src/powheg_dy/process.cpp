@@ -27,6 +27,8 @@ namespace
     
     void Process::init(const std::string& pdfSet)
     {
+        Timer::init();
+
         Log::info("Starting intitialization");
 
         std::stringstream buffer;
@@ -127,6 +129,8 @@ namespace
 
     void Process::generateEvents()  
     {
+        double timeStart = Timer::getTime();
+
         Log::info("Starting event generation");
         while (static_cast<int>(m_events.size()) < m_config.N_ACCEPTED_EVENTS)
         {   
@@ -170,6 +174,7 @@ namespace
             }
         }
 
+        Log::info << "Duration: " << Timer::getTime() - timeStart << "s" << std::endl;
         Log::info << "Event generation done." << std::endl << std::endl;
     }
 

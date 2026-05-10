@@ -2,6 +2,7 @@
 
 #include <array>
 #include <tuple>
+#include <chrono>
 #include <math.h>
 #include <memory>
 #include <string>
@@ -10,9 +11,11 @@
 #include <complex>
 #include <fstream>
 #include <sstream>
+#include <optional>
 #include <iostream>
 #include <charconv>
 #include <stdexcept>
+#include <functional>
 
 #include <LHAPDF/LHAPDF.h>
 
@@ -38,37 +41,45 @@
 
 namespace powheg_dy
 {
-    namespace Log
+    class Log
     {
-        class Logger
+    private:
+        Log(const char* prefix)
+            : m_prefix(prefix)
         {
-        public:
-            Logger(const char* prefix)
-                : m_prefix(prefix)
-            {
-            }
+        }
 
-            template<typename T>
-            std::ostream& operator<<(const T& t) const
-            {
-                return std::cout << m_prefix << t;
-            }
+    public:
+        template<typename T>
+        std::ostream& operator<<(const T& t) const
+        {
+            return std::cout << m_prefix << t;
+        }
 
-            template<typename T>
-            void operator()(const T& t) const 
-            {
-                std::cout << m_prefix << t << std::endl;
-            }
+        template<typename T>
+        void operator()(const T& t) const 
+        {
+            std::cout << m_prefix << t << std::endl;
+        }
 
-        private:
-            std::string m_prefix = "";
-        };
+    private:
+        std::string m_prefix = "";
 
-        static const Logger info("\033[32m[INFO]    ");
-        static const Logger warn("\033[33m[WARNING] ");
-        static const Logger err ("\033[31m[ERROR]   ");
+    public:
+        static const Log info;
+        static const Log warn;
+        static const Log err; 
+    };
 
-    } // namespace Log
+    class Timer
+    {
+    public:
+        static void init();
+        static double getTime();
+
+    private:
+        static std::chrono::system_clock::time_point initTime;
+    };
 
     static constexpr double PI = 3.14159265358979323846;
 
