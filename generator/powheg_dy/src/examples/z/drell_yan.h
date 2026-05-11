@@ -7,13 +7,13 @@ namespace powheg_dy
     class DrellYanProcess : public Process
     {
     public:
-        inline int nBornLegs() const override { return 4; }
-        inline int nRealLegs() const override { return 5; }
-
         RealOverBornContributions realOverBornContributions(
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const override;
 
         double born(const BornPhSpPt& born) const override;
+        double virtualOverBorn(const BornPhSpPt& born, double muR2) const override;
+
+        std::vector<BornChannel> bornChannels() const override;
         
     private:        
         double bornAmp2(int flavour, const FourVector& pQ, const FourVector& pQbar, const FourVector& pLMinus, 

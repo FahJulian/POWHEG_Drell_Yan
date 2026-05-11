@@ -6,6 +6,7 @@
 
 namespace powheg_dy
 {
+    // TODO: Generalize
     struct BornChannel
     {
         // PDG ids of the incoming Born partons

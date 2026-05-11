@@ -4,6 +4,7 @@
 #include "powheg_dy/event.h"
 #include "powheg_dy/config.h"
 #include "powheg_dy/matrix_elements.h"
+#include "powheg_dy/bbar/bbar_integrator.h"
 #include "powheg_dy/emission/emission_generator.h"
 #include "powheg_dy/phase_space/born_phase_space.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
@@ -20,33 +21,27 @@ namespace powheg_dy
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const = 0;
 
         virtual double born(const BornPhSpPt& born) const = 0;
+        virtual double virtualOverBorn(const BornPhSpPt& born, double muR2) const = 0;
+        virtual std::vector<BornChannel> bornChannels() const = 0;
 
         void init(const std::string& pdfSet);
         void run();
         void writeToFile(const std::string& filePath) const;
 
-        virtual inline int nBornLegs() const = 0;
-        virtual inline int nRealLegs() const = 0;
-        
-        double getSigma() const { return m_totalCrossSection; }
+        double getSigma() const { return m_bbarIntegrator->getTotalCrossSection(); }
         auto getEvents() const { return m_events; }
 
     private:
         void clear();
         void analyse();
         void generateEvents();
-        void determineMaxWeight();
-        void computeTotalCrossSection();
 
     private:
         std::shared_ptr<BornPhaseSpace> m_bornPhSp;
         std::shared_ptr<FKSRealPhaseSpace> m_realPhSp;
+        std::shared_ptr<BBarIntegrator> m_bbarIntegrator;
         std::shared_ptr<BornEventGenerator> m_bornGenerator;
         std::shared_ptr<EmissionGenerator> m_emissionGenerator;
-
-        int m_nEventTrials = 0;
-        double m_maxWeight = 0.0;
-        double m_totalCrossSection = 0.0;   // pb
 
         std::vector<Event> m_events;
 
