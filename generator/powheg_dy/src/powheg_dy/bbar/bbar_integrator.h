@@ -25,14 +25,15 @@ namespace powheg_dy
         void clear();
 
         void determineMaxWeight();
-        void computeWeightAndSampleChannel(BornPhSpPt& born) const ;
         BornPhSpPt sampleAccordingtoBTilde();
 
         double getAcceptanceRatio() const;
         double getTotalCrossSection() const;
 
     private:
-        double bTilde(const BornPhSpPt& born, const RadiationVariables& rad) const;
+        void computeWeightAndSampleChannel(BornPhSpPt& born) const;
+        double bTilde(const BornPhSpPt& born, const RadiationVariables& rad, double radJacobian) const;
+        std::pair<RadiationVariables, double> sampleUniformRad(const BornPhSpPt& born) const;
 
     private:
         const Process& m_process;

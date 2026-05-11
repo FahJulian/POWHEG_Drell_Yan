@@ -15,11 +15,13 @@ namespace
     
     void BBarIntegrator::computeWeightAndSampleChannel(BornPhSpPt& born) const
     {
+        const auto [rad, radJacobian] = sampleUniformRad(born);
+
         std::vector<BornChannel> channels = m_process.bornChannels();
         
         std::vector<std::pair<BornPhSpPt, double>> weights = {};
         weights.reserve(channels.size());
-
+            
         double totalWeight = 0.0;
 
         for (const auto& channel : channels)
@@ -28,12 +30,13 @@ namespace
             bornCopy.channel = channel;
             m_bornPhaseSpace->reconstructMomenta(bornCopy);
 
-            const double weight = bTilde(bornCopy, { });
+            const double weight = bTilde(bornCopy, rad, radJacobian);
 
             totalWeight += weight;
             weights.push_back({ bornCopy, weight });
         }
 
+        assert(totalWeight > 0.0);
         born.weight = totalWeight;
 
         // Sample the parton channel by their relative contribution to dSigma
@@ -54,7 +57,7 @@ namespace
 
     BornPhSpPt BBarIntegrator::sampleAccordingtoBTilde()
     {
-        for (int trials = 0; trials < MAX_TRIALS; trials++)
+        for (int trials = 1; trials <= MAX_TRIALS; trials++)
         {
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt born = m_bornPhaseSpace->samplePoint(rands);
@@ -74,7 +77,22 @@ namespace
         return { };
     }
 
-    double BBarIntegrator::bTilde(const BornPhSpPt& born, const RadiationVariables& rad) const
+    std::pair<RadiationVariables, double> BBarIntegrator::sampleUniformRad(const BornPhSpPt& born) const
+    {
+        double u[3] = { rand(), rand(), rand() };   // Auxiliary radiation varibales
+        
+        const double y = -1.0 + 2.0 * u[0];
+        const double xiMax = m_realPhaseSpace->xiMax(born, y);
+        const double xi = xiMax * u[1];
+        const double phi = 2.0 * PI * u[2];
+        
+        RadiationVariables rad = { xi, y, phi };
+        double radJacobian = 4.0 * PI * xiMax;
+
+        return { rad, radJacobian };
+    }
+
+    double BBarIntegrator::bTilde(const BornPhSpPt& born, const RadiationVariables& rad, double radJacobian) const
     {
         const double physicsPrefactor = 1.0 / (64.0 * PI * PI * m_config.S * born.sHat);
 
