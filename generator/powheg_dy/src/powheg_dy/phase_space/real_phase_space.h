@@ -13,6 +13,7 @@ namespace powheg_dy
         double xi  = 0.0;   // emitted-parton energy fraction in the real partonic CM
         double y   = 0.0;   // cos(theta) relative to leg-1 direction
         double phi = 0.0;
+        double xiMax = 0.0;
     };
 
     struct RealPhSpPt

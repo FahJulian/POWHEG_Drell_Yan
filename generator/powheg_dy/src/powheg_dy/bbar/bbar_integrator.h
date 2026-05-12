@@ -31,9 +31,56 @@ namespace powheg_dy
         double getTotalCrossSection() const;
 
     private:
-        void computeWeightAndSampleChannel(BornPhSpPt& born) const;
-        double bTilde(const BornPhSpPt& born, const RadiationVariables& rad, double radJacobian) const;
-        std::pair<RadiationVariables, double> sampleUniformRad(const BornPhSpPt& born) const;
+        struct Counterterms
+        {
+            double qqbar;
+            double gluonLeg1;
+            double gluonLeg2;
+        };
+
+        bool computeWeightAndSampleChannel(BornPhSpPt& born) const;
+
+        double bTilde(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
+        Counterterms counterterms(const BornPhSpPt& born, const RadiationVariables& rad) const;
+
+        double bornContribution(const BornPhSpPt& born, double muF2) const;
+        double bornPlusVirtualContribution(const BornPhSpPt& born) const;
+        double realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
+
+        double luminosity(const BornPhSpPt& born, const RadiationVariables& rad, int id1, int id2, double muF2) const;
+
+        double RHatqqbarPlus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
+        double RHatqqbarMinus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
+
+        double AqqbarPlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        double AqqbarMinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        
+        double AqqbarPlus(const RealPhSpPt& real, double muF2, double muR2) const;
+        double AqqbarMinus(const RealPhSpPt& real, double muF2, double muR2) const;
+
+        double AqqbarPlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        double AqqbarMinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+
+        double AqqbarPlusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        double AqqbarMinusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+
+        double AqqbarPlusSoftCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        double AqqbarMinusSoftCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+
+        double AgluonLeg1Plus(const RealPhSpPt& born, double muF2, double muR2) const;
+        double AgluonLeg2Minus(const RealPhSpPt& born, double muF2, double muR2) const;
+
+        double AgluonLeg1PlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        double AgluonLeg2MinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+
+        double AgluonLeg1PlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+        double AgluonLeg2MinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const;
+
+        double RHatgluonLeg1Plus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
+        double RHatgluonLeg2Minus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
+
+        RadiationVariables sampleUniformRad(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
+        double unitCubeJacobian(const RadiationVariables& rad) const;
 
     private:
         const Process& m_process;

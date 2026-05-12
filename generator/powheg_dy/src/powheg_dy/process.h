@@ -17,11 +17,14 @@ namespace powheg_dy
     public:
         ~Process();
 
+        virtual double bornAmp2(const BornPhSpPt& born) const = 0;
+
+        virtual double realAmp2(const RealPhSpPt real, double muR2, int channel, bool useCMWAlphaS) const = 0;
         virtual RealOverBornContributions realOverBornContributions(
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const = 0;
 
-        virtual double born(const BornPhSpPt& born) const = 0;
-        virtual double virtualOverBorn(const BornPhSpPt& born, double muR2) const = 0;
+        virtual double bornContribution(const BornPhSpPt& born) const = 0;
+        virtual double virtualContribution(const BornPhSpPt& born, double muR2) const = 0;
         virtual std::vector<BornChannel> bornChannels() const = 0;
 
         void init(const std::string& pdfSet);

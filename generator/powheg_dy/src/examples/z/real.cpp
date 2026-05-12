@@ -251,4 +251,116 @@ namespace
         return born.sHat / real.sHatReal * realamp / bornamp;
     }
 
+    double DrellYanProcess::realAmp2(const RealPhSpPt real, double muR2, int channel, bool useCMWAlphaS) const
+    {
+        switch (channel)
+        {
+            case RealChannel::QQBAR: return realAmp2qqbar(real, muR2, useCMWAlphaS);
+            case RealChannel::GLUON_LEG1: return realAmp2gluonLeg1(real, muR2, useCMWAlphaS);
+            case RealChannel::GLUON_LEG2: return realAmp2gluonLeg2(real, muR2, useCMWAlphaS);
+            default:
+                assert(false);
+                return 0.0;
+        }
+    }
+
+    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt real, double muR2, bool useCMWAlphaS) const
+    {
+        FourVector qSlot;
+        FourVector qbarSlot;
+        FourVector gluonSlot;
+
+        if (real.underlyingBorn.channel.id1 > 0)
+        {
+            qSlot     = real.p1In;
+            qbarSlot  = real.p2In;
+            gluonSlot = real.pRadiated;
+        }
+        else
+        {
+            qSlot     = real.p2In;
+            qbarSlot  = real.p1In;
+            gluonSlot = real.pRadiated;
+        }
+
+        const double aS = useCMWAlphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
+
+        return realAmp2_crossed(
+            real.underlyingBorn.channel.flavour,
+            qSlot,
+            qbarSlot,
+            gluonSlot,
+            real.pLMinus,
+            real.pLPlus,
+            aS,
+            m_config.C_F
+        );
+    }
+
+    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt real, double muR2, bool useCMWAlphaS) const
+    {
+        const double aS = useCMWAlphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
+
+        FourVector qSlot;
+        FourVector qbarSlot;
+        FourVector gluonSlot;
+
+        if (real.underlyingBorn.channel.id1 > 0)
+        {
+            qSlot     = -real.pRadiated;
+            qbarSlot  =  real.p2In;
+            gluonSlot = -real.p1In;
+        }
+        else
+        {
+            qSlot     =  real.p2In;
+            qbarSlot  = -real.pRadiated;
+            gluonSlot = -real.p1In;
+        }
+
+        return realAmp2_crossed(
+            real.underlyingBorn.channel.flavour,
+            qSlot,
+            qbarSlot,
+            gluonSlot,
+            real.pLMinus,
+            real.pLPlus,
+            aS,
+            m_config.T_F
+        );
+    }
+
+    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt real, double muR2, bool useCMWAlphaS) const
+    {
+        const double aS = useCMWAlphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
+
+        FourVector qSlot;
+        FourVector qbarSlot;
+        FourVector gluonSlot;
+
+        if (real.underlyingBorn.channel.id1 > 0)
+        {
+            qSlot     =  real.p1In;
+            qbarSlot  = -real.pRadiated;
+            gluonSlot = -real.p2In;
+        }
+        else
+        {
+            qSlot     = -real.pRadiated;
+            qbarSlot  =  real.p1In;
+            gluonSlot = -real.p2In;
+        }
+
+        return realAmp2_crossed(
+            real.underlyingBorn.channel.flavour,
+            qSlot,
+            qbarSlot,
+            gluonSlot,
+            real.pLMinus,
+            real.pLPlus,
+            aS,
+            m_config.T_F
+        );
+    }
+
 } // namespace powheg_dy

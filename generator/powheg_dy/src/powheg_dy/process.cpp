@@ -59,8 +59,11 @@ namespace powheg_dy
             analyse();
         }
         catch(const std::runtime_error& e)
-        {
+        {   
             Log::err << "Aborting..." << std::endl;
+
+            if (std::string(e.what()) != "")
+                Log::err << "Error message: " << e.what() << std::endl;
         }
     }
 
@@ -89,7 +92,7 @@ namespace powheg_dy
         {   
             BornPhSpPt born = m_bbarIntegrator->sampleAccordingtoBTilde();
 
-            if (m_config.BORNONLY)
+            if (m_config.NO_EMISSIONS)
             {
                 Emission emission = Emission().reject();
                 RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
@@ -121,15 +124,19 @@ namespace powheg_dy
     }
 
     void Process::analyse()
-    {
-        double rejected = 0.0;
-        for (const auto& event : m_events)
+    {   
+        if (!m_config.NO_EMISSIONS)
         {
-            if (event.emission.rejected)
-                rejected++;
+            double rejected = 0.0;
+            for (const auto& event : m_events)
+            {
+                if (event.emission.rejected)
+                    rejected++;
+            }
+        
+            Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
         }
 
-        Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
         Log::info << "Acceptance ratio: " << m_bbarIntegrator->getAcceptanceRatio() << std::endl;
         Log::info << "Total cross section: " << m_bbarIntegrator->getTotalCrossSection() << " pb." << std::endl << std::endl;
     }

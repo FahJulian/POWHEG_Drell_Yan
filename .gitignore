@@ -6,7 +6,6 @@
 *.in
 *.pdf
 lhapdf-config
-generator/build/generator
 stamp-h2
 .pw
 pythia/
@@ -14,3 +13,4 @@ pythia/
 doc/
 data_500k.txt
 *__pycache__/
+*build/

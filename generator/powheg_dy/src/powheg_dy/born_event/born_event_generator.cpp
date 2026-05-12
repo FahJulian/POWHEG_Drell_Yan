@@ -57,7 +57,7 @@ namespace powheg_dy
             double fb = m_config.PDF->xfxQ2(borncopy.channel.id2, borncopy.x2Bar, borncopy.sHat) / borncopy.x2Bar;
 
             // Compute the event weight
-            const double amp2 = m_process.born(borncopy);
+            const double amp2 = m_process.bornContribution(borncopy);
             double weight = f * fb * amp2;
 
             channels.push_back({ borncopy, borncopy.jacobian * physicsPrefactor * weight });

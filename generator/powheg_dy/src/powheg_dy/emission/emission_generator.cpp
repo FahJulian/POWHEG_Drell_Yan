@@ -85,8 +85,7 @@ namespace
             
             const RadiationVariables rad = sampleTrialRadiation(born, kt2Trial);
 
-            const double xiMax = m_realPhaseSpace->xiMax(born, rad.y);
-            if (rad.xi <= EPS_XI || rad.xi >= 1.0 - EPS_XI || rad.xi >= xiMax)
+            if (rad.xi <= EPS_XI || rad.xi >= 1.0 - EPS_XI || rad.xi >= rad.xiMax)
             {
                 kt2Max = kt2Trial;
                 continue;
@@ -153,6 +152,7 @@ namespace
         rad.xi = sampleTrialXi(born, kt2Trial);
         rad.y = sampleY(born, kt2Trial, rad.xi);
         rad.phi = sampleTrialPhi();
+        rad.xiMax = m_realPhaseSpace->xiMax(born, rad.y);
 
         return rad;
     }

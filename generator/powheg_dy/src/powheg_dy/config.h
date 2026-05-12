@@ -14,11 +14,11 @@ namespace powheg_dy
 
         double PT_SQ_CUTOFF = 5.0;
 
-        bool BORNONLY = false;
+        bool NO_EMISSIONS = true;
         bool ALPHA_S_FROM_PDF = false;
 
         size_t N_ACCEPTED_EVENTS = 5e3;
-        size_t N_TRIAL_EVENTS = static_cast<size_t>(std::max(1.0e5, 2.0 * static_cast<double>(N_ACCEPTED_EVENTS)));
+        size_t N_TRIAL_EVENTS = 1e5; // static_cast<size_t>(std::max(1.0e5, 2.0 * static_cast<double>(N_ACCEPTED_EVENTS)));
         
         /////////// dependent params ////////////
         double S;
