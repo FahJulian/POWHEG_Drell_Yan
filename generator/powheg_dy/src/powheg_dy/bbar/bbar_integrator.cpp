@@ -33,7 +33,8 @@ namespace
     
     bool BBarIntegrator::computeWeightAndSampleChannel(BornPhSpPt& born) const
     {
-        const std::array<double, 3> unitCube = { rand(), rand(), rand() };      // For the radiation variables
+        const std::array<double, 3> unitCube = { rand(), rand(), rand() };        // For the radiation variables
+        const std::array<double, 4>& unitX = { rand(), rand(), rand(), rand() };  // For the collinear remnants
 
         std::vector<BornChannel> channels = m_process.bornChannels();
         
@@ -48,7 +49,7 @@ namespace
             bornCopy.channel = channel;
             m_bornPhaseSpace->reconstructMomenta(bornCopy);
 
-            const double weight = bTilde(bornCopy, unitCube);
+            const double weight = bTilde(bornCopy, unitCube, unitX);
 
             totalWeight += weight;
             weights.push_back({ bornCopy, weight });
@@ -384,11 +385,8 @@ namespace
         return { };
     }
 
-    double BBarIntegrator::bornPlusVirtualContribution(const BornPhSpPt& born) const
+    double BBarIntegrator::bornPlusVirtualContribution(const BornPhSpPt& born, double muF2, double muR2) const
     {
-        const double muF2 = born.sHat;
-        const double muR2 = born.sHat;
-
         const double f  = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar;
         const double fb = m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
 
@@ -401,11 +399,8 @@ namespace
         return bornContr + virtContr;
     }
 
-    double BBarIntegrator::realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const 
+    double BBarIntegrator::realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const 
     {
-        const double muF2 = born.sHat;
-        const double muR2 = born.sHat;
-
         // RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
         
         // const double fReal1Q = m_config.PDF->xfxQ2(born.channel.id1, real.x1, muF2) / real.x1; 
@@ -432,14 +427,96 @@ namespace
         return bornPhSpFactor * born.jacobian * unitCubeJacobian(rad) * real.radJacobian * sigma;
     }
 
-    double BBarIntegrator::bTilde(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const
+    double BBarIntegrator::collinearRemnantGluonLeg1(const BornPhSpPt& born, double unitX, double muF2) const
     {
-        const double bornPlusVirtual = bornPlusVirtualContribution(born);
-        const double realMinusCounterterm = realMinusCounterTermContribution(born, unitCube);
+        const double z = born.x1Bar + (1.0 - born.x1Bar) * unitX;
+        const double jac = (1.0 - born.x1Bar) / z;
+        
+        const double lumGluonLeg1_z = m_config.PDF->xfxQ2(21, born.x1Bar / z, muF2) / (born.x1Bar / z)
+            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
+        const double bracket = (z * z + (1.0 - z) * (1.0 - z)) 
+            * (std::log(born.sHat / z / muF2) + 2.0 * std::log(1.0 - z))
+            + 2.0 * z * (1.0 - z);
+
+        return m_config.T_F * jac * (lumGluonLeg1_z * bracket);
+    }
+
+    double BBarIntegrator::collinearRemnantGluonLeg2(const BornPhSpPt& born, double unitX, double muF2) const
+    {
+        const double z = born.x2Bar + (1.0 - born.x2Bar) * unitX;
+        const double jac = (1.0 - born.x2Bar) / z;
+        
+        const double lumGluonLeg2_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+            * m_config.PDF->xfxQ2(21, born.x2Bar / z, muF2) / (born.x2Bar / z);
+
+        const double bracket = (z * z + (1.0 - z) * (1.0 - z)) 
+            * (std::log(born.sHat / z / muF2) + 2.0 * std::log(1.0 - z))
+            + 2.0 * z * (1.0 - z);
+
+        return m_config.T_F * jac * (lumGluonLeg2_z * bracket);
+    }
+
+    double BBarIntegrator::collinearRemnantPlusQQ(const BornPhSpPt& born, double unitX, double muF2) const
+    {
+        const double z = born.x1Bar + (1.0 - born.x1Bar) * unitX;
+        const double jac = (1.0 - born.x1Bar) / z;
+        
+        const double lumQQ_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar / z, muF2) / (born.x1Bar / z)
+            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+        const double lumQQ_1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
+        const double distr1 = ((1.0 + z * z) * std::log(born.sHat / z / muF2) * lumQQ_z
+            - 2.0 * std::log(born.sHat / muF2) * lumQQ_1) / (1.0 - z);
+        const double distr2 = 2.0 * std::log(1.0 - z) * ((1.0 + z * z) * lumQQ_z - 2.0 * lumQQ_1) / (1.0 - z);
+
+        return m_config.C_F * jac * (distr1 + distr2 + lumQQ_z * (1.0 - z));
+    }
+
+    double BBarIntegrator::collinearRemnantMinusQQ(const BornPhSpPt& born, double unitX, double muF2) const
+    {
+        const double z = born.x2Bar + (1.0 - born.x2Bar) * unitX;
+        const double jac = (1.0 - born.x2Bar) / z;
+        
+        const double lumQQ_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar / z, muF2) / (born.x2Bar / z);
+        const double lumQQ_1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
+        const double distr1 = ((1.0 + z * z) * std::log(born.sHat / z / muF2) * lumQQ_z
+            - 2.0 * std::log(born.sHat / muF2) * lumQQ_1) / (1.0 - z);
+        const double distr2 = 2.0 * std::log(1.0 - z) * ((1.0 + z * z) * lumQQ_z - 2.0 * lumQQ_1) / (1.0 - z);
+
+        return m_config.C_F * jac * (distr1 + distr2 + lumQQ_z * (1.0 - z));
+    }
+
+    double BBarIntegrator::collinearRemnantContribution(const BornPhSpPt& born, const std::array<double, 4>& unitX, double muF2, double muR2) const
+    {
+        const double prefactor = 1.0 / (64.0 * PI * PI * m_config.S * born.sHat);
+
+        const double plusQQ = collinearRemnantPlusQQ(born, unitX[0], muF2);
+        const double minusQQ = collinearRemnantMinusQQ(born, unitX[1], muF2);
+        const double gluonLeg1 = collinearRemnantGluonLeg1(born, unitX[2], muF2);
+        const double gluonLeg2 = collinearRemnantGluonLeg2(born, unitX[3], muF2);
+
+        return prefactor * alphaS(m_config, muR2) / 2.0 / PI * (plusQQ + minusQQ + gluonLeg1 + gluonLeg2)
+            * m_process.bornAmp2(born);
+    }
+
+    double BBarIntegrator::bTilde(const BornPhSpPt& born, const std::array<double, 3>& unitCube, const std::array<double, 4>& unitX) const
+    {
+        const double muF2 = born.sHat;
+        const double muR2 = born.sHat;
+
+        const double bornPlusVirtual = bornPlusVirtualContribution(born, muF2, muR2);
+        const double realMinusCounterterm = realMinusCounterTermContribution(born, unitCube, muF2, muR2);
+        const double collinearRemnants = collinearRemnantContribution(born, unitX, muF2, muR2);
 
         return 0.0
             + bornPlusVirtual 
             + realMinusCounterterm
+            + collinearRemnants
         ;
     }
 

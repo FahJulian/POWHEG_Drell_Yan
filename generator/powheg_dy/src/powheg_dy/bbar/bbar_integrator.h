@@ -40,12 +40,12 @@ namespace powheg_dy
 
         bool computeWeightAndSampleChannel(BornPhSpPt& born) const;
 
-        double bTilde(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
+        double bTilde(const BornPhSpPt& born, const std::array<double, 3>& unitCube, const std::array<double, 4>& unitX) const;
         Counterterms counterterms(const BornPhSpPt& born, const RadiationVariables& rad) const;
 
         double bornContribution(const BornPhSpPt& born, double muF2) const;
-        double bornPlusVirtualContribution(const BornPhSpPt& born) const;
-        double realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
+        double bornPlusVirtualContribution(const BornPhSpPt& born, double muF2, double muR2) const;
+        double realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
 
         double luminosity(const BornPhSpPt& born, const RadiationVariables& rad, int id1, int id2, double muF2) const;
 
@@ -81,6 +81,14 @@ namespace powheg_dy
 
         RadiationVariables sampleUniformRad(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
         double unitCubeJacobian(const RadiationVariables& rad) const;
+
+        double collinearRemnantPlusQQ(const BornPhSpPt& born, double unitX, double muF2) const;
+        double collinearRemnantMinusQQ(const BornPhSpPt& born, double unitX, double muF2) const;
+
+        double collinearRemnantGluonLeg1(const BornPhSpPt& born, double unitX, double muF2) const;
+        double collinearRemnantGluonLeg2(const BornPhSpPt& born, double unitX, double muF2) const;
+
+        double collinearRemnantContribution(const BornPhSpPt& born, const std::array<double, 4>& unitX, double muF2, double muR2) const;
 
     private:
         const Process& m_process;
