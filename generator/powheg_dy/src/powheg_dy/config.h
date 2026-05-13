@@ -6,19 +6,20 @@ namespace powheg_dy
 {
     struct Config
     {
-        ////////// independent params ///////////
-        double SQRT_S = 8.0e3;
+        ////////// mandatory params ///////////
+        double SQRT_S;
 
-        double M_MIN = 75.0;
-        double M_MAX = 105.0;
+        double M_MIN;
+        double M_MAX;
 
-        double PT_SQ_CUTOFF = 5.0;
+        double PT_SQ_CUTOFF;
 
+        size_t N_ACCEPTED_EVENTS;
+        size_t N_TRIAL_EVENTS;    
+
+        ////////// other independent params ///////////
         bool NO_EMISSIONS = true;
         bool ALPHA_S_FROM_PDF = false;
-
-        size_t N_ACCEPTED_EVENTS = 5e3;
-        size_t N_TRIAL_EVENTS = 1e5; // static_cast<size_t>(std::max(1.0e5, 2.0 * static_cast<double>(N_ACCEPTED_EVENTS)));
         
         /////////// dependent params ////////////
         double S;

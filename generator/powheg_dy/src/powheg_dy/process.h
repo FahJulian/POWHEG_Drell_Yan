@@ -40,6 +40,8 @@ namespace powheg_dy
         void generateEvents();
 
     private:
+        bool m_initialized = false;
+
         std::shared_ptr<BornPhaseSpace> m_bornPhSp;
         std::shared_ptr<FKSRealPhaseSpace> m_realPhSp;
         std::shared_ptr<BBarIntegrator> m_bbarIntegrator;

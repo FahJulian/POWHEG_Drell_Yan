@@ -2,6 +2,7 @@
 
 #include "powheg_dy/math/rand.h"
 #include "powheg_dy/util/file.h"
+#include "powheg_dy/input_parser.h"
 #include "powheg_dy/emission/emission.h"
 #include "powheg_dy/born_event/born_event_generator.h"
 #include "powheg_dy/les_houches/les_houches_serializer.h"
@@ -24,11 +25,21 @@ namespace powheg_dy
 
         Log::info("Starting intitialization");
 
+        try
+        {
+            m_config = InputParser("/home/julian/documents/uni/master/master_thesis/learning/powheg_drell_yan/generator/build/debug/pwhginput").parse();
+        }
+        catch(const std::exception& e)
+        {
+            Log::err("Initialization failed.");
+            return;
+        }
+        
+
         std::stringstream buffer;
 
         auto* oldCout = std::cout.rdbuf(buffer.rdbuf());
         auto* oldCerr = std::cerr.rdbuf(buffer.rdbuf());
-
         m_config.PDF = std::unique_ptr<LHAPDF::PDF>(LHAPDF::mkPDF(pdfSet, 0));
 
         std::cout.rdbuf(oldCout);
@@ -48,10 +59,18 @@ namespace powheg_dy
         m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, m_config, m_bornPhSp, m_realPhSp);
 
         Log::info << "Intitialization complete" << std::endl << std::endl;
+        
+        m_initialized = true;
     }
 
     void Process::run()
     {
+        if (!m_initialized)
+        {
+            Log::err("Not intitialized, aborting run...");
+            return;
+        }
+
         try
         {
             clear();
@@ -69,6 +88,12 @@ namespace powheg_dy
 
     void Process::writeToFile(const std::string& filePath) const
     {
+        if (!m_initialized)
+        {
+            Log::err("Not initialized, can't write LHE file.");
+            return;
+        }
+
         Log::info << "Generating LHE file at " << filePath << std::endl;
         LesHouchesSerializer(*this, m_config).serialize(filePath);
         Log::info << "Done generating LHE file" << std::endl << std::endl;
