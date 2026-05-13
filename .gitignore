@@ -14,3 +14,4 @@ doc/
 data_500k.txt
 *__pycache__/
 *build/
+*.zip

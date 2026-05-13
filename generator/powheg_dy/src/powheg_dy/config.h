@@ -15,11 +15,13 @@ namespace powheg_dy
         double PT_SQ_CUTOFF;
 
         size_t N_ACCEPTED_EVENTS;
-        size_t N_TRIAL_EVENTS;    
+        size_t N_TRIAL_EVENTS;
 
         ////////// other independent params ///////////
         bool NO_EMISSIONS = true;
         bool ALPHA_S_FROM_PDF = false;
+
+        double BORN_VETO_WEIGHT = 1.0;
         
         /////////// dependent params ////////////
         double S;

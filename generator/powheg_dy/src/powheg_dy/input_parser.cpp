@@ -6,20 +6,20 @@ namespace powheg_dy
 {
 namespace
 {   
-    bool extractString(std::map<std::string, std::string>& params, const std::string& name, std::string& value)
-    {
-        if (auto pos = params.find(name); pos != params.end())
-        {
-            value = pos->second;  
-            params.erase(pos);
+    // bool extractString(std::map<std::string, std::string>& params, const std::string& name, std::string& value)
+    // {
+    //     if (auto pos = params.find(name); pos != params.end())
+    //     {
+    //         value = pos->second;  
+    //         params.erase(pos);
 
-            Log::info << "Found parameter " << name << " = " << value << std::endl;
+    //         Log::info << "Found parameter " << name << " = " << value << std::endl;
             
-            return true;
-        }
+    //         return true;
+    //     }
         
-        return false;
-    }
+    //     return false;
+    // }
 
     bool extractDouble(std::map<std::string, std::string>& params, const std::string& name, double& value)
     {
@@ -105,10 +105,15 @@ namespace
         assert(extractDouble(params, "M_MAX", config.M_MAX), "No value for M_MAX found.");
         assert(extractDouble(params, "PT_SQ_CUTOFF", config.PT_SQ_CUTOFF), "No value for PT_SQ_CUTOFF found.");
         assert(extractInt<size_t>(params, "N_ACCEPTED_EVENTS", config.N_ACCEPTED_EVENTS), "No value for N_ACCEPTED_EVENTS found.");
-        assert(extractInt<size_t>(params, "N_TRIAL_EVENTS", config.N_TRIAL_EVENTS), "No value for N_TRIAL_EVENTS found.");
+        if (!extractDouble(params, "BORN_VETO_WEIGHT", config.BORN_VETO_WEIGHT)
+            && !extractInt<size_t>(params, "N_TRIAL_EVENTS", config.N_TRIAL_EVENTS))
+        {
+            assert(false, "No value for both N_TRIAL_EVENTS and BORN_VETO_WEIGHT found.");
+        }
 
         extractBool(params, "NO_EMISSIONS", config.NO_EMISSIONS);
         extractBool(params, "ALPHA_S_FROM_PDF", config.ALPHA_S_FROM_PDF);
+        
 
         return config;
     }

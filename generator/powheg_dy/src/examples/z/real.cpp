@@ -251,13 +251,13 @@ namespace
         return born.sHat / real.sHatReal * realamp / bornamp;
     }
 
-    double DrellYanProcess::realAmp2(const RealPhSpPt real, double muR2, int channel, bool useCMWAlphaS) const
+    double DrellYanProcess::realAmp2(const RealPhSpPt& real, double muR2, int channel, bool useCMWAlphaS) const
     {
         switch (channel)
         {
-            case RealChannel::QQBAR: return realAmp2qqbar(real, muR2, useCMWAlphaS);
-            case RealChannel::GLUON_LEG1: return realAmp2gluonLeg1(real, muR2, useCMWAlphaS);
-            case RealChannel::GLUON_LEG2: return realAmp2gluonLeg2(real, muR2, useCMWAlphaS);
+            case RealChannelOld::QQBAR: return realAmp2qqbar(real, muR2, useCMWAlphaS);
+            case RealChannelOld::GLUON_LEG1: return realAmp2gluonLeg1(real, muR2, useCMWAlphaS);
+            case RealChannelOld::GLUON_LEG2: return realAmp2gluonLeg2(real, muR2, useCMWAlphaS);
             default:
                 assert(false);
                 return 0.0;

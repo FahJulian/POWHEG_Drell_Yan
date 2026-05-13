@@ -60,7 +60,7 @@ namespace powheg_dy
             const double amp2 = m_process.bornContribution(borncopy);
             double weight = f * fb * amp2;
 
-            channels.push_back({ borncopy, borncopy.jacobian * physicsPrefactor * weight });
+            channels.push_back({ borncopy, borncopy.jacobianOld * physicsPrefactor * weight });
         }
 
         return channels;

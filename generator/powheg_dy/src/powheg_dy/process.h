@@ -18,14 +18,20 @@ namespace powheg_dy
         ~Process();
 
         virtual double bornAmp2(const BornPhSpPt& born) const = 0;
+        virtual double virtAmp2(const BornPhSpPt& born, double muR2) const = 0;
+        virtual double realAmp2(const RealPhSpPt& real, double muR2, int channel, bool useCMWAlphaS) const = 0;
 
-        virtual double realAmp2(const RealPhSpPt real, double muR2, int channel, bool useCMWAlphaS) const = 0;
+        virtual std::vector<BornChannel> bornChannels() const = 0;
+        virtual std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const = 0;
+
+        // TODO: Move born sampling here
+        
+        // OLD STUFF
         virtual RealOverBornContributions realOverBornContributions(
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const = 0;
 
         virtual double bornContribution(const BornPhSpPt& born) const = 0;
         virtual double virtualContribution(const BornPhSpPt& born, double muR2) const = 0;
-        virtual std::vector<BornChannel> bornChannels() const = 0;
 
         void init(const std::string& pdfSet);
         void run();

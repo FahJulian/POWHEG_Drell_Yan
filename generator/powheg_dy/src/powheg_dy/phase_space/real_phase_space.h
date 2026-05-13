@@ -16,6 +16,16 @@ namespace powheg_dy
         double xiMax = 0.0;
     };
 
+    struct RealChannel
+    {
+        // PDG ids of the incoming legs
+        int id1;
+        int id2;
+
+        // PDG ids of the outgoing legs
+        std::vector<int> outIDs;
+    };
+
     struct RealPhSpPt
     {
         BornPhSpPt underlyingBorn;

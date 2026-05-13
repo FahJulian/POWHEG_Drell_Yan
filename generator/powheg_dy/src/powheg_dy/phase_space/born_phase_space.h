@@ -10,11 +10,13 @@ namespace powheg_dy
     struct BornChannel
     {
         // PDG ids of the incoming Born partons
-        int id1 = 0;
-        int id2 = 0;
+        int id1;
+        int id2;
 
-        // absolute quark flavour: 1=d, 2=u, 3=s, 4=c, 5=b, 6=t
-        int flavour = 0;
+        // TODO: Remove this
+        int flavour;
+
+        std::vector<int> outIDs;
     };
 
     struct BornPhSpPt
@@ -45,9 +47,15 @@ namespace powheg_dy
         FourVector pLMinus;
         FourVector pLPlus;
 
+        double amp2;
+        double f1;
+        double f2;
+
         // monte carlo variables
+        double jacobianOld;
         double jacobian;
         double weight;
+        int sign;
     };
 
     class BornPhaseSpace

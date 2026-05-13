@@ -2,26 +2,32 @@
 
 namespace powheg_dy
 {
-namespace 
-{
-    static const std::vector<BornChannel> BORN_CHANNELS = {
-        { -5,  5,  5 },
-        { -4,  4,  4 },
-        { -3,  3,  3 },
-        { -2,  2,  2 },
-        { -1,  1,  1 },
-        {  1, -1,  1 },
-        {  2, -2,  2 },
-        {  3, -3,  3 },
-        {  4, -4,  4 },
-        {  5, -5,  5 },
-    };
-
-} // anonymous namespace
-
     std::vector<BornChannel> DrellYanProcess::bornChannels() const
     {
-        return BORN_CHANNELS;
+        return {
+            { -5,  5, 5, { 11, -11 } },
+            { -4,  4, 4, { 11, -11 } },
+            { -3,  3, 3, { 11, -11 } },
+            { -2,  2, 2, { 11, -11 } },
+            { -1,  1, 1, { 11, -11 } },
+            {  1, -1, 1, { 11, -11 } },
+            {  2, -2, 2, { 11, -11 } },
+            {  3, -3, 3, { 11, -11 } },
+            {  4, -4, 4, { 11, -11 } },
+            {  5, -5, 5, { 11, -11 } },
+        };
+    }
+
+    std::vector<RealChannel> DrellYanProcess::realChannels(const BornChannel& bornChannel) const
+    {   
+        const int outID1 = bornChannel.outIDs[0];
+        const int outID2 = bornChannel.outIDs[1];
+        
+        return {
+            { bornChannel.id1, bornChannel.id2, { outID1, outID2, 21 } },                  
+            { bornChannel.id1, 21,              { outID1, outID2, bornChannel.id1 } },      
+            { 21,              bornChannel.id2, { outID1, outID2, bornChannel.id2 } },
+        };
     }
 
 } // namespace powheg_dy

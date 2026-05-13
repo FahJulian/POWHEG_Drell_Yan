@@ -8,8 +8,12 @@ namespace powheg_dy
 {
 namespace 
 {
+    static double p1 = 0.0;
+    static double p2 = 0.0;
+    static double p3 = 0.0;
+    static int n = 0;
     static constexpr double GEV_SQ_TO_PB = 0.389379338e9;
-    static constexpr double SECURITY_FACTOR = 1.1;
+    static constexpr double SECURITY_FACTOR = 2.5;
     static constexpr int MAX_TRIALS = 10000;
 
     double sPlus(double y)
@@ -22,7 +26,7 @@ namespace
         return 0.5 * (1.0 - y);
     }
 
-    enum RealChannel : int
+    enum RealChannelOld : int
     {
         QQBAR = 0,
         GLUON_LEG1 = 1,
@@ -31,18 +35,17 @@ namespace
 
 } // anonymous namespace 
     
-    bool BBarIntegrator::computeWeightAndSampleChannel(BornPhSpPt& born) const
+    void BBarIntegrator::computeWeightAndSampleChannel(BornPhSpPt& born) const
     {
         const std::array<double, 3> unitCube = { rand(), rand(), rand() };        // For the radiation variables
-        const std::array<double, 4>& unitX = { rand(), rand(), rand(), rand() };  // For the collinear remnants
+        const std::array<double, 4> unitX = { rand(), rand(), rand(), rand() };  // For the collinear remnants
 
         std::vector<BornChannel> channels = m_process.bornChannels();
         
         std::vector<std::pair<BornPhSpPt, double>> weights = {};
         weights.reserve(channels.size());
             
-        double totalWeight = 0.0;
-
+        double totalAbsWeight = 0.0;
         for (const auto& channel : channels)
         {
             BornPhSpPt bornCopy = born;
@@ -51,35 +54,26 @@ namespace
 
             const double weight = bTilde(bornCopy, unitCube, unitX);
 
-            totalWeight += weight;
+            totalAbsWeight += std::abs(weight);
+
             weights.push_back({ bornCopy, weight });
         }
 
-        // assert(totalWeight > 0.0);
-        if (totalWeight <= 0.0)
-        {
-            // Log::warn("Negative Weight!");
-            return false;
-        }
-
-        born.weight = totalWeight;
-
         // Sample the parton channel by their relative contribution to dSigma
-        double u = rand(0.0, totalWeight);
+        double u = rand(0.0, totalAbsWeight);
         for (auto& [bornCopy, weight] : weights)
         {
-            if (u < weight)
+            if (u < std::abs(weight))
             {   
-                bornCopy.weight = totalWeight;
+                bornCopy.weight = totalAbsWeight;
+                bornCopy.sign = weight >= 0 ? 1 : -1;
                 born = bornCopy;
 
                 break;
             }
 
-            u -= weight;
+            u -= std::abs(weight);
         }
-
-        return true;
     }
 
     BornPhSpPt BBarIntegrator::sampleAccordingtoBTilde()
@@ -89,15 +83,22 @@ namespace
             double rands[3] = { rand(), rand(), rand() };
             BornPhSpPt born = m_bornPhaseSpace->samplePoint(rands);
             
-            if (!computeWeightAndSampleChannel(born))
-                continue;
+            computeWeightAndSampleChannel(born);
 
-            assert(born.weight <= m_maxWeight, "Born weight " << born.weight << " exceeds max weight " << m_maxWeight);
+            // assert(born.weight <= m_maxWeight, "Born weight " << born.weight << " exceeds max weight " << m_maxWeight);
+            if (born.weight > m_maxWeight)
+            {
+                Log::warn << "Born weight " << born.weight << " exceeds max weight " << m_maxWeight << std::endl;
+                m_nEventTrials += trials;
+                m_sumSigns += born.sign;
+                return born;
+            }
 
             double u = rand();
             if (u < born.weight / m_maxWeight)
             {
                 m_nEventTrials += trials;
+                m_sumSigns += born.sign;
                 return born;
             }
         }
@@ -136,63 +137,57 @@ namespace
         const double x1 = born.x1Bar / sqrtOneMinusXi * std::sqrt(a / b);
         const double x2 = born.x2Bar / sqrtOneMinusXi * std::sqrt(b / a);
 
-        // if (x1 <= 0.0 || x1 >= 1.0 || x2 <= 0.0 || x2 >= 1.0)
-        // {
-        //     Log::warn << "Unphysical values of x: x1 = " << x1 << ", x2 = " << x2 << std::endl;
-        //     return 0.0;
-        // }
-        
         const double fLeg1 = m_config.PDF->xfxQ2(id1, x1, muF2) / x1; 
         const double fLeg2 = m_config.PDF->xfxQ2(id2, x2, muF2) / x2; 
 
         return fLeg1 * fLeg2;
     }
 
-    double BBarIntegrator::AqqbarPlus(const RealPhSpPt& real, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarPlus(const RealPhSpPt& real, double muR2) const
     {
         return sPlus(real.rad.y) * (1.0 - real.rad.y) * real.rad.xi * real.rad.xi 
-            * m_process.realAmp2(real, muR2, RealChannel::QQBAR, false) / real.sHatReal;
+            * m_process.realAmp2(real, muR2, RealChannelOld::QQBAR, false) / real.sHatReal;
     }
 
-    double BBarIntegrator::AqqbarMinus(const RealPhSpPt& real, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarMinus(const RealPhSpPt& real, double muR2) const
     {
         return sMinus(real.rad.y) * (1.0 + real.rad.y) * real.rad.xi * real.rad.xi 
-            * m_process.realAmp2(real, muR2, RealChannel::QQBAR, false) / real.sHatReal;
+            * m_process.realAmp2(real, muR2, RealChannelOld::QQBAR, false) / real.sHatReal;
     }
 
-    double BBarIntegrator::AqqbarPlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarPlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const bool soft = (rad.xi == 0.0);
         const bool coll = (rad.y  == 1.0);
 
         if (soft && coll)
-            return AqqbarPlusSoftCollinearLimit(born, rad, muF2, muR2);
+            return AqqbarPlusSoftCollinearLimit(born, muR2);
         else if (soft)
-            return AqqbarPlusSoftLimit(born, rad, muF2, muR2);
+            return AqqbarPlusSoftLimit(born, rad, muR2);
         else if (coll)
-            return AqqbarPlusCollinearLimit(born, rad, muF2, muR2);
+            return AqqbarPlusCollinearLimit(born, rad, muR2);
         else
         {
             RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
-            return AqqbarPlus(real, muF2, muR2);
+            return AqqbarPlus(real, muR2);
         }
     }
 
-    double BBarIntegrator::AqqbarMinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarMinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const bool soft = (rad.xi ==  0.0);
         const bool coll = (rad.y  == -1.0);
 
         if (soft && coll)
-            return AqqbarMinusSoftCollinearLimit(born, rad, muF2, muR2);
+            return AqqbarMinusSoftCollinearLimit(born, muR2);
         else if (soft)
-            return AqqbarMinusSoftLimit(born, rad, muF2, muR2);
+            return AqqbarMinusSoftLimit(born, rad, muR2);
         else if (coll)
-            return AqqbarMinusCollinearLimit(born, rad, muF2, muR2);
+            return AqqbarMinusCollinearLimit(born, rad, muR2);
         else
         {
             RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
-            return AqqbarMinus(real, muF2, muR2);
+            return AqqbarMinus(real, muR2);
         }
     }
 
@@ -210,10 +205,10 @@ namespace
         const double lumColl     = luminosity(born, radColl,     born.channel.id1, born.channel.id2, muF2);
         const double lumSoftColl = luminosity(born, radSoftColl, born.channel.id1, born.channel.id2, muF2);
 
-        const double A_xy = lum         * AqqbarPlusLimitAware(born, rad,         muF2, muR2);
-        const double A_0y = lumSoft     * AqqbarPlusLimitAware(born, radSoft,     muF2, muR2);
-        const double A_x1 = lumColl     * AqqbarPlusLimitAware(born, radColl,     muF2, muR2);
-        const double A_01 = lumSoftColl * AqqbarPlusLimitAware(born, radSoftColl, muF2, muR2);
+        const double A_xy = lum         * AqqbarPlusLimitAware(born, rad,         muR2);
+        const double A_0y = lumSoft     * AqqbarPlusLimitAware(born, radSoft,     muR2);
+        const double A_x1 = lumColl     * AqqbarPlusLimitAware(born, radColl,     muR2);
+        const double A_01 = lumSoftColl * AqqbarPlusLimitAware(born, radSoftColl, muR2);
 
         return (A_xy - A_0y - A_x1 + A_01) / (rad.xi * rad.xi * (1.0 - rad.y));
     }
@@ -230,15 +225,15 @@ namespace
         const double lumColl     = luminosity(born, radColl,     born.channel.id1, born.channel.id2, muF2);
         const double lumSoftColl = luminosity(born, radSoftColl, born.channel.id1, born.channel.id2, muF2);
 
-        const double A_xy = lum         * AqqbarMinusLimitAware(born, rad,         muF2, muR2);
-        const double A_0y = lumSoft     * AqqbarMinusLimitAware(born, radSoft,     muF2, muR2);
-        const double A_xm = lumColl     * AqqbarMinusLimitAware(born, radColl,     muF2, muR2);
-        const double A_0m = lumSoftColl * AqqbarMinusLimitAware(born, radSoftColl, muF2, muR2);
+        const double A_xy = lum         * AqqbarMinusLimitAware(born, rad,         muR2);
+        const double A_0y = lumSoft     * AqqbarMinusLimitAware(born, radSoft,     muR2);
+        const double A_xm = lumColl     * AqqbarMinusLimitAware(born, radColl,     muR2);
+        const double A_0m = lumSoftColl * AqqbarMinusLimitAware(born, radSoftColl, muR2);
 
         return (A_xy - A_0y - A_xm + A_0m) / (rad.xi * rad.xi * (1.0 + rad.y));
     }
 
-    double BBarIntegrator::AqqbarPlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarPlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const double z = 1.0 - rad.xi;
         const double prefactor = 16.0 * PI * m_config.C_F / born.sHat / born.sHat;
@@ -249,7 +244,7 @@ namespace
             * z * (1 + z * z);
     }
 
-    double BBarIntegrator::AqqbarMinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarMinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const double z = 1.0 - rad.xi;
         const double prefactor = 16.0 * PI * m_config.C_F / born.sHat / born.sHat;
@@ -260,7 +255,7 @@ namespace
             * z * (1 + z * z);
     }
 
-    double BBarIntegrator::AqqbarPlusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarPlusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const double angular = (1.0 - rad.y) * sPlus(rad.y) / (1.0 - rad.y * rad.y);
         const double prefactor = 64.0 * PI * m_config.C_F / born.sHat / born.sHat;
@@ -271,7 +266,7 @@ namespace
             * angular;
     }
 
-    double BBarIntegrator::AqqbarMinusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarMinusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const double angular = (1.0 + rad.y) * sMinus(rad.y) / (1.0 - rad.y * rad.y);
         const double prefactor = 64.0 * PI * m_config.C_F / born.sHat / born.sHat;
@@ -282,29 +277,29 @@ namespace
             * angular;
     }
 
-    double BBarIntegrator::AqqbarPlusSoftCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarPlusSoftCollinearLimit(const BornPhSpPt& born, double muR2) const
     {
         const double prefactor = 32.0 * PI * m_config.C_F / born.sHat / born.sHat;
         return prefactor * alphaS(m_config, muR2) * m_process.bornAmp2(born);
     }
 
-    double BBarIntegrator::AqqbarMinusSoftCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AqqbarMinusSoftCollinearLimit(const BornPhSpPt& born, double muR2) const
     {
         const double prefactor = 32.0 * PI * m_config.C_F / born.sHat / born.sHat;
         return prefactor * alphaS(m_config, muR2) * m_process.bornAmp2(born);
     }
 
-    double BBarIntegrator::AgluonLeg1Plus(const RealPhSpPt& real, double muF2, double muR2) const
+    double BBarIntegrator::AgluonLeg1Plus(const RealPhSpPt& real, double muR2) const
     {
-        return (1.0 - real.rad.y) * m_process.realAmp2(real, muR2, RealChannel::GLUON_LEG1, false) / real.sHatReal;
+        return (1.0 - real.rad.y) * m_process.realAmp2(real, muR2, RealChannelOld::GLUON_LEG1, false) / real.sHatReal;
     }
 
-    double BBarIntegrator::AgluonLeg2Minus(const RealPhSpPt& real, double muF2, double muR2) const
+    double BBarIntegrator::AgluonLeg2Minus(const RealPhSpPt& real, double muR2) const
     {
-        return (1.0 + real.rad.y) * m_process.realAmp2(real, muR2, RealChannel::GLUON_LEG2, false) / real.sHatReal;
+        return (1.0 + real.rad.y) * m_process.realAmp2(real, muR2, RealChannelOld::GLUON_LEG2, false) / real.sHatReal;
     }
 
-    double BBarIntegrator::AgluonLeg1PlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AgluonLeg1PlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const double z = 1.0 - rad.xi;
         const double prefactor = 16.0 * PI * m_config.T_F / born.sHat / born.sHat;
@@ -317,7 +312,7 @@ namespace
             / (1.0 - z);
     }
 
-    double BBarIntegrator::AgluonLeg2MinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AgluonLeg2MinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         const double z = 1.0 - rad.xi;
         const double prefactor = 16.0 * PI * m_config.T_F / born.sHat / born.sHat;
@@ -330,25 +325,25 @@ namespace
             / (1.0 - z);
     }
 
-    double BBarIntegrator::AgluonLeg1PlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AgluonLeg1PlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         if (rad.y == 1.0)
-            return AgluonLeg1PlusCollinearLimit(born, rad, muF2, muR2);
+            return AgluonLeg1PlusCollinearLimit(born, rad, muR2);
         else
         {
             RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
-            return AgluonLeg1Plus(real, muF2, muR2);
+            return AgluonLeg1Plus(real, muR2);
         }
     }
 
-    double BBarIntegrator::AgluonLeg2MinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muF2, double muR2) const
+    double BBarIntegrator::AgluonLeg2MinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
     {
         if (rad.y == -1.0)
-            return AgluonLeg2MinusCollinearLimit(born, rad, muF2, muR2);
+            return AgluonLeg2MinusCollinearLimit(born, rad, muR2);
         else
         {
             RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
-            return AgluonLeg2Minus(real, muF2, muR2);
+            return AgluonLeg2Minus(real, muR2);
         }
     }
 
@@ -360,8 +355,8 @@ namespace
         const double lum         = luminosity(born, rad,     21, born.channel.id2, muF2);
         const double lumColl     = luminosity(born, radColl, 21, born.channel.id2, muF2);
 
-        const double A_y = lum     * AgluonLeg1PlusLimitAware(born, rad,     muF2, muR2);
-        const double A_1 = lumColl * AgluonLeg1PlusLimitAware(born, radColl, muF2, muR2);
+        const double A_y = lum     * AgluonLeg1PlusLimitAware(born, rad,     muR2);
+        const double A_1 = lumColl * AgluonLeg1PlusLimitAware(born, radColl, muR2);
 
         return (A_y - A_1) / (1.0 - rad.y);
     }
@@ -374,15 +369,10 @@ namespace
         const double lum         = luminosity(born, rad,     born.channel.id1, 21, muF2);
         const double lumColl     = luminosity(born, radColl, born.channel.id1, 21, muF2);
 
-        const double A_y = lum     * AgluonLeg2MinusLimitAware(born, rad,     muF2, muR2);
-        const double A_m = lumColl * AgluonLeg2MinusLimitAware(born, radColl, muF2, muR2);
+        const double A_y = lum     * AgluonLeg2MinusLimitAware(born, rad,     muR2);
+        const double A_m = lumColl * AgluonLeg2MinusLimitAware(born, radColl, muR2);
 
         return (A_y - A_m) / (1.0 + rad.y);
-    }
-
-    BBarIntegrator::Counterterms BBarIntegrator::counterterms(const BornPhSpPt& born, const RadiationVariables& rad) const
-    {
-        return { };
     }
 
     double BBarIntegrator::bornPlusVirtualContribution(const BornPhSpPt& born, double muF2, double muR2) const
@@ -393,43 +383,48 @@ namespace
         const double ampBorn = m_process.bornContribution(born);
         const double ampVirt = m_process.virtualContribution(born, muR2);
 
-        const double bornContr = born.jacobian * f * fb * ampBorn;
-        const double virtContr = born.jacobian * f * fb * ampVirt;
+        const double bornContr = born.jacobianOld * f * fb * ampBorn;
+        const double virtContr = born.jacobianOld * f * fb * ampVirt;
 
         return bornContr + virtContr;
     }
 
-    double BBarIntegrator::realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const 
+    double BBarIntegrator::realMinusCounterTermContribution(
+        const BornPhSpPt& born,
+        const std::array<double, 3>& unitCube,
+        double muF2,
+        double muR2
+    ) const 
     {
-        // RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
-        
-        // const double fReal1Q = m_config.PDF->xfxQ2(born.channel.id1, real.x1, muF2) / real.x1; 
-        // const double fReal2Q = m_config.PDF->xfxQ2(born.channel.id2, real.x2, muF2) / real.x2; 
-
-        // const double fReal1G = m_config.PDF->xfxQ2(21, real.x1, muF2) / real.x1; 
-        // const double fReal2G = m_config.PDF->xfxQ2(21, real.x2, muF2) / real.x2; 
-
-        // const double lumQQbar = fReal1Q * fReal2Q;
-        // const double lumGLeg1 = fReal1G * fReal2Q;
-        // const double lumGLeg2 = fReal1Q * fReal2G;
-
-        const double sigma = RHatqqbarPlus(born, unitCube, muF2, muR2) 
+        const double sigma =
+            RHatqqbarPlus(born, unitCube, muF2, muR2) 
             + RHatqqbarMinus(born, unitCube, muF2, muR2)
             + RHatgluonLeg1Plus(born, unitCube, muF2, muR2)
-            + RHatgluonLeg2Minus(born, unitCube, muF2, muR2);
-        
-        // TODO: Real is getting sampled too often
-        auto rad = sampleUniformRad(born, unitCube);
-        auto real = m_realPhaseSpace->reconstruct(born, rad);
+            + RHatgluonLeg2Minus(born, unitCube, muF2, muR2)
+            + realEndpointRemnantQQbar(born, unitCube, muF2, muR2)
+        ;
+
+        const RadiationVariables rad = sampleUniformRad(born, unitCube);
+        const RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
 
         const double bornPhSpFactor = 1.0 / (64.0 * PI * PI * m_config.S);
 
-        return bornPhSpFactor * born.jacobian * unitCubeJacobian(rad) * real.radJacobian * sigma;
+        return bornPhSpFactor
+            * born.jacobianOld
+            * unitCubeJacobian(rad)
+            * real.radJacobian
+            * sigma;
     }
 
     double BBarIntegrator::collinearRemnantGluonLeg1(const BornPhSpPt& born, double unitX, double muF2) const
     {
-        const double z = born.x1Bar + (1.0 - born.x1Bar) * unitX;
+        const double tiny = 0; //1.0e-6; // par_isrtinycsi
+
+        const double z =
+            1.0
+        - (1.0 - born.x1Bar) * tiny
+        - (1.0 - born.x1Bar) * (1.0 - tiny) * unitX;
+
         const double jac = (1.0 - born.x1Bar) / z;
         
         const double lumGluonLeg1_z = m_config.PDF->xfxQ2(21, born.x1Bar / z, muF2) / (born.x1Bar / z)
@@ -444,7 +439,13 @@ namespace
 
     double BBarIntegrator::collinearRemnantGluonLeg2(const BornPhSpPt& born, double unitX, double muF2) const
     {
-        const double z = born.x2Bar + (1.0 - born.x2Bar) * unitX;
+        const double tiny = 0; //1.0e-6; // par_isrtinycsi
+
+        const double z =
+            1.0
+        - (1.0 - born.x2Bar) * tiny
+        - (1.0 - born.x2Bar) * (1.0 - tiny) * unitX;
+
         const double jac = (1.0 - born.x2Bar) / z;
         
         const double lumGluonLeg2_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
@@ -457,96 +458,277 @@ namespace
         return m_config.T_F * jac * (lumGluonLeg2_z * bracket);
     }
 
-    double BBarIntegrator::collinearRemnantPlusQQ(const BornPhSpPt& born, double unitX, double muF2) const
-    {
-        const double z = born.x1Bar + (1.0 - born.x1Bar) * unitX;
-        const double jac = (1.0 - born.x1Bar) / z;
+    // double BBarIntegrator::collinearRemnantPlusQQ(const BornPhSpPt& born, double unitX, double muF2) const
+    // {
+    //     const double z = born.x1Bar + (1.0 - born.x1Bar) * unitX;
+    //     const double jac = (1.0 - born.x1Bar) / z;
         
+    //     const double lumQQ_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar / z, muF2) / (born.x1Bar / z)
+    //         * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+    //     const double lumQQ_1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+    //         * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
+    //     const double distr1 = ((1.0 + z * z) * std::log(born.sHat / z / muF2) * lumQQ_z
+    //         - 2.0 * std::log(born.sHat / muF2) * lumQQ_1) / (1.0 - z);
+    //     const double distr2 = 2.0 * std::log(1.0 - z) * ((1.0 + z * z) * lumQQ_z - 2.0 * lumQQ_1) / (1.0 - z);
+
+    //     return m_config.C_F * jac * (distr1 + distr2 + lumQQ_z * (1.0 - z));
+    // }
+
+    double BBarIntegrator::collinearRemnantPlusQQ(
+        const BornPhSpPt& born,
+        double unitX,
+        double muF2
+    ) const
+    {
+        const double tiny = 0; //1.0e-6; // par_isrtinycsi
+
+        const double z = 1.0 - (1.0 - born.x1Bar) * tiny - (1.0 - born.x1Bar) * (1.0 - tiny) * unitX;
+        const double dz = (1.0 - born.x1Bar) * (1.0 - tiny);
+
+        const double jacOverZ = dz / z;
+        const double jacAtOne = dz;
+
         const double lumQQ_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar / z, muF2) / (born.x1Bar / z)
             * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
         const double lumQQ_1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
             * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
 
-        const double distr1 = ((1.0 + z * z) * std::log(born.sHat / z / muF2) * lumQQ_z
-            - 2.0 * std::log(born.sHat / muF2) * lumQQ_1) / (1.0 - z);
-        const double distr2 = 2.0 * std::log(1.0 - z) * ((1.0 + z * z) * lumQQ_z - 2.0 * lumQQ_1) / (1.0 - z);
+        const double logReal = std::log(born.sHat / z / muF2) + 2.0 * std::log(1.0 - z);
+        const double logSub  = std::log(born.sHat / muF2)     + 2.0 * std::log(1.0 - z);
 
-        return m_config.C_F * jac * (distr1 + distr2 + lumQQ_z * (1.0 - z));
+        const double realScaled =
+            jacOverZ * lumQQ_z *
+            ((1.0 + z * z) * logReal / (1.0 - z) + (1.0 - z));
+
+        const double subtractionAtOne =
+            jacAtOne * lumQQ_1 *
+            (2.0 * logSub / (1.0 - z));
+
+        const double csicut = 1.0; // match POWHEG par_csicut
+
+        const double rm1 = std::log((1.0 - born.x1Bar) / csicut) * std::log(born.sHat / muF2)
+            + std::pow(std::log(1.0 - born.x1Bar), 2)
+            - std::pow(std::log(csicut), 2);
+
+        const double deltaRemnant = 2.0 * lumQQ_1 * rm1;
+
+        return m_config.C_F * (realScaled - subtractionAtOne 
+            + deltaRemnant
+        );
     }
 
-    double BBarIntegrator::collinearRemnantMinusQQ(const BornPhSpPt& born, double unitX, double muF2) const
-    {
-        const double z = born.x2Bar + (1.0 - born.x2Bar) * unitX;
-        const double jac = (1.0 - born.x2Bar) / z;
+    // double BBarIntegrator::collinearRemnantMinusQQ(const BornPhSpPt& born, double unitX, double muF2) const
+    // {
+    //     const double z = born.x2Bar + (1.0 - born.x2Bar) * unitX;
+    //     const double jac = (1.0 - born.x2Bar) / z;
         
-        const double lumQQ_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
-            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar / z, muF2) / (born.x2Bar / z);
-        const double lumQQ_1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
-            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+    //     const double lumQQ_z = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+    //         * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar / z, muF2) / (born.x2Bar / z);
+    //     const double lumQQ_1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+    //         * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
 
-        const double distr1 = ((1.0 + z * z) * std::log(born.sHat / z / muF2) * lumQQ_z
-            - 2.0 * std::log(born.sHat / muF2) * lumQQ_1) / (1.0 - z);
-        const double distr2 = 2.0 * std::log(1.0 - z) * ((1.0 + z * z) * lumQQ_z - 2.0 * lumQQ_1) / (1.0 - z);
+    //     const double distr1 = ((1.0 + z * z) * std::log(born.sHat / z / muF2) * lumQQ_z
+    //         - 2.0 * std::log(born.sHat / muF2) * lumQQ_1) / (1.0 - z);
+    //     const double distr2 = 2.0 * std::log(1.0 - z) * ((1.0 + z * z) * lumQQ_z - 2.0 * lumQQ_1) / (1.0 - z);
 
-        return m_config.C_F * jac * (distr1 + distr2 + lumQQ_z * (1.0 - z));
+    //     return m_config.C_F * jac * (distr1 + distr2 + lumQQ_z * (1.0 - z));
+    // }
+
+    double BBarIntegrator::collinearRemnantMinusQQ(
+        const BornPhSpPt& born,
+        double unitX,
+        double muF2
+    ) const
+    {
+        const double tiny = 0; //1.0e-6; // par_isrtinycsi
+
+        const double z =
+            1.0
+        - (1.0 - born.x2Bar) * tiny
+        - (1.0 - born.x2Bar) * (1.0 - tiny) * unitX;
+
+        const double dz = (1.0 - born.x2Bar) * (1.0 - tiny);
+
+        const double jacOverZ = dz / z;
+        const double jacAtOne = dz;
+
+        const double lumQQ_z =
+            m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+        * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar / z, muF2) / (born.x2Bar / z);
+
+        const double lumQQ_1 =
+            m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+        * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
+        const double logReal = std::log(born.sHat / z / muF2) + 2.0 * std::log(1.0 - z);
+        const double logSub  = std::log(born.sHat / muF2)     + 2.0 * std::log(1.0 - z);
+
+        const double realScaled =
+            jacOverZ * lumQQ_z *
+            ((1.0 + z * z) * logReal / (1.0 - z) + (1.0 - z));
+
+        const double subtractionAtOne =
+            jacAtOne * lumQQ_1 *
+            (2.0 * logSub / (1.0 - z));
+
+        const double csicut = 1.0; // match POWHEG par_csicut
+
+        const double rm2 = std::log((1.0 - born.x2Bar) / csicut) * std::log(born.sHat / muF2)
+            + std::pow(std::log(1.0 - born.x2Bar), 2)
+            - std::pow(std::log(csicut), 2);
+
+        const double deltaRemnant = 2.0 * lumQQ_1 * rm2;
+
+        return m_config.C_F * (realScaled - subtractionAtOne
+             + deltaRemnant
+            );
+    }
+
+    double BBarIntegrator::realEndpointRemnantQQbar(
+        const BornPhSpPt& born,
+        const std::array<double, 3>& unitCube,
+        double muF2,
+        double muR2
+    ) const
+    {
+        const double csiCut = 1.0; // Use POWHEG par_csicut here.
+
+        const RadiationVariables rad = sampleUniformRad(born, unitCube);
+        const RadiationVariables radSoft = sampleUniformRad(born, {0.0, unitCube[1], unitCube[2]});
+        const RadiationVariables radSoftCollPlus = sampleUniformRad(born, {0.0, 1.0, unitCube[2]});
+        const RadiationVariables radSoftCollMinus = sampleUniformRad(born, {0.0, 0.0, unitCube[2]});
+
+        const double xi = rad.xi;
+        const double y  = rad.y;
+
+        const double xiTilde = xi / rad.xiMax;
+
+        const double lumSoft = luminosity(born, radSoft, born.channel.id1, born.channel.id2, muF2);
+        const double lumSoftCollPlus = luminosity(born, radSoftCollPlus, born.channel.id1, born.channel.id2, muF2);
+        const double lumSoftCollMinus = luminosity(born, radSoftCollMinus, born.channel.id1, born.channel.id2, muF2);
+
+        const double A_0y_plus = lumSoft * AqqbarPlusSoftLimit(born, radSoft, muR2);
+        const double A_0y_minus = lumSoft * AqqbarMinusSoftLimit(born, radSoft, muR2);
+        const double A_01_plus = lumSoftCollPlus * AqqbarPlusSoftCollinearLimit(born, muR2);
+        const double A_0m_minus = lumSoftCollMinus * AqqbarMinusSoftCollinearLimit(born, muR2);
+
+        const double xi2 = xi * xi;
+
+        const double soft = A_0y_plus  / (xi2 * (1.0 - y)) + A_0y_minus / (xi2 * (1.0 + y));
+
+        const double softCollPlus = 0.5 * A_01_plus / (xi2 * (1.0 - y));
+        const double softCollMinus = 0.5 * A_0m_minus / (xi2 * (1.0 + y));
+
+        const double logSoft = std::log(rad.xiMax / csiCut);
+        const double logSoftCollPlus = std::log((1.0 - born.x1Bar) / csiCut);
+        const double logSoftCollMinus = std::log((1.0 - born.x2Bar) / csiCut);
+
+        const double softOverRealJac = (1.0 - xi) * (1.0 - xi);
+
+        return softOverRealJac * xiTilde * (
+            soft          * logSoft
+            - softCollPlus  * logSoftCollPlus
+            - softCollMinus * logSoftCollMinus
+        );
     }
 
     double BBarIntegrator::collinearRemnantContribution(const BornPhSpPt& born, const std::array<double, 4>& unitX, double muF2, double muR2) const
     {
         const double prefactor = 1.0 / (64.0 * PI * PI * m_config.S * born.sHat);
 
+        // TODO: Maybe go back to using all for unitX values
         const double plusQQ = collinearRemnantPlusQQ(born, unitX[0], muF2);
-        const double minusQQ = collinearRemnantMinusQQ(born, unitX[1], muF2);
-        const double gluonLeg1 = collinearRemnantGluonLeg1(born, unitX[2], muF2);
-        const double gluonLeg2 = collinearRemnantGluonLeg2(born, unitX[3], muF2);
+        const double minusQQ = collinearRemnantMinusQQ(born, unitX[0], muF2);
+        const double gluonLeg1 = collinearRemnantGluonLeg1(born, unitX[0], muF2);
+        const double gluonLeg2 = collinearRemnantGluonLeg2(born, unitX[0], muF2);
 
-        return prefactor * alphaS(m_config, muR2) / 2.0 / PI * (plusQQ + minusQQ + gluonLeg1 + gluonLeg2)
+        return prefactor * born.jacobianOld * alphaS(m_config, muR2) / 2.0 / PI * (plusQQ + minusQQ + gluonLeg1 + gluonLeg2)
             * m_process.bornAmp2(born);
     }
 
-    double BBarIntegrator::bTilde(const BornPhSpPt& born, const std::array<double, 3>& unitCube, const std::array<double, 4>& unitX) const
+    double BBarIntegrator::bTilde(BornPhSpPt& born, const std::array<double, 3>& unitCube, const std::array<double, 4>& unitX) const
     {
         const double muF2 = born.sHat;
         const double muR2 = born.sHat;
 
-        const double bornPlusVirtual = bornPlusVirtualContribution(born, muF2, muR2);
-        const double realMinusCounterterm = realMinusCounterTermContribution(born, unitCube, muF2, muR2);
-        const double collinearRemnants = collinearRemnantContribution(born, unitX, muF2, muR2);
+        // TODO: Move this block into a different function??
+        born.f1 = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar;
+        born.f2 = m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+        born.amp2 = m_process.bornAmp2(born);
+
+        // const double bornPlusVirtual = bornPlusVirtualContribution(born, muF2, muR2);
+        const double dSigmaBorn = m_bornVirtual.dSigmaBorn(born);
+        const double dSigmaVirtual = m_bornVirtual.dSigmaVirtual(born, muR2);
+        // const double realMinusCounterterm = realMinusCounterTermContribution(born, unitCube, muF2, muR2);
+        // const double collinearRemnants = collinearRemnantContribution(born, unitX, muF2, muR2);
+
+        const double absTot = 0.0
+            + std::abs(dSigmaBorn + dSigmaVirtual) 
+            // + std::abs(realMinusCounterterm)
+            // + std::abs(collinearRemnants)
+        ;
+
+        p1 += std::abs(dSigmaBorn + dSigmaVirtual) / absTot;
+        // p2 += std::abs(realMinusCounterterm) / absTot;
+        // p3 += std::abs(collinearRemnants) / absTot;
+        n++;
 
         return 0.0
-            + bornPlusVirtual 
-            + realMinusCounterterm
-            + collinearRemnants
+            + dSigmaBorn 
+            + dSigmaVirtual 
+            // + realMinusCounterterm
+            // + collinearRemnants
         ;
     }
 
     void BBarIntegrator::determineMaxWeight()
     {
-        Log::info("Determining Born Veto weight");
-
-        double max_dSigma = 0.0;
         
-        for (size_t i = 0; i < m_config.N_TRIAL_EVENTS; i++)
-        {   
-            double rands[3] = { rand(), rand(), rand() }; 
+        if (m_config.BORN_VETO_WEIGHT != -1.0)
+        {
+            m_maxWeight = m_config.BORN_VETO_WEIGHT;
+            Log::info << "Using manual Born Veto weight " << m_maxWeight << std::endl;
+        }
+        else
+        {
+            Log::info("Determining Born Veto weight");
 
-            BornPhSpPt born = m_bornPhaseSpace->samplePoint(rands);
-            if (!computeWeightAndSampleChannel(born))
-            {
-                i -= 1;
-                continue;
+            double maxWeight = 0.0;
+            for (size_t i = 0; i < m_config.N_TRIAL_EVENTS; i++)
+            {   
+                double rands[3] = { rand(), rand(), rand() }; 
+
+                BornPhSpPt born = m_bornPhaseSpace->samplePoint(rands);
+                computeWeightAndSampleChannel(born);
+
+                if (born.weight > maxWeight)
+                    maxWeight = born.weight;
             }
 
-            if (born.weight > max_dSigma)
-                max_dSigma = born.weight;
+            m_maxWeight = SECURITY_FACTOR * maxWeight;
+
+            Log::info << "Done determining Born Veto weight." << std::endl << std::endl;
         }
-
-        m_maxWeight = SECURITY_FACTOR * max_dSigma;
-
-        Log::info << "Done determining Born Veto weight." << std::endl << std::endl;
     }
 
     double BBarIntegrator::getTotalCrossSection() const 
+    {
+        static int i = 0;
+        if (++i == 1)
+        {
+            Log::info << "Born average relative contr. " << p1 / n << std::endl;
+            Log::info << "Real average relative contr. " << p2 / n << std::endl;
+            Log::info << "Coll average relative contr. " << p3 / n << std::endl;
+            Log::info << "Number of negative events: " << (m_config.N_ACCEPTED_EVENTS - m_sumSigns) / 2 << std::endl;
+            Log::info << "Veto weight: " << m_maxWeight << std::endl;
+        }
+
+        return m_maxWeight * GEV_SQ_TO_PB * static_cast<double>(m_sumSigns) / m_nEventTrials;
+    }
+
+    double BBarIntegrator::getAbsCrossSection() const 
     {
         return m_maxWeight * GEV_SQ_TO_PB * getAcceptanceRatio();
     }
@@ -560,90 +742,7 @@ namespace
     {
         m_maxWeight = 0.0;
         m_nEventTrials = 0;
+        m_sumSigns = 0;
     }
-
-    // void test()
-    // {
-        // auto rad2 = rad;
-
-        // born.channel = { -1, 1, 1 };
-        // m_bornPhaseSpace->reconstructMomenta(born);
-
-        // Log::info << "--------------- GLUON LEG1 PLUS COLLINEAR LIMIT --------------" << std::endl;
-
-        // auto [rad2, radJacobian2] = sampleUniformRad(born);
-        // for (double n = 1e3; n <= 1e10; n *= 10)
-        // {
-        //     rad2.y = 1.0 - 1.0 / n;
-
-        //     const double a1 = AgluonLeg1Plus(born, rad2, born.sHat);
-        //     const double a2 = AgluonLeg1PlusCollinearLimit(born, rad2.xi, born.sHat);
-
-        //     Log::info << "n = " << n << ": " << a1 / a2 << std::endl;
-        // }
-
-        // Log::info << "--------------- GLUON LEG2 MINUS COLLINEAR LIMIT --------------" << std::endl;
-
-        // auto [rad2, radJacobian2] = sampleUniformRad(born);
-        // for (double n = 1e3; n <= 1e10; n *= 10)
-        // {
-        //     rad2.y = -1.0 + 1.0 / n;
-
-        //     const double a1 = AgluonLeg2Minus(born, rad2, born.sHat);
-        //     const double a2 = AgluonLeg2MinusCollinearLimit(born, rad2.xi, born.sHat);
-
-        //     Log::info << "n = " << n << ": " << a1 / a2 << std::endl;
-        // }
-
-        // Log::info << "--------------- SOFT LIMIT --------------" << std::endl;
-        // for (int j = 0; j < 10; j++)
-        // {
-        //     auto [rad2, radJacobian2] = sampleUniformRad(born);
-        //     for (double n = 1e7; n <= 1e10; n *= 10)
-        //     {  
-        //         rad2.xi = 1.0 / n;
-        //         double a1 = AqqbarMinus(born, rad2, born.sHat);
-        //         double a2 = AqqbarMinusSoftLimit(born, rad2.y, born.sHat);
-        //         Log::info << "n = " << n << ": " << a1 / a2 << std::endl;
-        //     }
-        // }
-
-        // Log::info << "--------------- COLLINEAR LIMIT --------------" << std::endl;
-        // auto [rad2, radJacobian2] = sampleUniformRad(born);
-        // for (int j = 0; j < 10; j++)
-        // {
-        //     double rands[3] = { rand(), rand(), rand() };
-        //     auto born2 = m_bornPhaseSpace->samplePoint(rands);
-        //     born2.channel = { -1, 1, 1 };
-        //     m_bornPhaseSpace->reconstructMomenta(born2);
-
-        //     for (double n = 1e5; n <= 1e10; n *= 10)
-        //     {  
-        //         rad2.y = 1.0 - 1.0 / n;
-        //         double a1 = AqqbarPlus(born2, rad2, born2.sHat);
-        //         double a2 = AqqbarPlusCollinearLimit(born2, rad2.xi, born2.sHat);
-        //         Log::info << "n = " << n << ": " << a1 / a2 << std::endl;
-        //     }
-        // }
-
-        // Log::info << "--------------- SOFT COLLINEAR LIMIT --------------" << std::endl;
-        // auto [rad2, radJacobian2] = sampleUniformRad(born);
-        // for (int j = 0; j < 10; j++)
-        // {
-        //     double rands[3] = { rand(), rand(), rand() };
-        //     auto born2 = m_bornPhaseSpace->samplePoint(rands);
-        //     born2.channel = { -1, 1, 1 };
-        //     m_bornPhaseSpace->reconstructMomenta(born2);
-
-        //     for (double n = 1e5; n <= 1e10; n *= 10)
-        //     {  
-        //         rad2.xi = 1.0 / n;
-        //         rad2.y  = 1.0 - 1.0 / n;
-        //         double a1 = AqqbarPlus(born2, rad2, born2.sHat);
-        //         double a2 = AqqbarPlusSoftCollinearLimit(born2, born2.sHat);
-        //         Log::info << "n = " << n << ": " << a1 / a2 << std::endl;
-        //     }
-        // }
-    // }
 
 } // namespace powheg_dy

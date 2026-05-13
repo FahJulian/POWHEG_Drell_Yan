@@ -7,7 +7,7 @@ namespace powheg_dy
     class DrellYanProcess : public Process
     {
     public:
-        enum RealChannel : int
+        enum RealChannelOld : int
         {
             QQBAR = 0,
             GLUON_LEG1 = 1,
@@ -15,16 +15,18 @@ namespace powheg_dy
         };
 
         double bornAmp2(const BornPhSpPt& born) const override;
+        double virtAmp2(const BornPhSpPt& born, double muR2) const override;
+        double realAmp2(const RealPhSpPt& real, double muR2, int channel, bool useCMWAlphaS) const override;
 
-        double realAmp2(const RealPhSpPt real, double muR2, int channel, bool useCMWAlphaS) const override;
+        std::vector<BornChannel> bornChannels() const override;
+        std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const override;
 
+        // OLD STUFF
         RealOverBornContributions realOverBornContributions(
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const override;
 
         double bornContribution(const BornPhSpPt& born) const override;
         double virtualContribution(const BornPhSpPt& born, double muR2) const override;
-
-        std::vector<BornChannel> bornChannels() const override;
         
     private:        
         double bornAmp2(int flavour, const FourVector& pQ, const FourVector& pQbar, const FourVector& pLMinus, 
