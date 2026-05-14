@@ -1,4 +1,4 @@
-#include "input_parser.h"
+#include "config_parser.h"
 
 #include "powheg_dy/util/file.h"
 
@@ -81,7 +81,7 @@ namespace
     }
 }
 
-    Config InputParser::parse() const
+    Config ConfigParser::parse() const
     {
         Log::info << "Reading config from file " << m_filePath << "." << std::endl;
 
@@ -96,7 +96,7 @@ namespace
         return config;
     }
 
-    Config InputParser::extractParams(std::map<std::string, std::string>& params) const
+    Config ConfigParser::extractParams(std::map<std::string, std::string>& params) const
     {
         Config config = { };
 
@@ -123,7 +123,7 @@ namespace
         return config;
     }
 
-    std::map<std::string, std::string> InputParser::readParams() const
+    std::map<std::string, std::string> ConfigParser::readParams() const
     {
         std::map<std::string, std::string> params;
         

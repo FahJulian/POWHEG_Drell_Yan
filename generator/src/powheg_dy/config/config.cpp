@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/alpha_s.h"
+#include "powheg_dy/config/alpha_s.h"
 
 namespace powheg_dy
 {

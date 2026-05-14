@@ -1,6 +1,6 @@
 #pragma once
 
-#include "powheg_dy/config.h"
+#include "powheg_dy/config/config.h"
 #include "powheg_dy/bbar/born_virtual_handler.h"
 #include "powheg_dy/bbar/collinear_remnants_handler.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"

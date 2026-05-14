@@ -1,14 +1,14 @@
 #pragma once
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/config.h"
+#include "powheg_dy/config/config.h"
 
 namespace powheg_dy
 {
-    class InputParser
+    class ConfigParser
     {
     public:
-        InputParser(const std::string& filePath)
+        ConfigParser(const std::string& filePath)
             : m_filePath(filePath)
         {
         }

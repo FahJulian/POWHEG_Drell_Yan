@@ -1,7 +1,9 @@
 #pragma once 
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/config.h"
+#include "powheg_dy/config/config.h"
+
+// TODO: Move to extended Config class
 
 namespace powheg_dy
 {
@@ -19,4 +21,5 @@ namespace powheg_dy
     ZHelicityCouplings zCouplings(const Config& config, bool upType, double charge);
     std::complex<double> photonPropagator(double q2);
     std::complex<double> zPropagator(const Config& config, double q2);
-}
+
+} // namespace powheg_dy

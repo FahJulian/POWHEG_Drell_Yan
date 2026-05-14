@@ -1,7 +1,7 @@
 #pragma once
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/config.h"
+#include "powheg_dy/config/config.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"
 
 namespace powheg_dy

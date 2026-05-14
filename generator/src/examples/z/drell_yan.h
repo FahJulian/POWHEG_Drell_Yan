@@ -21,13 +21,6 @@ namespace powheg_dy
         std::vector<BornChannel> bornChannels() const override;
         std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const override;
 
-        // OLD STUFF
-        RealOverBornContributionsOld realOverBornContributions(
-            const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const override;
-
-        double bornContribution(const BornPhSpPt& born) const override;
-        double virtualContribution(const BornPhSpPt& born, double muR2) const override;
-        
     private:        
         double bornAmp2(int flavour, const FourVector& pQ, const FourVector& pQbar, const FourVector& pLMinus, 
                 const FourVector& pLPlus) const;
@@ -38,10 +31,6 @@ namespace powheg_dy
         double realAmp2qqbar(const RealPhSpPt& real, const double alphaS) const;
         double realAmp2gluonLeg1(const RealPhSpPt& real, const double alphaS) const;
         double realAmp2gluonLeg2(const RealPhSpPt& real, const double alphaS) const;
-
-        double realOverBornQQbar(const RealPhSpPt& real, double muR2, bool useCMWALphaS) const;
-        double realOverBornGQbar(const RealPhSpPt& real, double muR2, bool useCMWALphaS) const;
-        double realOverBornQG(const RealPhSpPt& real, double muR2, bool useCMWALphaS) const;
     };
 
 } // namespace powheg_dy

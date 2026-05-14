@@ -1,6 +1,6 @@
 #include "alpha_s.h"
 
-#include "powheg_dy/config.h"
+#include "powheg_dy/config/config.h"
 
 namespace powheg_dy
 {

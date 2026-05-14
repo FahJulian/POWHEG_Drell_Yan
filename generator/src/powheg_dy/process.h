@@ -2,13 +2,11 @@
 
 #include "powheg_dy/base.h"
 #include "powheg_dy/event.h"
-#include "powheg_dy/config.h"
-#include "powheg_dy/matrix_elements.h"
+#include "powheg_dy/config/config.h"
 #include "powheg_dy/bbar/bbar_integrator.h"
 #include "powheg_dy/emission/emission_generator.h"
 #include "powheg_dy/phase_space/born_phase_space.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
-#include "powheg_dy/born_event/born_event_generator.h"
 
 namespace powheg_dy
 {
@@ -26,13 +24,6 @@ namespace powheg_dy
 
         // TODO: Move born sampling here
         
-        // OLD STUFF
-        virtual RealOverBornContributionsOld realOverBornContributions(
-            const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const = 0;
-
-        virtual double bornContribution(const BornPhSpPt& born) const = 0;
-        virtual double virtualContribution(const BornPhSpPt& born, double muR2) const = 0;
-
         void init(const std::string& configPath);
         void run();
         void writeToFile(const std::string& filePath) const;
@@ -47,14 +38,12 @@ namespace powheg_dy
 
     private:
         bool m_initialized = false;
+        std::vector<Event> m_events;
 
         std::shared_ptr<BornPhaseSpace> m_bornPhSp;
         std::shared_ptr<FKSRealPhaseSpace> m_realPhSp;
         std::shared_ptr<BBarIntegrator> m_bbarIntegrator;
-        std::shared_ptr<BornEventGenerator> m_bornGenerator;
         std::shared_ptr<EmissionGenerator> m_emissionGenerator;
-
-        std::vector<Event> m_events;
 
     protected:
         Config m_config;

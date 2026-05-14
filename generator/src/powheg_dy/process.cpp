@@ -2,13 +2,9 @@
 
 #include "powheg_dy/math/rand.h"
 #include "powheg_dy/util/file.h"
-#include "powheg_dy/input_parser.h"
+#include "powheg_dy/config/config_parser.h"
 #include "powheg_dy/emission/emission.h"
-#include "powheg_dy/born_event/born_event_generator.h"
 #include "powheg_dy/les_houches/les_houches_serializer.h"
-
-#include <iostream>
-#include <sstream>
 
 namespace powheg_dy
 {
@@ -27,7 +23,7 @@ namespace powheg_dy
 
         try
         {
-            m_config = InputParser(configPath).parse();
+            m_config = ConfigParser(configPath).parse();
         }
         catch(const std::exception& e)
         {
@@ -41,7 +37,6 @@ namespace powheg_dy
 
         m_bornPhSp = std::make_shared<BornPhaseSpace>(m_config);
         m_realPhSp = std::make_shared<FKSRealPhaseSpace>(m_config);
-        m_bornGenerator = std::make_shared<BornEventGenerator>(*this, m_config, m_bornPhSp);
         m_emissionGenerator = std::make_shared<EmissionGenerator>(*this, m_config, m_realPhSp);
         m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, m_config, m_bornPhSp, m_realPhSp);
 

@@ -410,13 +410,14 @@ namespace
         const double f  = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar;
         const double fb = m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
 
-        const double ampBorn = m_process.bornContribution(born);
-        const double ampVirt = m_process.virtualContribution(born, muR2);
+        // const double ampBorn = m_process.bornContribution(born);
+        // const double ampVirt = m_process.virtualContribution(born, muR2);
 
-        const double bornContr = born.jacobianOld * f * fb * ampBorn;
-        const double virtContr = born.jacobianOld * f * fb * ampVirt;
+        // const double bornContr = born.jacobianOld * f * fb * ampBorn;
+        // const double virtContr = born.jacobianOld * f * fb * ampVirt;
 
-        return bornContr + virtContr;
+        // return bornContr + virtContr;
+        return 0.0;
     }
 
     double BBarIntegrator::realMinusCounterTermContribution(

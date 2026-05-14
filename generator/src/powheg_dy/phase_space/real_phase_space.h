@@ -1,7 +1,7 @@
 #pragma once
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/config.h"
+#include "powheg_dy/config/config.h"
 #include "powheg_dy/math/four_vector.h"
 #include "powheg_dy/phase_space/born_phase_space.h"
 
@@ -9,7 +9,7 @@ namespace powheg_dy
 {
     struct RadiationVariables
     {
-        // FKS/POWHEG radiation variables
+        // TODO: This is used in various places, but should maybe be different structs
         double xi  = 0.0;   // emitted-parton energy fraction in the real partonic CM
         double y   = 0.0;   // cos(theta) relative to leg-1 direction
         double phi = 0.0;

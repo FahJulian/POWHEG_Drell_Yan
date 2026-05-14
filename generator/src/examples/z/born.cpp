@@ -51,26 +51,6 @@ namespace powheg_dy
         return amp2 * m_config.E_SQ * m_config.E_SQ / (4.0 * m_config.N_C);
     }
 
-    double DrellYanProcess::bornContribution(const BornPhSpPt& born) const
-    {
-        const double prefactor = 1.0 / (64.0 * PI * PI * m_config.S * born.sHat);
-
-        // arrange momenta in the same convention as POWHEG's Fortran:
-        // argument 1 is the quark, argument 2 is the antiquark.
-        const bool leg1IsQuark = (born.channel.id1 > 0);
-
-        const FourVector pQ    = leg1IsQuark ? born.p1Bar  : born.p2Bar;
-        const FourVector pQbar = leg1IsQuark ? born.p2Bar  : born.p1Bar;
-
-        return prefactor * bornAmp2(
-            born.channel.flavour,
-            pQ,
-            pQbar,
-            born.pLMinus,
-            born.pLPlus
-        );
-    }
-
     double DrellYanProcess::bornAmp2(const BornPhSpPt& born) const
     {
         const bool leg1IsQuark = (born.channel.id1 > 0);
