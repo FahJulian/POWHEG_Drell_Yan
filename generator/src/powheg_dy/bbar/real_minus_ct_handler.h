@@ -25,6 +25,21 @@ namespace powheg_dy
         ) const;
 
     private:
+        double dSigmaSoft(
+            const BBarIntegrationPoint& point,
+            const SingularRegion& region
+        ) const;
+
+        double dSigmaISRLeg1(
+            const BBarIntegrationPoint& point,
+            const SingularRegion& region
+        ) const;
+
+        double dSigmaISRLeg2(
+            const BBarIntegrationPoint& point,
+            const SingularRegion& region
+        ) const;
+
         const Process& m_process;
         const Config& m_config;
     };

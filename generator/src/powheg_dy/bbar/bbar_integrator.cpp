@@ -104,6 +104,8 @@ namespace
         {
             for (const auto& singularRegion : findSingularRegions(bornChannel, realChannel))
             {
+                dSigma += m_real.dSigmaRealMinusCT(point, singularRegion);
+
                 if (const auto& collinearChannel = remnantChannelFromRegion(bornChannel, realChannel, singularRegion); 
                     collinearChannel.has_value())
                 {
@@ -115,8 +117,6 @@ namespace
                         throw std::runtime_error("Invalid collinear remnant leg");
                 }
             }
-
-            // TODO: Add real term
         }
 
         return dSigma;
