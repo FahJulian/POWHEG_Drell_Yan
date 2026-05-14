@@ -19,7 +19,7 @@ namespace powheg_dy
         Log::info("Eur.Phys.J. C75 (2015) 3, 132  (http://arxiv.org/abs/1412.7420)");
     }
     
-    void Process::init(const std::string& configPath, const std::string& pdfSet)
+    void Process::init(const std::string& configPath)
     {
         Timer::init();
 

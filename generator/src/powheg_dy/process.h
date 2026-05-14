@@ -33,7 +33,7 @@ namespace powheg_dy
         virtual double bornContribution(const BornPhSpPt& born) const = 0;
         virtual double virtualContribution(const BornPhSpPt& born, double muR2) const = 0;
 
-        void init(const std::string& configPath, const std::string& pdfSet);
+        void init(const std::string& configPath);
         void run();
         void writeToFile(const std::string& filePath) const;
 
