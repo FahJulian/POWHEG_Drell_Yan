@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/debug/main",
             "args": [
-                "${workspaceFolder}/drellyan.pwhgconfig",
+                "${workspaceFolder}/drellyan.powhegconfig",
                 "${workspaceFolder}/../data/events/events.lhe"
             ],
             "stopAtEntry": false,
