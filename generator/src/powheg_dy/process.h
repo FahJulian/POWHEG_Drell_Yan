@@ -19,7 +19,7 @@ namespace powheg_dy
 
         virtual double bornAmp2(const BornPhSpPt& born) const = 0;
         virtual double virtAmp2(const BornPhSpPt& born, const double amp2Born, const double muR2) const = 0;
-        virtual double realAmp2(const RealPhSpPt& real, double muR2, int channel, bool useCMWAlphaS) const = 0;
+        virtual double realAmp2(const RealPhSpPt& real, const RealChannel& channel, const double alphaS) const = 0;
 
         virtual std::vector<BornChannel> bornChannels() const = 0;
         virtual std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const = 0;

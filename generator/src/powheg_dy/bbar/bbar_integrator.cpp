@@ -148,14 +148,28 @@ namespace
 
     double BBarIntegrator::AqqbarPlus(const RealPhSpPt& real, double muR2) const
     {
+        const BornChannel& bornChannel = real.underlyingBorn.channel;
+        RealChannel channel = { 
+            .id1    = bornChannel.id1, 
+            .id2    = bornChannel.id2, 
+            .outIDs = { bornChannel.outIDs[0], bornChannel.outIDs[1], 21 } 
+        };
+
         return sPlus(real.rad.y) * (1.0 - real.rad.y) * real.rad.xi * real.rad.xi 
-            * m_process.realAmp2(real, muR2, RealChannelOld::QQBAR, false) / real.sHatReal;
+            * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AqqbarMinus(const RealPhSpPt& real, double muR2) const
     {
+        const BornChannel& bornChannel = real.underlyingBorn.channel;
+        RealChannel channel = { 
+            .id1    = bornChannel.id1, 
+            .id2    = bornChannel.id2, 
+            .outIDs = { bornChannel.outIDs[0], bornChannel.outIDs[1], 21 } 
+        };
+
         return sMinus(real.rad.y) * (1.0 + real.rad.y) * real.rad.xi * real.rad.xi 
-            * m_process.realAmp2(real, muR2, RealChannelOld::QQBAR, false) / real.sHatReal;
+            * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AqqbarPlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
@@ -294,12 +308,26 @@ namespace
 
     double BBarIntegrator::AgluonLeg1Plus(const RealPhSpPt& real, double muR2) const
     {
-        return (1.0 - real.rad.y) * m_process.realAmp2(real, muR2, RealChannelOld::GLUON_LEG1, false) / real.sHatReal;
+        const BornChannel& bornChannel = real.underlyingBorn.channel;
+        RealChannel channel = { 
+            .id1    = 21, 
+            .id2    = bornChannel.id2, 
+            .outIDs = { bornChannel.outIDs[0], bornChannel.outIDs[1], bornChannel.id2 } 
+        };
+
+        return (1.0 - real.rad.y) * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AgluonLeg2Minus(const RealPhSpPt& real, double muR2) const
     {
-        return (1.0 + real.rad.y) * m_process.realAmp2(real, muR2, RealChannelOld::GLUON_LEG2, false) / real.sHatReal;
+        const BornChannel& bornChannel = real.underlyingBorn.channel;
+        RealChannel channel = { 
+            .id1    = bornChannel.id1, 
+            .id2    = 21, 
+            .outIDs = { bornChannel.outIDs[0], bornChannel.outIDs[1], bornChannel.id1 } 
+        };
+
+        return (1.0 + real.rad.y) * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AgluonLeg1PlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const

@@ -251,20 +251,7 @@ namespace
         return born.sHat / real.sHatReal * realamp / bornamp;
     }
 
-    double DrellYanProcess::realAmp2(const RealPhSpPt& real, double muR2, int channel, bool useCMWAlphaS) const
-    {
-        switch (channel)
-        {
-            case RealChannelOld::QQBAR: return realAmp2qqbar(real, muR2, useCMWAlphaS);
-            case RealChannelOld::GLUON_LEG1: return realAmp2gluonLeg1(real, muR2, useCMWAlphaS);
-            case RealChannelOld::GLUON_LEG2: return realAmp2gluonLeg2(real, muR2, useCMWAlphaS);
-            default:
-                assert(false);
-                return 0.0;
-        }
-    }
-
-    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt real, double muR2, bool useCMWAlphaS) const
+    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt& real, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
@@ -283,8 +270,6 @@ namespace
             gluonSlot = real.pRadiated;
         }
 
-        const double aS = useCMWAlphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
-
         return realAmp2_crossed(
             real.underlyingBorn.channel.flavour,
             qSlot,
@@ -292,15 +277,13 @@ namespace
             gluonSlot,
             real.pLMinus,
             real.pLPlus,
-            aS,
+            alphaS,
             m_config.C_F
         );
     }
 
-    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt real, double muR2, bool useCMWAlphaS) const
+    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt& real, const double alphaS) const
     {
-        const double aS = useCMWAlphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
-
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
@@ -325,15 +308,13 @@ namespace
             gluonSlot,
             real.pLMinus,
             real.pLPlus,
-            aS,
+            alphaS,
             m_config.T_F
         );
     }
 
-    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt real, double muR2, bool useCMWAlphaS) const
+    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt& real, const double alphaS) const
     {
-        const double aS = useCMWAlphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
-
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
@@ -358,9 +339,26 @@ namespace
             gluonSlot,
             real.pLMinus,
             real.pLPlus,
-            aS,
+            alphaS,
             m_config.T_F
         );
+    }
+    
+    double DrellYanProcess::realAmp2(
+        const RealPhSpPt& real, 
+        const RealChannel& channel, 
+        const double alphaS) const 
+    {
+        if (std::abs(channel.id1) <= 5 && channel.id1 == -channel.id2 && channel.outIDs[2] == 21)
+            return realAmp2qqbar(real, alphaS);
+        else if (channel.id1 == 21 && std::abs(channel.id2) <= 5)
+            return realAmp2gluonLeg1(real, alphaS);
+        else if (channel.id2 == 21 && std::abs(channel.id1) <= 5)
+            return realAmp2gluonLeg2(real, alphaS);
+        else
+            throw std::runtime_error("Invalid real channel");
+
+        return 0.0;
     }
 
 } // namespace powheg_dy
