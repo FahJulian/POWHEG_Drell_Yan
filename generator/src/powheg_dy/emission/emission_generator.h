@@ -20,7 +20,7 @@ namespace powheg_dy
     class EmissionGenerator
     {
     public:
-        EmissionGenerator(const Process& process, const Config& config, std::shared_ptr<FKSRealPhaseSpace> realPhaseSpace)
+        EmissionGenerator(const Process& process, const Config& config, std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
             : m_process(process),
               m_config(config),
               m_sampler(config, realPhaseSpace),
@@ -53,7 +53,7 @@ namespace powheg_dy
         const Process& m_process;
         const Config& m_config;
         const EmissionSampler m_sampler;
-        std::shared_ptr<FKSRealPhaseSpace> m_realPhaseSpace;
+        std::shared_ptr<ISRRealPhaseSpace> m_realPhaseSpace;
     };
 
 } // namespace powheg_dy

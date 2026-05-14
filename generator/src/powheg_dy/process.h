@@ -40,7 +40,7 @@ namespace powheg_dy
         bool m_initialized = false;
         std::vector<Event> m_events;
 
-        std::shared_ptr<FKSRealPhaseSpace> m_realPhSp;
+        std::shared_ptr<ISRRealPhaseSpace> m_realPhSp;
         std::shared_ptr<BBarIntegrator> m_bbarIntegrator;
         std::shared_ptr<EmissionGenerator> m_emissionGenerator;
 

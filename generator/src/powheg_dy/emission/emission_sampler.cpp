@@ -38,14 +38,13 @@ namespace
         return rad;
     }
 
-    double EmissionSampler::upperRadiationDensity(const RealPhSpPt& real, double kt2Trial) const
+    double EmissionSampler::upperRadiationDensity(const RadiationVariables& rad, double kt2Trial) const
     {
         const double alphaS = m_config.alphaSCMW(kt2Trial);
 
-        return N_Q
-            * alphaS
-            / real.rad.xi 
-            / (1 - real.rad.y * real.rad.y);
+        return N_Q * alphaS
+            / rad.xi 
+            / (1 - rad.y * rad.y);
     }
 
     double EmissionSampler::sampleTrialPhi() const

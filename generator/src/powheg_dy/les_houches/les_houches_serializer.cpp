@@ -97,19 +97,21 @@ namespace
 
     void LesHouchesSerializer::writeEvent(const Event& event, std::stringstream& content) const
     {
-        if (event.emission.rejected)
-        {
-            writeEventBorn(event, content);
-        }
-        else 
-        {
-            if (event.emission.channel.outIDs[2] == 21)
-                writeEventqqbar(event, content);
-            else if (event.emission.channel.id1 == 21)
-                writeEventGluonLeg1(event, content);
-            else 
-                writeEventGluonLeg2(event, content);
-        }
+        // if (event.emission.rejected)
+        // {
+        //     writeEventBorn(event, content);
+        // }
+        // else 
+        // {
+        //     if (event.emission.channel.outIDs[2] == 21)
+        //         writeEventqqbar(event, content);
+        //     else if (event.emission.channel.id1 == 21)
+        //         writeEventGluonLeg1(event, content);
+        //     else 
+        //         writeEventGluonLeg2(event, content);
+        // }
+
+        // writeEventHeader(content, event.weightSign, event.real.p)
     }
 
     void LesHouchesSerializer::writeEventBorn(const Event& event, std::stringstream& content) const
@@ -131,10 +133,10 @@ namespace
             writeParticle(content, event.bornChannel.id2, -1, 0, 0, color, 0, event.born.p2Bar, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
+        // writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
-        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pOut[0], 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pOut[1], 0.0);
 
         content << "</event>\n";
     }
@@ -157,12 +159,12 @@ namespace
             writeParticle(content, event.emission.channel.id2, -1, 0, 0, color1, 0, event.real.p2In, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
+        // writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
-        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pOut[0], 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pOut[1], 0.0);
 
-        writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, color1, color2, event.real.pRadiated, 0.0);
+        writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, color1, color2, event.real.pOut[2], 0.0);
 
         content << "</event>\n";
     }
@@ -185,15 +187,15 @@ namespace
             writeParticle(content, event.emission.channel.id2, -1, 0, 0, 0, colorIn, event.real.p2In, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
+        // writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
-        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pOut[0], 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pOut[1], 0.0);
 
         if (event.emission.channel.id2 > 0)     // Final state quark
-            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, colorOut, 0, event.real.pOut[2], 0.0);
         else                                    // Final state antiquark
-            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, 0, colorOut, event.real.pOut[2], 0.0);
 
         content << "</event>\n";
     }
@@ -216,15 +218,15 @@ namespace
             writeParticle(content, event.emission.channel.id2, -1, 0, 0, colorIn, colorOut, event.real.p2In, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
+        // writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
-        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
-        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pOut[0], 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pOut[1], 0.0);
 
         if (event.emission.channel.id1 > 0)     // Final state quark
-            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, colorOut, 0, event.real.pOut[2], 0.0);
         else                                    // Final state antiquark
-            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, 0, colorOut, event.real.pOut[2], 0.0);
 
         content << "</event>\n";
     }

@@ -80,13 +80,13 @@ namespace powheg_dy
         {
             qSlot     = real.p1In;
             qbarSlot  = real.p2In;
-            gluonSlot = real.pRadiated;
+            gluonSlot = real.pOut[2];
         }
         else
         {
             qSlot     = real.p2In;
             qbarSlot  = real.p1In;
-            gluonSlot = real.pRadiated;
+            gluonSlot = real.pOut[2];
         }
 
         return realAmp2_crossed(
@@ -94,8 +94,8 @@ namespace powheg_dy
             qSlot,
             qbarSlot,
             gluonSlot,
-            real.pLMinus,
-            real.pLPlus,
+            real.pOut[0],
+            real.pOut[1],
             alphaS,
             m_config.C_F
         );
@@ -109,14 +109,14 @@ namespace powheg_dy
 
         if (bornChannel.id1 > 0)
         {
-            qSlot     = -real.pRadiated;
+            qSlot     = -real.pOut[2];
             qbarSlot  =  real.p2In;
             gluonSlot = -real.p1In;
         }
         else
         {
             qSlot     =  real.p2In;
-            qbarSlot  = -real.pRadiated;
+            qbarSlot  = -real.pOut[2];
             gluonSlot = -real.p1In;
         }
 
@@ -125,8 +125,8 @@ namespace powheg_dy
             qSlot,
             qbarSlot,
             gluonSlot,
-            real.pLMinus,
-            real.pLPlus,
+            real.pOut[0],
+            real.pOut[1],
             alphaS,
             m_config.T_F
         );
@@ -141,12 +141,12 @@ namespace powheg_dy
         if (bornChannel.id1 > 0)
         {
             qSlot     =  real.p1In;
-            qbarSlot  = -real.pRadiated;
+            qbarSlot  = -real.pOut[2];
             gluonSlot = -real.p2In;
         }
         else
         {
-            qSlot     = -real.pRadiated;
+            qSlot     = -real.pOut[2];
             qbarSlot  =  real.p1In;
             gluonSlot = -real.p2In;
         }
@@ -156,8 +156,8 @@ namespace powheg_dy
             qSlot,
             qbarSlot,
             gluonSlot,
-            real.pLMinus,
-            real.pLPlus,
+            real.pOut[0],
+            real.pOut[1],
             alphaS,
             m_config.T_F
         );

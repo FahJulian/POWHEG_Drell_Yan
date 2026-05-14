@@ -35,7 +35,7 @@ namespace powheg_dy
         m_config.setDependentParams();
         m_config.extractLambdaFromPdf();
 
-        m_realPhSp = std::make_shared<FKSRealPhaseSpace>(m_config);
+        m_realPhSp = std::make_shared<ISRRealPhaseSpace>(m_config);
         m_emissionGenerator = std::make_shared<EmissionGenerator>(*this, m_config, m_realPhSp);
         m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, m_config, m_realPhSp);
 

@@ -18,40 +18,30 @@ namespace powheg_dy
 
     struct RealChannel
     {
-        // PDG ids of the incoming legs
         int id1;
         int id2;
 
-        // PDG ids of the outgoing legs
         std::vector<int> outIDs;
     };
 
     struct RealPhSpPt
     {
-        BornPhSpPt underlyingBorn;
-        RadiationVariables rad;
-
         double x1 = 0.0;
         double x2 = 0.0;
         double sHatReal = 0.0;
 
-        // POWHEG/FKS radiation quantities
-        double kt2 = 0.0;
         double radJacobian = 0.0;
 
         FourVector p1In;
         FourVector p2In;
 
-        FourVector pLMinus;
-        FourVector pLPlus;
-        FourVector pBoson;
-        FourVector pRadiated;
+        std::vector<FourVector> pOut;
     };
 
-    class FKSRealPhaseSpace
+    class ISRRealPhaseSpace
     {
     public:
-        FKSRealPhaseSpace(const Config& config)
+        ISRRealPhaseSpace(const Config& config)
             : m_config(config)
         {
         }

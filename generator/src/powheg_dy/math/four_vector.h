@@ -28,6 +28,9 @@ namespace powheg_dy
         };
 
         ThreeVector operator-() const;
+        ThreeVector operator+=(const ThreeVector& v);
+        ThreeVector operator-=(const ThreeVector& v);
+
         double square() const;
     };
 
@@ -77,6 +80,8 @@ namespace powheg_dy
         }
 
         FourVector operator-() const;
+        FourVector operator+=(const FourVector& v);
+        FourVector operator-=(const FourVector& v);
 
         ThreeVector getThreeVec() const;
         ThreeVector getBeta() const;

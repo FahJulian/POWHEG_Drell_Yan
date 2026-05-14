@@ -71,6 +71,40 @@ namespace powheg_dy
     {
         return { -x1, -x2, -x3 };
     }
+
+    FourVector FourVector::operator+=(const FourVector& v)
+    {
+        x0 += v.x0;
+        x1 += v.x1;
+        x2 += v.x2;
+        x3 += v.x3;
+        return *this;
+    }
+
+    FourVector FourVector::operator-=(const FourVector& v)
+    {
+        x0 -= v.x0;
+        x1 -= v.x1;
+        x2 -= v.x2;
+        x3 -= v.x3;
+        return *this;
+    }
+
+    ThreeVector ThreeVector::operator+=(const ThreeVector& v)
+    {
+        x1 += v.x1;
+        x2 += v.x2;
+        x3 += v.x3;
+        return *this;
+    }
+
+    ThreeVector ThreeVector::operator-=(const ThreeVector& v)
+    {
+        x1 -= v.x1;
+        x2 -= v.x2;
+        x3 -= v.x3;
+        return *this;
+    }
     
     ThreeVector FourVector::getThreeVec() const
     {

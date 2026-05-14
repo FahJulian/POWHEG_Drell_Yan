@@ -65,12 +65,13 @@ namespace
 
             const double muF2 = kt2Trial;
             const double muR2 = kt2Trial;
+
             const RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
 
             const RealOverBornContributions contributions 
                 = getRealOverBornContributions(real, born, bornChannel, amp2Born, muF2, muR2);
 
-            const double accRatio = contributions.total / m_sampler.upperRadiationDensity(real, kt2Trial);
+            const double accRatio = contributions.total / m_sampler.upperRadiationDensity(rad, kt2Trial);
 
             if (accRatio > 1.0)
                 Log::warn << "Acceptance ratio " << accRatio << " is greater than one, accepting emission." << Log::endl;
@@ -78,13 +79,7 @@ namespace
             if (rand() < accRatio)
             {
                 RealChannel channel = chooseChannel(contributions);
-
-                return {
-                    .rad = real.rad,
-                    .channel = channel,
-                    .kt2 = real.kt2,
-                    .rejected = false
-                };
+                return { rad, channel, kt2Trial, false };
             }
             else
                 kt2Max = kt2Trial;

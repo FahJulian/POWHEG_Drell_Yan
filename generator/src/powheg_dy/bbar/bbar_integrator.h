@@ -24,7 +24,7 @@ namespace powheg_dy
     public: 
         BBarIntegrator(const Process& process, 
             const Config& config, 
-            std::shared_ptr<FKSRealPhaseSpace> realPhaseSpace)
+            std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
             : m_process(process), 
                 m_config(config), 
                 m_realPhaseSpace(std::move(realPhaseSpace)),
@@ -112,7 +112,7 @@ namespace powheg_dy
     private:
         const Process& m_process;
         const Config& m_config;
-        std::shared_ptr<FKSRealPhaseSpace> m_realPhaseSpace;
+        std::shared_ptr<ISRRealPhaseSpace> m_realPhaseSpace;
         
         const BornVirtualHandler m_bornVirtual;
         const CollinearRemnantsHandler m_collRemn;

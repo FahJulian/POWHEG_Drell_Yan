@@ -10,7 +10,7 @@ namespace powheg_dy
     class EmissionSampler
     {
     public:
-        EmissionSampler(const Config& config, std::shared_ptr<FKSRealPhaseSpace> realPhaseSpace)
+        EmissionSampler(const Config& config, std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
             : m_config(config),
               m_realPhaseSpace(std::move(realPhaseSpace))
         {
@@ -19,7 +19,7 @@ namespace powheg_dy
         RadiationVariables sampleTrialRadiation(const BornPhSpPt& born, double kt2Trial) const;
         double globalKt2Max(const BornPhSpPt& born) const;
         double sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const;
-        double upperRadiationDensity(const RealPhSpPt& born, double kt2Trial) const;
+        double upperRadiationDensity(const RadiationVariables& rad, double kt2Trial) const;
 
     private:
         double sampleTrialXi(const BornPhSpPt& born, double pT2) const;
@@ -32,7 +32,7 @@ namespace powheg_dy
 
     private:
         const Config& m_config;
-        std::shared_ptr<FKSRealPhaseSpace> m_realPhaseSpace;
+        std::shared_ptr<ISRRealPhaseSpace> m_realPhaseSpace;
     };
 
 } // namespace powheg_dy

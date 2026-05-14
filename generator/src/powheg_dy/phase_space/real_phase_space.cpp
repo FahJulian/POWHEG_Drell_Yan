@@ -6,7 +6,7 @@ namespace powheg_dy
 {
 namespace
 {   
-    static constexpr double ALLOWED_MISMATCH = 1.0e-6;
+    static constexpr double ALLOWED_REL_MISMATCH = 1.0e-10;
 
     struct IncomingFractions
     {
@@ -31,17 +31,6 @@ namespace
         return { x1, x2 };
     }
 
-    double kt2(
-        const BornPhSpPt& born,
-        const RadiationVariables& rad
-    ) 
-    {
-        // eq. (7.233) in the paper
-        return born.sHat / (4.0 * (1.0 - rad.xi))
-                * rad.xi * rad.xi
-                * (1.0 - rad.y * rad.y);
-    }
-
     double radJacobian(
         const RealPhSpPt& real,
         const RadiationVariables& rad
@@ -54,53 +43,25 @@ namespace
             / (1.0 - rad.xi);
     }
 
-    void assertRealKinematics(
-        const BornPhSpPt& born,
-        const RealPhSpPt& real
-    ) 
-    {
-        const FourVector totalIn = real.p1In + real.p2In;
-        const FourVector totalOut = real.pLMinus + real.pLPlus + real.pRadiated;
-        const FourVector dilepton = real.pLMinus + real.pLPlus;
-        const double kt2FromMomentum =  real.pRadiated.pX * real.pRadiated.pX
-            + real.pRadiated.pY * real.pRadiated.pY;
-
-        const double totalMomentumMismatch = (totalIn - totalOut).square() / born.sHat;
-        const double gluonMassMismatch = real.pRadiated.square() / born.sHat;
-        const double bosonMassMismatch = (dilepton.square() - born.sHat) / born.sHat;
-        const double ktMismatch = (kt2FromMomentum - real.kt2) / born.sHat;
-        const double bosonMomentumMismatch = (dilepton - real.pBoson).square() / born.sHat;
-
-        powheg_assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
-        powheg_assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
-        powheg_assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
-        powheg_assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
-        powheg_assert(abs(ktMismatch) < ALLOWED_MISMATCH);
-    }
-
 } // anonymous namespace 
 
-    RealPhSpPt FKSRealPhaseSpace::reconstruct(
+    RealPhSpPt ISRRealPhaseSpace::reconstruct(
         const BornPhSpPt& born, 
         const RadiationVariables& rad
     ) const
     {
         RealPhSpPt real;
-        real.underlyingBorn = born;
-        real.rad = rad;
 
         const auto [x1, x2] = computeRealFractions(born, rad);
         real.x1 = x1;
         real.x2 = x2;
 
-        const double sqrtS = m_config.SQRT_S;
-        real.p1In = { 0.5 * x1 * sqrtS, 0.0, 0.0,  0.5 * x1 * sqrtS };
-        real.p2In = { 0.5 * x2 * sqrtS, 0.0, 0.0, -0.5 * x2 * sqrtS };
+        real.p1In = { 0.5 * x1 * m_config.SQRT_S, 0.0, 0.0,  0.5 * x1 * m_config.SQRT_S };
+        real.p2In = { 0.5 * x2 * m_config.SQRT_S, 0.0, 0.0, -0.5 * x2 * m_config.SQRT_S };
         
-        const FourVector realIncoming = real.p1In + real.p2In;
-        real.sHatReal = realIncoming.square();
+        const FourVector totalIn = real.p1In + real.p2In;
+        real.sHatReal = totalIn.square();
         
-        real.kt2 = kt2(born, rad);
         real.radJacobian = radJacobian(real, rad);
 
         // eq. (5.1) in the paper
@@ -113,29 +74,44 @@ namespace
             eRadCM * sinTh * cos(rad.phi),
             eRadCM * rad.y
         };
-
-        real.pRadiated = pRadiatedCM.boost(realIncoming.getBeta());
-        real.pBoson = realIncoming - real.pRadiated;
+        
+        const FourVector pRadiated = pRadiatedCM.boost(totalIn.getBeta());
+        const FourVector pBoson = totalIn - pRadiated;
 
         // construct a longitudinal boost B_L such that B_L k_Boson has zero longitudinal momentum
-        const double realRapidity = real.pBoson.rapidity();
+        const double realRapidity = pBoson.rapidity();
         const ThreeVector longBoost = { 0.0, 0.0, -tanh(realRapidity) };
 
         // construct a transverse boost B_T such that B_T B_L k_Boson has zero transverse momentum
-        const FourVector pBosonBoosted = real.pBoson.boost(longBoost);
+        const FourVector pBosonBoosted = pBoson.boost(longBoost);
         const ThreeVector transvBoost = { pBosonBoosted.x / pBosonBoosted.e, 
                 pBosonBoosted.y / pBosonBoosted.e, 0.0 };
 
-        // eq. (5.16) in the paper
-        real.pLMinus = born.pOut[0].boost(longBoost).boost(transvBoost).boost(-longBoost);  
-        real.pLPlus  = born.pOut[1].boost(longBoost).boost(transvBoost).boost(-longBoost);  
-        
-        assertRealKinematics(born, real);
+        FourVector totalOut = { };
+        for (const FourVector& pBorn : born.pOut)
+        {
+            // eq. (5.16) in the paper
+            const FourVector pReal = pBorn.boost(longBoost).boost(transvBoost).boost(-longBoost);
+            
+            totalOut += pReal;
+            real.pOut.push_back(pReal);
+        }
+
+        totalOut += pRadiated;
+        real.pOut.push_back(pRadiated);
+
+        FourVector mismatch = totalIn - totalOut;
+        const double tolerance = ALLOWED_REL_MISMATCH * std::sqrt(real.sHatReal);
+
+        powheg_assert(std::abs(mismatch.e) < tolerance, "Energy not conserved.");
+        powheg_assert(std::abs(mismatch.x) < tolerance, "Momentum not conserved.");
+        powheg_assert(std::abs(mismatch.y) < tolerance, "Momentum not conserved.");
+        powheg_assert(std::abs(mismatch.z) < tolerance, "Momentum not conserved.");
 
         return real;
     }
 
-    double FKSRealPhaseSpace::xiMax(
+    double ISRRealPhaseSpace::xiMax(
         const BornPhSpPt& born,
         double y
     ) const
