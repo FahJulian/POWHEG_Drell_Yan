@@ -15,14 +15,9 @@ namespace powheg_dy
     struct Emission
     {
         RadiationVariables rad;
-        RadiationChannel channel;
+        RealChannel channel;
 
         double kt2 = 0.0;
-
-        double exactDensity = 0.0;
-        double upperDensity = 0.0;
-        double acceptanceRatio = 0.0;
-
         bool rejected = false;
 
         Emission reject()
@@ -30,9 +25,6 @@ namespace powheg_dy
             rad = {};
             channel = { };
             kt2 = 0.0;
-            exactDensity = 0.0;
-            upperDensity = 0.0;
-            acceptanceRatio = 0.0;
             rejected = true;
             return *this;
         }

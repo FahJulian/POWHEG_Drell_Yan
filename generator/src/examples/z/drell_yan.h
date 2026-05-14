@@ -22,7 +22,7 @@ namespace powheg_dy
         std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const override;
 
         // OLD STUFF
-        RealOverBornContributions realOverBornContributions(
+        RealOverBornContributionsOld realOverBornContributions(
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const override;
 
         double bornContribution(const BornPhSpPt& born) const override;

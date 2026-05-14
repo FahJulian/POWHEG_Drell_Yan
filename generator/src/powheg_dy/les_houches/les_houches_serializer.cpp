@@ -104,7 +104,7 @@ namespace
         }
         else 
         {
-            if (event.emission.channel.idRadiated == 21)
+            if (event.emission.channel.outIDs[2] == 21)
                 writeEventqqbar(event, content);
             else if (event.emission.channel.id1 == 21)
                 writeEventGluonLeg1(event, content);
@@ -163,7 +163,7 @@ namespace
         writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
         writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
-        writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, color1, color2, event.real.pRadiated, 0.0);
+        writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, color1, color2, event.real.pRadiated, 0.0);
 
         content << "</event>\n";
     }
@@ -192,9 +192,9 @@ namespace
         writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
         if (event.emission.channel.id2 > 0)     // Final state quark
-            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
         else                                    // Final state antiquark
-            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
 
         content << "</event>\n";
     }
@@ -223,9 +223,9 @@ namespace
         writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
         if (event.emission.channel.id1 > 0)     // Final state quark
-            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, colorOut, 0, event.real.pRadiated, 0.0);
         else                                    // Final state antiquark
-            writeParticle(content, event.emission.channel.idRadiated, 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
+            writeParticle(content, event.emission.channel.outIDs[2], 1, 1, 2, 0, colorOut, event.real.pRadiated, 0.0);
 
         content << "</event>\n";
     }

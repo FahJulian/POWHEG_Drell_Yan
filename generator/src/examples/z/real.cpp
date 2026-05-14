@@ -78,14 +78,14 @@ namespace
         return amp2 * m_config.E_SQ * m_config.E_SQ * gs2 * colorFactor / 4.0 / m_config.N_C;
     }
 
-    RealOverBornContributions DrellYanProcess::realOverBornContributions(
+    RealOverBornContributionsOld DrellYanProcess::realOverBornContributions(
         const RealPhSpPt& real,
         double muF2,
         double muR2, 
         bool useCMWALphaS
     ) const
     {
-        RealOverBornContributions out;
+        RealOverBornContributionsOld out;
 
         const BornPhSpPt& born = real.underlyingBorn;
         const int id1 = born.channel.id1;

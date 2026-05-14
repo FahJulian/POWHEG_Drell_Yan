@@ -10,6 +10,12 @@ namespace powheg_dy
 {
     class Process;
 
+    struct RealOverBornContributions
+    {
+        std::vector<std::pair<RealChannel, double>> channels = { };
+        double total = 0.0;
+    };
+
     class EmissionGenerator
     {
     public:
@@ -24,6 +30,14 @@ namespace powheg_dy
         
     private:
         Emission generateISREmission(const BornPhSpPt& born) const;
+
+        RealOverBornContributions getRealOverBornContributions(
+            const RealPhSpPt& real,
+            const BornPhSpPt& born,
+            const double amp2Born,
+            const double muF2,
+            const double muR2
+        ) const;
         
         RadiationVariables sampleTrialRadiation(const BornPhSpPt& born, double kt2Trial) const;
         double sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const;

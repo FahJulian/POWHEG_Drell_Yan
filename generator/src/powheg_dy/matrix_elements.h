@@ -5,7 +5,7 @@
 namespace powheg_dy
 {
     // TODO: Change to something more general
-    struct RealOverBornContributions
+    struct RealOverBornContributionsOld
     {
         double qqbar = 0.0;
         // Same incoming flavours as the underlying Born event:

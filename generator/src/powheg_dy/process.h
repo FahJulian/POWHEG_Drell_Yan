@@ -27,7 +27,7 @@ namespace powheg_dy
         // TODO: Move born sampling here
         
         // OLD STUFF
-        virtual RealOverBornContributions realOverBornContributions(
+        virtual RealOverBornContributionsOld realOverBornContributions(
             const RealPhSpPt& real, double muF2, double muR2, bool useCMWALphaS) const = 0;
 
         virtual double bornContribution(const BornPhSpPt& born) const = 0;

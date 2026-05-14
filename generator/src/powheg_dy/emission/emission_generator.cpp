@@ -21,41 +21,20 @@ namespace
     constexpr double LAMBDA_SQ_OVEREST_FACTOR = 4.0;        // like in powheg
     constexpr double N_Q = 10;
 
-    Emission makeAcceptedEmission(
-        const RealPhSpPt& real,
-        RadiationChannel channel,
-        double exact,
-        double upper,
-        double ratio
-    )
+    RealChannel chooseChannel(const RealOverBornContributions& contributions)
     {
-        Emission emission;
+        double u = rand(0.0, contributions.total);
 
-        emission.rad = real.rad;
-        emission.channel = channel;
-        emission.kt2 = real.kt2;
+        for (const auto& [channel, contribution] : contributions.channels)
+        {
+            if (u < contribution)
+                return channel;
+            
+            u -= contribution;
+        }
 
-        emission.exactDensity = exact;
-        emission.upperDensity = upper;
-        emission.acceptanceRatio = ratio;
-
-        emission.rejected = false;
-
-        return emission;
-    }
-
-    RadiationChannel chooseChannel(const RealOverBornContributions& contributions,
-        const BornChannel& bornChannel)
-    {
-        // Choose radiation channel, i.e. the emitted parton based on relative weight
-        const double u = rand(0.0, contributions.total());
-
-        if (u < contributions.qqbar)
-            return { bornChannel.id1, bornChannel.id2, 21 };
-        else if (u < contributions.qqbar + contributions.gluonLeg1)
-            return { 21, bornChannel.id2, bornChannel.id2 };
-        else
-            return { bornChannel.id1, 21, bornChannel.id1 };
+        throw std::runtime_error("Invalid RealOverBornContributions.");
+        return { };
     }
 
 } // anonymous namespace
@@ -71,10 +50,10 @@ namespace
         return generateISREmission(born);
     }
 
-    Emission EmissionGenerator::generateISREmission(const BornPhSpPt& born
-    ) const
+    Emission EmissionGenerator::generateISREmission(const BornPhSpPt& born) const
     {
         double kt2Max = globalKt2Max(born);
+        double amp2Born = m_process.bornAmp2(born);
 
         double logR = 0;
         for (int trial = 0; trial < MAX_TRIALS && kt2Max > m_config.PT_SQ_CUTOFF; ++trial)
@@ -91,42 +70,28 @@ namespace
                 continue;
             }
 
+            const double muF2 = kt2Trial;
+            const double muR2 = kt2Trial;
             const RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
 
-            const auto contributions = m_process.realOverBornContributions(real, kt2Trial, kt2Trial, true);
+            const RealOverBornContributions contributions 
+                = getRealOverBornContributions(real, born, amp2Born, muF2, muR2);
 
-            const double exact = real.radJacobian * contributions.total();
-            const double upper = upperRadiationDensity(real, kt2Trial);
+            const double accRatio = contributions.total / upperRadiationDensity(real, kt2Trial);
 
-            assert(upper > 0);
-            const double ratio = exact / upper;
+            if (accRatio > 1.0)
+                Log::warn << "Acceptance ratio " << accRatio << " is greater than one, accepting emission." << std::endl;
 
-            if (ratio > 1.0)
+            if (rand() < accRatio)
             {
-                Log::warn << "Acceptance ratio " << ratio << " is greater than one, accepting emission." << std::endl;
-                
-                auto channel = chooseChannel(contributions, born.channel);
+                RealChannel channel = chooseChannel(contributions);
 
-                return makeAcceptedEmission(
-                    real,
-                    channel,
-                    exact,
-                    upper,
-                    ratio
-                );
-            }
-
-            if (rand() < ratio)
-            {
-                auto channel = chooseChannel(contributions, born.channel);
-
-                return makeAcceptedEmission(
-                    real,
-                    channel,
-                    exact,
-                    upper,
-                    ratio
-                );
+                return {
+                    .rad = real.rad,
+                    .channel = channel,
+                    .kt2 = real.kt2,
+                    .rejected = false
+                };
             }
             else
                 kt2Max = kt2Trial;
@@ -332,6 +297,35 @@ namespace
         }
 
         return prefactor * integral;
+    }
+
+    RealOverBornContributions EmissionGenerator::getRealOverBornContributions(
+        const RealPhSpPt& real,
+        const BornPhSpPt& born,
+        const double amp2Born,
+        const double muF2,
+        const double muR2
+    ) const
+    {
+        RealOverBornContributions contributions;
+
+        const double lumBorn = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
+            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+
+        for (const auto& realChannel: m_process.realChannels(born.channel))
+        {
+            const double lumReal = m_config.PDF->xfxQ2(realChannel.id1, real.x1, muF2) / real.x1
+                * m_config.PDF->xfxQ2(realChannel.id2, real.x2, muF2) / real.x2;
+
+            const double realAmp2 = m_process.realAmp2(real, realChannel, alphaSCMW(m_config, muR2));
+            const double realOverBornPartonic = real.radJacobian * born.sHat / real.sHatReal * realAmp2 / amp2Born;
+            const double realOverBorn = lumReal / lumBorn * realOverBornPartonic;
+
+            contributions.total += realOverBorn;
+            contributions.channels.push_back({ realChannel, realOverBorn });
+        }
+
+        return contributions;
     }
 
 } // namespace powheg_dy
