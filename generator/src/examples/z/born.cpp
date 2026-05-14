@@ -6,7 +6,7 @@
 namespace powheg_dy
 {
     double DrellYanProcess::bornAmp2(
-        int flavour,
+        const int flavour,
         const FourVector& pQ,
         const FourVector& pQbar,
         const FourVector& pLMinus,
@@ -51,19 +51,19 @@ namespace powheg_dy
         return amp2 * m_config.E_SQ * m_config.E_SQ / (4.0 * m_config.N_C);
     }
 
-    double DrellYanProcess::bornAmp2(const BornPhSpPt& born) const
+    double DrellYanProcess::bornAmp2(const BornPhSpPt& born, const BornChannel& bornChannel) const
     {
-        const bool leg1IsQuark = (born.channel.id1 > 0);
+        const bool leg1IsQuark = (bornChannel.id1 > 0);
 
-        const FourVector pQ    = leg1IsQuark ? born.p1Bar  : born.p2Bar;
-        const FourVector pQbar = leg1IsQuark ? born.p2Bar  : born.p1Bar;
+        const FourVector pQ    = leg1IsQuark ? born.p1Bar : born.p2Bar;
+        const FourVector pQbar = leg1IsQuark ? born.p2Bar : born.p1Bar;
 
         return bornAmp2(
-            born.channel.flavour,
+            std::abs(bornChannel.id1),
             pQ,
             pQbar,
-            born.pLMinus,
-            born.pLPlus
+            born.pOut[0],
+            born.pOut[1]
         );
     }
 

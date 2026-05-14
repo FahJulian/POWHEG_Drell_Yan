@@ -4,23 +4,29 @@
 #include "powheg_dy/bbar/born_virtual_handler.h"
 #include "powheg_dy/bbar/collinear_remnants_handler.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"
-#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/phase_space/born_phase_space_point.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
 
 namespace powheg_dy
 {
     class Process;
 
+    struct BornEvent
+    {
+        BornPhSpPt phaseSpace;
+        BornChannel channel;
+        double absoluteWeight;
+        int weightSign;
+    };
+
     class BBarIntegrator
     {
     public: 
         BBarIntegrator(const Process& process, 
             const Config& config, 
-            std::shared_ptr<BornPhaseSpace> bornPhaseSpace, 
             std::shared_ptr<FKSRealPhaseSpace> realPhaseSpace)
             : m_process(process), 
                 m_config(config), 
-                m_bornPhaseSpace(std::move(bornPhaseSpace)), 
                 m_realPhaseSpace(std::move(realPhaseSpace)),
                 m_bornVirtual(process, config),
                 m_collRemn(process, config)
@@ -30,14 +36,14 @@ namespace powheg_dy
         void clear();
 
         void determineMaxWeight();
-        BornPhSpPt sampleAccordingtoBTilde();
+        BornEvent sampleAccordingtoBTilde();
 
         double getAcceptanceRatio() const;
         double getTotalCrossSection() const;
         double getAbsCrossSection() const;
 
     private:
-        void computeWeightAndSampleChannel(BornPhSpPt& born) const;
+        BornEvent computeWeightAndSampleChannel(const BornPhSpPt& born) const;
 
         double bTildeOld(BornPhSpPt& born, const std::array<double, 3>& unitCube, const std::array<double, 4>& unitX) const;
 
@@ -91,6 +97,7 @@ namespace powheg_dy
 
         BBarIntegrationPoint generateIntegrationPoint(
             const BornPhSpPt& born, 
+            const BornChannel& bornChannel, 
             const double muF2,
             const double muR2,
             const std::array<double, 3>& unitCube
@@ -98,13 +105,13 @@ namespace powheg_dy
 
         double bTilde(
             const BornPhSpPt& born,
+            const BornChannel& bornChannel, 
             const std::array<double, 3>& unitCube
         ) const;
 
     private:
         const Process& m_process;
         const Config& m_config;
-        std::shared_ptr<BornPhaseSpace> m_bornPhaseSpace;
         std::shared_ptr<FKSRealPhaseSpace> m_realPhaseSpace;
         
         const BornVirtualHandler m_bornVirtual;

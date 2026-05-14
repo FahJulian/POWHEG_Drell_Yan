@@ -3,7 +3,7 @@
 #include "powheg_dy/base.h"
 #include "powheg_dy/config/config.h"
 #include "powheg_dy/math/four_vector.h"
-#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/phase_space/born_phase_space_point.h"
 
 namespace powheg_dy
 {

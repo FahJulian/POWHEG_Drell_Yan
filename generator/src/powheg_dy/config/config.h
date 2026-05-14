@@ -47,6 +47,9 @@ namespace powheg_dy
         double CMW_BOTTOM_TRSHLD_SQ = 5.0 * 5.0;
 
         ////////// dependent constants //////////
+        double M_Z_SQ;
+        double M_W_SQ;
+
         double S_W_SQ;
         double C_W_SQ;
         double S_W;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/phase_space/born_phase_space_point.h"
 
 namespace powheg_dy
 {
@@ -9,6 +9,7 @@ namespace powheg_dy
     struct BBarIntegrationPoint
     {
         const BornPhSpPt& born;
+        const BornChannel& bornChannel;
 
         double u1 = 0.0;
         double u2 = 0.0;

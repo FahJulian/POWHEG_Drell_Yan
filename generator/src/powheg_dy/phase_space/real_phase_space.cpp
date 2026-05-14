@@ -54,7 +54,7 @@ namespace
             / (1.0 - rad.xi);
     }
 
-    void powheg_assertRealKinematics(
+    void assertRealKinematics(
         const BornPhSpPt& born,
         const RealPhSpPt& real
     ) 
@@ -70,14 +70,12 @@ namespace
         const double bosonMassMismatch = (dilepton.square() - born.sHat) / born.sHat;
         const double ktMismatch = (kt2FromMomentum - real.kt2) / born.sHat;
         const double bosonMomentumMismatch = (dilepton - real.pBoson).square() / born.sHat;
-        const double rapidityMismatch = real.pBoson.rapidity() - born.yB;
 
         powheg_assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
         powheg_assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
         powheg_assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
         powheg_assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
         powheg_assert(abs(ktMismatch) < ALLOWED_MISMATCH);
-        powheg_assert(abs(rapidityMismatch) < ALLOWED_MISMATCH);
     }
 
 } // anonymous namespace 
@@ -111,8 +109,8 @@ namespace
 
         const FourVector pRadiatedCM = {
             eRadCM,
-            eRadCM * sinTh * cos(rad.phi),
             eRadCM * sinTh * sin(rad.phi),
+            eRadCM * sinTh * cos(rad.phi),
             eRadCM * rad.y
         };
 
@@ -129,10 +127,10 @@ namespace
                 pBosonBoosted.y / pBosonBoosted.e, 0.0 };
 
         // eq. (5.16) in the paper
-        real.pLMinus = born.pLMinus.boost(longBoost).boost(transvBoost).boost(-longBoost);  
-        real.pLPlus  = born.pLPlus .boost(longBoost).boost(transvBoost).boost(-longBoost);  
+        real.pLMinus = born.pOut[0].boost(longBoost).boost(transvBoost).boost(-longBoost);  
+        real.pLPlus  = born.pOut[1].boost(longBoost).boost(transvBoost).boost(-longBoost);  
         
-        powheg_assertRealKinematics(born, real);
+        assertRealKinematics(born, real);
 
         return real;
     }

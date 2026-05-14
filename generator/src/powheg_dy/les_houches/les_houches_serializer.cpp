@@ -118,23 +118,23 @@ namespace
         const int anticolor = 501;
 
         // No hardest event below the cutoff was generated -> Set SCALUP to the cutoff
-        writeEventHeader(content, event.born.sign, 5, std::sqrt(m_config.PT_SQ_CUTOFF));
+        writeEventHeader(content, event.weightSign, 5, std::sqrt(m_config.PT_SQ_CUTOFF));
 
-        if (event.born.channel.id1 > 0)     // quark on leg 1
+        if (event.bornChannel.id1 > 0)     // quark on leg 1
         {
-            writeParticle(content, event.born.channel.id1, -1, 0, 0, color, 0, event.born.p1Bar, 0.0);
-            writeParticle(content, event.born.channel.id2, -1, 0, 0, 0, anticolor, event.born.p2Bar, 0.0);
+            writeParticle(content, event.bornChannel.id1, -1, 0, 0, color, 0, event.born.p1Bar, 0.0);
+            writeParticle(content, event.bornChannel.id2, -1, 0, 0, 0, anticolor, event.born.p2Bar, 0.0);
         }
         else                                // antiquark on leg 1
         {
-            writeParticle(content, event.born.channel.id1, -1, 0, 0, 0, anticolor, event.born.p1Bar, 0.0);
-            writeParticle(content, event.born.channel.id2, -1, 0, 0, color, 0, event.born.p2Bar, 0.0);
+            writeParticle(content, event.bornChannel.id1, -1, 0, 0, 0, anticolor, event.born.p1Bar, 0.0);
+            writeParticle(content, event.bornChannel.id2, -1, 0, 0, color, 0, event.born.p2Bar, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.born.pBoson, event.born.mBoson);
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
-        writeParticle(content, 11,  1, 3, 3, 0, 0, event.born.pLMinus, 0.0);
-        writeParticle(content, -11, 1, 3, 3, 0, 0, event.born.pLPlus, 0.0);
+        writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
+        writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
 
         content << "</event>\n";
     }
@@ -144,7 +144,7 @@ namespace
         const int color1 = 501;
         const int color2 = 511;
 
-        writeEventHeader(content, event.born.sign, 6, std::sqrt(event.emission.kt2));
+        writeEventHeader(content, event.weightSign, 6, std::sqrt(event.emission.kt2));
 
         if (event.emission.channel.id1 > 0)     // quark on leg 1
         {
@@ -157,7 +157,7 @@ namespace
             writeParticle(content, event.emission.channel.id2, -1, 0, 0, color1, 0, event.real.p2In, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
         writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
         writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
@@ -172,7 +172,7 @@ namespace
         const int colorIn = 501;
         const int colorOut = 511;
         
-        writeEventHeader(content, event.born.sign, 6, std::sqrt(event.emission.kt2));
+        writeEventHeader(content, event.weightSign, 6, std::sqrt(event.emission.kt2));
 
         if (event.emission.channel.id2 > 0)     // quark on leg 2
         {
@@ -185,7 +185,7 @@ namespace
             writeParticle(content, event.emission.channel.id2, -1, 0, 0, 0, colorIn, event.real.p2In, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
         writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
         writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);
@@ -203,7 +203,7 @@ namespace
         const int colorIn = 501;
         const int colorOut = 511;
         
-        writeEventHeader(content, event.born.sign, 6, std::sqrt(event.emission.kt2));
+        writeEventHeader(content, event.weightSign, 6, std::sqrt(event.emission.kt2));
 
         if (event.emission.channel.id1 > 0)     // quark on leg 1
         {
@@ -216,7 +216,7 @@ namespace
             writeParticle(content, event.emission.channel.id2, -1, 0, 0, colorIn, colorOut, event.real.p2In, 0.0);
         }
 
-        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.born.mBoson);
+        writeParticle(content, 23, 2, 1, 2, 0, 0, event.real.pBoson, event.real.pBoson.square());
 
         writeParticle(content, 11,  1, 3, 3, 0, 0, event.real.pLMinus, 0.0);
         writeParticle(content, -11, 1, 3, 3, 0, 0, event.real.pLPlus, 0.0);

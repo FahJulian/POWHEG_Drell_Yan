@@ -25,7 +25,7 @@
 # define powheg_assert2(expr, message) \
     if (!(expr)) \
     { \
-        Log::err << message << std::endl; \
+        Log::err << message << Log::endl; \
         throw std::runtime_error(""); \
     } 
 # define powheg_assert1(expr) powheg_assert2(expr, #expr) 
@@ -57,7 +57,7 @@ namespace powheg_dy
         template<typename T>
         void operator()(const T& t) const 
         {
-            std::cout << m_prefix << t << std::endl;
+            std::cout << m_prefix << t << Log::endl;
         }
 
     private:
@@ -67,6 +67,7 @@ namespace powheg_dy
         static const Log info;
         static const Log warn;
         static const Log err; 
+        static const std::string endl;
     };
 
     class Timer

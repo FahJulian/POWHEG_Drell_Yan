@@ -7,14 +7,14 @@
 namespace powheg_dy
 {
     double DrellYanProcess::realAmp2_crossed(
-        int flavour,
+        const int flavour,
         const FourVector& qSlot,
         const FourVector& qbarSlot,
         const FourVector& gluonSlot,
         const FourVector& pLMinus,
         const FourVector& pLPlus,
-        double aS,
-        double colorFactor
+        const double aS,
+        const double colorFactor
     ) const
     {
         const FourVector qSpinMom     = (qSlot.e     < 0.0) ? -qSlot     : qSlot;
@@ -70,13 +70,13 @@ namespace powheg_dy
         return amp2 * m_config.E_SQ * m_config.E_SQ * gs2 * colorFactor / 4.0 / m_config.N_C;
     }
 
-    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt& real, const double alphaS) const
+    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
 
-        if (real.underlyingBorn.channel.id1 > 0)
+        if (bornChannel.id1 > 0)
         {
             qSlot     = real.p1In;
             qbarSlot  = real.p2In;
@@ -90,7 +90,7 @@ namespace powheg_dy
         }
 
         return realAmp2_crossed(
-            real.underlyingBorn.channel.flavour,
+            std::abs(bornChannel.id1),
             qSlot,
             qbarSlot,
             gluonSlot,
@@ -101,13 +101,13 @@ namespace powheg_dy
         );
     }
 
-    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt& real, const double alphaS) const
+    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
 
-        if (real.underlyingBorn.channel.id1 > 0)
+        if (bornChannel.id1 > 0)
         {
             qSlot     = -real.pRadiated;
             qbarSlot  =  real.p2In;
@@ -121,7 +121,7 @@ namespace powheg_dy
         }
 
         return realAmp2_crossed(
-            real.underlyingBorn.channel.flavour,
+            std::abs(bornChannel.id1),
             qSlot,
             qbarSlot,
             gluonSlot,
@@ -132,13 +132,13 @@ namespace powheg_dy
         );
     }
 
-    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt& real, const double alphaS) const
+    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
 
-        if (real.underlyingBorn.channel.id1 > 0)
+        if (bornChannel.id1 > 0)
         {
             qSlot     =  real.p1In;
             qbarSlot  = -real.pRadiated;
@@ -152,7 +152,7 @@ namespace powheg_dy
         }
 
         return realAmp2_crossed(
-            real.underlyingBorn.channel.flavour,
+            std::abs(bornChannel.id1),
             qSlot,
             qbarSlot,
             gluonSlot,
@@ -165,15 +165,16 @@ namespace powheg_dy
     
     double DrellYanProcess::realAmp2(
         const RealPhSpPt& real, 
-        const RealChannel& channel, 
+        const BornChannel& bornChannel,
+        const RealChannel& realChannel, 
         const double alphaS) const 
     {
-        if (std::abs(channel.id1) <= 5 && channel.id1 == -channel.id2 && channel.outIDs[2] == 21)
-            return realAmp2qqbar(real, alphaS);
-        else if (channel.id1 == 21 && std::abs(channel.id2) <= 5)
-            return realAmp2gluonLeg1(real, alphaS);
-        else if (channel.id2 == 21 && std::abs(channel.id1) <= 5)
-            return realAmp2gluonLeg2(real, alphaS);
+        if (std::abs(realChannel.id1) <= 5 && realChannel.id1 == -realChannel.id2 && realChannel.outIDs[2] == 21)
+            return realAmp2qqbar(real, bornChannel, alphaS);
+        else if (realChannel.id1 == 21 && std::abs(realChannel.id2) <= 5)
+            return realAmp2gluonLeg1(real, bornChannel, alphaS);
+        else if (realChannel.id2 == 21 && std::abs(realChannel.id1) <= 5)
+            return realAmp2gluonLeg2(real, bornChannel, alphaS);
         else
             throw std::runtime_error("Invalid real channel");
 

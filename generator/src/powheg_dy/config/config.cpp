@@ -106,7 +106,7 @@ namespace
 
         std::string line;
         while (std::getline(buffer, line, '\n'))
-            Log::info << line << std::endl;
+            Log::info << line << Log::endl;
     }
 
     void Config::setDependentParams()
@@ -115,6 +115,9 @@ namespace
         C_W_SQ = 1.0 - S_W_SQ;
         S_W = std::sqrt(S_W_SQ);
         C_W = std::sqrt(C_W_SQ);
+
+        M_Z_SQ = M_Z * M_Z;
+        M_W_SQ = M_W * M_W;
 
         E_SQ = 4.0 * PI * ALPHA_EW;
 
@@ -138,7 +141,7 @@ namespace
         default: lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z, alphaSMZ); break;
         }
 
-        Log::info << "LAMBDA_QCD extracted from LHAPDF: " << lambdaMsb5 << std::endl; 
+        Log::info << "LAMBDA_QCD extracted from LHAPDF: " << lambdaMsb5 << Log::endl; 
         
         LAMBDA_MSB_5_SQ = lambdaMsb5 * lambdaMsb5;
     }

@@ -4,7 +4,8 @@ namespace powheg_dy
 {
     const Log Log::info = ("\033[32m[INFO]    ");
     const Log Log::warn = ("\033[33m[WARNING] ");
-    const Log Log::err = ("\033[31m[ERROR]   ");
+    const Log Log::err  = ("\033[31m[ERROR]   ");
+    const std::string Log::endl = "\033[0m\n";
 
     std::chrono::system_clock::time_point Timer::initTime = std::chrono::system_clock::time_point();
 

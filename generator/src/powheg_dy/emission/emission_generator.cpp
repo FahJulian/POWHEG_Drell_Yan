@@ -30,19 +30,23 @@ namespace
 
     Emission EmissionGenerator::generateEmission(
         const BornPhSpPt& born,
+        const BornChannel& bornChannel,
         int region
     ) const
     {
         if (region != 1)
             powheg_assert(false);      // Only ISR Radiation is implemented
 
-        return generateISREmission(born);
+        return generateISREmission(born, bornChannel);
     }
 
-    Emission EmissionGenerator::generateISREmission(const BornPhSpPt& born) const
+    Emission EmissionGenerator::generateISREmission(
+        const BornPhSpPt& born,
+        const BornChannel& bornChannel
+    ) const
     {
         double kt2Max = m_sampler.globalKt2Max(born);
-        double amp2Born = m_process.bornAmp2(born);
+        double amp2Born = m_process.bornAmp2(born, bornChannel);
 
         double logR = 0;
         for (int trial = 0; trial < MAX_TRIALS && kt2Max > m_config.PT_SQ_CUTOFF; ++trial)
@@ -64,12 +68,12 @@ namespace
             const RealPhSpPt real = m_realPhaseSpace->reconstruct(born, rad);
 
             const RealOverBornContributions contributions 
-                = getRealOverBornContributions(real, born, amp2Born, muF2, muR2);
+                = getRealOverBornContributions(real, born, bornChannel, amp2Born, muF2, muR2);
 
             const double accRatio = contributions.total / m_sampler.upperRadiationDensity(real, kt2Trial);
 
             if (accRatio > 1.0)
-                Log::warn << "Acceptance ratio " << accRatio << " is greater than one, accepting emission." << std::endl;
+                Log::warn << "Acceptance ratio " << accRatio << " is greater than one, accepting emission." << Log::endl;
 
             if (rand() < accRatio)
             {
@@ -92,6 +96,7 @@ namespace
     RealOverBornContributions EmissionGenerator::getRealOverBornContributions(
         const RealPhSpPt& real,
         const BornPhSpPt& born,
+        const BornChannel& bornChannel,
         const double amp2Born,
         const double muF2,
         const double muR2
@@ -99,15 +104,15 @@ namespace
     {
         RealOverBornContributions contributions;
 
-        const double lumBorn = m_config.PDF->xfxQ2(born.channel.id1, born.x1Bar, muF2) / born.x1Bar
-            * m_config.PDF->xfxQ2(born.channel.id2, born.x2Bar, muF2) / born.x2Bar;
+        const double lumBorn = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar, muF2) / born.x1Bar
+            * m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar, muF2) / born.x2Bar;
 
-        for (const auto& realChannel: m_process.realChannels(born.channel))
+        for (const auto& realChannel: m_process.realChannels(bornChannel))
         {
             const double lumReal = m_config.PDF->xfxQ2(realChannel.id1, real.x1, muF2) / real.x1
                 * m_config.PDF->xfxQ2(realChannel.id2, real.x2, muF2) / real.x2;
 
-            const double realAmp2 = m_process.realAmp2(real, realChannel, m_config.alphaSCMW(muR2));
+            const double realAmp2 = m_process.realAmp2(real, bornChannel, realChannel, m_config.alphaSCMW(muR2));
             const double realOverBornPartonic = real.radJacobian * born.sHat / real.sHatReal * realAmp2 / amp2Born;
             const double realOverBorn = lumReal / lumBorn * realOverBornPartonic;
 

@@ -35,12 +35,11 @@ namespace powheg_dy
         m_config.setDependentParams();
         m_config.extractLambdaFromPdf();
 
-        m_bornPhSp = std::make_shared<BornPhaseSpace>(m_config);
         m_realPhSp = std::make_shared<FKSRealPhaseSpace>(m_config);
         m_emissionGenerator = std::make_shared<EmissionGenerator>(*this, m_config, m_realPhSp);
-        m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, m_config, m_bornPhSp, m_realPhSp);
+        m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, m_config, m_realPhSp);
 
-        Log::info << "Intitialization complete" << std::endl << std::endl;
+        Log::info << "Intitialization complete" << Log::endl << Log::endl;
         
         m_initialized = true;
     }
@@ -61,10 +60,10 @@ namespace powheg_dy
         }
         catch(const std::runtime_error& e)
         {   
-            Log::err << "Aborting..." << std::endl;
+            Log::err << "Aborting..." << Log::endl;
 
             if (std::string(e.what()) != "")
-                Log::err << "Error message: " << e.what() << std::endl;
+                Log::err << "Error message: " << e.what() << Log::endl;
         }
     }
 
@@ -76,9 +75,9 @@ namespace powheg_dy
             return;
         }
 
-        Log::info << "Generating LHE file at " << filePath << std::endl;
+        Log::info << "Generating LHE file at " << filePath << Log::endl;
         LesHouchesSerializer(*this, m_config).serialize(filePath);
-        Log::info << "Done generating LHE file" << std::endl << std::endl;
+        Log::info << "Done generating LHE file" << Log::endl << Log::endl;
     }
 
     void Process::clear()
@@ -97,14 +96,20 @@ namespace powheg_dy
         Log::info("Starting event generation");
         while (m_events.size() < m_config.N_ACCEPTED_EVENTS)
         {   
-            BornPhSpPt born = m_bbarIntegrator->sampleAccordingtoBTilde();
+            BornEvent bornEvent = m_bbarIntegrator->sampleAccordingtoBTilde();
 
             if (m_config.NO_EMISSIONS)
             {
                 Emission emission = Emission().reject();
-                RealPhSpPt real = m_realPhSp->reconstruct(born, emission.rad);
+                RealPhSpPt real = m_realPhSp->reconstruct(bornEvent.phaseSpace, emission.rad);
 
-                m_events.push_back({ born, real, emission });
+                m_events.push_back({ 
+                    bornEvent.phaseSpace, 
+                    bornEvent.channel, 
+                    bornEvent.weightSign,
+                    real, 
+                    emission 
+                });
             }
             else
             {
@@ -113,21 +118,28 @@ namespace powheg_dy
                 // Highest bid procedure, for Drell Yan only ISR radiation 
                 for (int region = 1; region < 2; region++)
                 {
-                    Emission emission = m_emissionGenerator->generateEmission(born, region);
+                    Emission emission = m_emissionGenerator->generateEmission(bornEvent.phaseSpace, bornEvent.channel, region);
                     if (emission.kt2 > highestPtEm.kt2)
                         highestPtEm = emission;
                 }
                 
-                RealPhSpPt real = m_realPhSp->reconstruct(born, highestPtEm.rad);
-                m_events.push_back({ born, real, highestPtEm });
+                RealPhSpPt real = m_realPhSp->reconstruct(bornEvent.phaseSpace, highestPtEm.rad);
+
+                m_events.push_back({ 
+                    bornEvent.phaseSpace, 
+                    bornEvent.channel, 
+                    bornEvent.weightSign,
+                    real, 
+                    highestPtEm
+                });
             }
 
             if (m_events.size() % 1000 == 0)
-                Log::info << m_events.size() << " Events generated." << std::endl;
+                Log::info << m_events.size() << " Events generated." << Log::endl;
         }
 
-        Log::info << "Duration: " << Timer::getTime() - timeStart << "s" << std::endl;
-        Log::info << "Event generation done." << std::endl << std::endl;
+        Log::info << "Duration: " << Timer::getTime() - timeStart << "s" << Log::endl;
+        Log::info << "Event generation done." << Log::endl << Log::endl;
     }
 
     void Process::analyse()
@@ -141,11 +153,11 @@ namespace powheg_dy
                     rejected++;
             }
         
-            Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << std::endl;
+            Log::info << "No emission probability: " << rejected / static_cast<double>(m_events.size()) << Log::endl;
         }
 
-        Log::info << "Acceptance ratio: " << m_bbarIntegrator->getAcceptanceRatio() << std::endl;
-        Log::info << "Total cross section: " << m_bbarIntegrator->getTotalCrossSection() << " pb." << std::endl << std::endl;
+        Log::info << "Acceptance ratio: " << m_bbarIntegrator->getAcceptanceRatio() << Log::endl;
+        Log::info << "Total cross section: " << m_bbarIntegrator->getTotalCrossSection() << " pb." << Log::endl << Log::endl;
     }
 
 } // namespace powheg_dy

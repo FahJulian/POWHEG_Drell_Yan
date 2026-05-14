@@ -4,7 +4,7 @@
 #include "powheg_dy/config/config.h"
 #include "powheg_dy/emission/emission.h"
 #include "powheg_dy/emission/emission_sampler.h"
-#include "powheg_dy/phase_space/born_phase_space.h"
+#include "powheg_dy/phase_space/born_phase_space_point.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
 
 namespace powheg_dy
@@ -28,14 +28,22 @@ namespace powheg_dy
         {
         }
 
-        Emission generateEmission(const BornPhSpPt& born, int region) const;
+        Emission generateEmission(
+            const BornPhSpPt& born,
+            const BornChannel& bornChannel, 
+            int region
+        ) const;
         
     private:
-        Emission generateISREmission(const BornPhSpPt& born) const;
+        Emission generateISREmission(
+            const BornPhSpPt& born,
+            const BornChannel& bornChannel
+        ) const;
 
         RealOverBornContributions getRealOverBornContributions(
             const RealPhSpPt& real,
             const BornPhSpPt& born,
+            const BornChannel& bornChannel,
             const double amp2Born,
             const double muF2,
             const double muR2

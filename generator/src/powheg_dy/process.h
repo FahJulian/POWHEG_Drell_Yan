@@ -5,8 +5,8 @@
 #include "powheg_dy/config/config.h"
 #include "powheg_dy/bbar/bbar_integrator.h"
 #include "powheg_dy/emission/emission_generator.h"
-#include "powheg_dy/phase_space/born_phase_space.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
+#include "powheg_dy/phase_space/born_phase_space_point.h"
 
 namespace powheg_dy
 {
@@ -15,14 +15,14 @@ namespace powheg_dy
     public:
         ~Process();
 
-        virtual double bornAmp2(const BornPhSpPt& born) const = 0;
-        virtual double virtAmp2(const BornPhSpPt& born, const double amp2Born, const double muR2) const = 0;
-        virtual double realAmp2(const RealPhSpPt& real, const RealChannel& channel, const double alphaS) const = 0;
+        virtual double bornAmp2(const BornPhSpPt& born, const BornChannel& bornChannel) const = 0;
+        virtual double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, const double amp2Born, const double muR2) const = 0;
+        virtual double realAmp2(const RealPhSpPt& real, const BornChannel& bornChannel, const RealChannel& realChannel, const double alphaS) const = 0;
 
         virtual std::vector<BornChannel> bornChannels() const = 0;
         virtual std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const = 0;
 
-        // TODO: Move born sampling here
+        virtual BornPhSpPt sampleBorn() const = 0;
         
         void init(const std::string& configPath);
         void run();
@@ -40,7 +40,6 @@ namespace powheg_dy
         bool m_initialized = false;
         std::vector<Event> m_events;
 
-        std::shared_ptr<BornPhaseSpace> m_bornPhSp;
         std::shared_ptr<FKSRealPhaseSpace> m_realPhSp;
         std::shared_ptr<BBarIntegrator> m_bbarIntegrator;
         std::shared_ptr<EmissionGenerator> m_emissionGenerator;

@@ -21,7 +21,7 @@ namespace powheg_dy
     {
         const double fluxFactor = 1.0 / (2.0 * point.born.sHat);
         const double luminosity = point.f1Born * point.f2Born;
-        const double virtAmp2 = m_process.virtAmp2(point.born, point.amp2Born, muR2);
+        const double virtAmp2 = m_process.virtAmp2(point.born, point.bornChannel, point.amp2Born, muR2);
         
         return luminosity * fluxFactor * point.born.jacobian * virtAmp2;
     }

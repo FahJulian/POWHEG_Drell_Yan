@@ -3,7 +3,8 @@
 namespace powheg_dy
 {
     double DrellYanProcess::virtAmp2(
-        const BornPhSpPt& born, 
+        const BornPhSpPt& born,
+        const BornChannel& bornChannel, 
         const double amp2Born, 
         const double muR2
     ) const

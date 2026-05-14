@@ -13,7 +13,7 @@ namespace
             value = pos->second;  
             params.erase(pos);
 
-            Log::info << "Found parameter " << name << " = " << value << std::endl;
+            Log::info << "Found parameter " << name << " = " << value << Log::endl;
             
             return true;
         }
@@ -28,7 +28,7 @@ namespace
             value = std::stod(pos->second);  
             params.erase(pos);
 
-            Log::info << "Found parameter " << name << " = " << value << std::endl;
+            Log::info << "Found parameter " << name << " = " << value << Log::endl;
             
             return true;
         }
@@ -44,7 +44,7 @@ namespace
             value = static_cast<T>(std::stol(pos->second));  
             params.erase(pos);
 
-            Log::info << "Found parameter " << name << " = " << value << std::endl;
+            Log::info << "Found parameter " << name << " = " << value << Log::endl;
 
             return true;
         }
@@ -72,7 +72,7 @@ namespace
                 return false;
             }
 
-            Log::info << "Found parameter " << name << " = " << value << std::endl;
+            Log::info << "Found parameter " << name << " = " << value << Log::endl;
 
             return true;
         }
@@ -83,15 +83,15 @@ namespace
 
     Config ConfigParser::parse() const
     {
-        Log::info << "Reading config from file " << m_filePath << "." << std::endl;
+        Log::info << "Reading config from file " << m_filePath << "." << Log::endl;
 
         std::map<std::string, std::string> params = readParams();
         Config config = extractParams(params);
 
         for (auto pair : params)
-            Log::warn << "Unknown parameter: " << pair.first << std::endl;
+            Log::warn << "Unknown parameter: " << pair.first << Log::endl;
 
-        Log::info << "Done reading config." << std::endl;
+        Log::info << "Done reading config." << Log::endl;
 
         return config;
     }
@@ -150,19 +150,19 @@ namespace
 
             if (!(iss >> eqSign) || eqSign != "=")
             {
-                Log::warn << "Line " << lineNr << ": Invalid Syntax." << std::endl;
+                Log::warn << "Line " << lineNr << ": Invalid Syntax." << Log::endl;
                 continue;
             }
 
             if (!(iss >> value))
             {
-                Log::warn << "Line " << lineNr << ": Missing value for " << name << "." << std::endl;
+                Log::warn << "Line " << lineNr << ": Missing value for " << name << "." << Log::endl;
                 continue;
             }
 
             if (iss >> extra)
             {
-                Log::warn << "Line " << lineNr << ": Too many values for " << name << "." << std::endl;
+                Log::warn << "Line " << lineNr << ": Too many values for " << name << "." << Log::endl;
                 continue;
             }
 
