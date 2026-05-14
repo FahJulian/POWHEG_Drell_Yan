@@ -31,13 +31,15 @@ namespace powheg_dy
         Emission generateEmission(
             const BornPhSpPt& born,
             const BornChannel& bornChannel, 
+            const double amp2Born,
             int region
         ) const;
         
     private:
         Emission generateISREmission(
             const BornPhSpPt& born,
-            const BornChannel& bornChannel
+            const BornChannel& bornChannel,
+            const double amp2Born
         ) const;
 
         RealOverBornContributions getRealOverBornContributions(

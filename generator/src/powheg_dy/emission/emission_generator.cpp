@@ -31,22 +31,23 @@ namespace
     Emission EmissionGenerator::generateEmission(
         const BornPhSpPt& born,
         const BornChannel& bornChannel,
+        const double amp2Born,
         int region
     ) const
     {
         if (region != 1)
             powheg_assert(false);      // Only ISR Radiation is implemented
 
-        return generateISREmission(born, bornChannel);
+        return generateISREmission(born, bornChannel, amp2Born);
     }
 
     Emission EmissionGenerator::generateISREmission(
         const BornPhSpPt& born,
-        const BornChannel& bornChannel
+        const BornChannel& bornChannel,
+        const double amp2Born
     ) const
     {
         double kt2Max = m_sampler.globalKt2Max(born);
-        double amp2Born = m_process.bornAmp2(born, bornChannel);
 
         double logR = 0;
         for (int trial = 0; trial < MAX_TRIALS && kt2Max > m_config.PT_SQ_CUTOFF; ++trial)

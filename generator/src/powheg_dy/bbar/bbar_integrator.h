@@ -15,6 +15,7 @@ namespace powheg_dy
     {
         BornPhSpPt phaseSpace;
         BornChannel channel;
+        double amp2Born;
         double absoluteWeight;
         int weightSign;
     };
@@ -43,61 +44,14 @@ namespace powheg_dy
         double getAbsCrossSection() const;
 
     private:
-        BornEvent computeWeightAndSampleChannel(const BornPhSpPt& born) const;
-
-        double bTildeOld(BornPhSpPt& born, const std::array<double, 3>& unitCube, const std::array<double, 4>& unitX) const;
-
-        double bornPlusVirtualContribution(const BornPhSpPt& born, double muF2, double muR2) const;
-        double realMinusCounterTermContribution(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
-
-        double luminosity(const BornPhSpPt& born, const RadiationVariables& rad, int id1, int id2, double muF2) const;
-
-        double RHatqqbarPlus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
-        double RHatqqbarMinus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
-
-        double AqqbarPlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-        double AqqbarMinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-        
-        double AqqbarPlus(const RealPhSpPt& real, double muR2) const;
-        double AqqbarMinus(const RealPhSpPt& real, double muR2) const;
-
-        double AqqbarPlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-        double AqqbarMinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-
-        double AqqbarPlusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-        double AqqbarMinusSoftLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-
-        double AqqbarPlusSoftCollinearLimit(const BornPhSpPt& born, double muR2) const;
-        double AqqbarMinusSoftCollinearLimit(const BornPhSpPt& born, double muR2) const;
-
-        double AgluonLeg1Plus(const RealPhSpPt& born, double muR2) const;
-        double AgluonLeg2Minus(const RealPhSpPt& born, double muR2) const;
-
-        double AgluonLeg1PlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-        double AgluonLeg2MinusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-
-        double AgluonLeg1PlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-        double AgluonLeg2MinusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const;
-
-        double RHatgluonLeg1Plus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
-        double RHatgluonLeg2Minus(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
-
-        RadiationVariables sampleUniformRad(const BornPhSpPt& born, const std::array<double, 3>& unitCube) const;
-        double unitCubeJacobian(const RadiationVariables& rad) const;
-
-        double collinearRemnantPlusQQ(const BornPhSpPt& born, double unitX, double muF2) const;
-        double collinearRemnantMinusQQ(const BornPhSpPt& born, double unitX, double muF2) const;
-
-        double collinearRemnantGluonLeg1(const BornPhSpPt& born, double unitX, double muF2) const;
-        double collinearRemnantGluonLeg2(const BornPhSpPt& born, double unitX, double muF2) const;
-
-        double collinearRemnantContribution(const BornPhSpPt& born, const std::array<double, 4>& unitX, double muF2, double muR2) const;
-
-        double realEndpointRemnantQQbar(const BornPhSpPt& born, const std::array<double, 3>& unitCube, double muF2, double muR2) const;
+        BornEvent computeWeightAndSampleChannel(
+            const BornPhSpPt& born
+        ) const;
 
         BBarIntegrationPoint generateIntegrationPoint(
             const BornPhSpPt& born, 
             const BornChannel& bornChannel, 
+            const double amp2Born,
             const double muF2,
             const double muR2,
             const std::array<double, 3>& unitCube
@@ -105,6 +59,7 @@ namespace powheg_dy
 
         double bTilde(
             const BornPhSpPt& born,
+            const double amp2Born, 
             const BornChannel& bornChannel, 
             const std::array<double, 3>& unitCube
         ) const;

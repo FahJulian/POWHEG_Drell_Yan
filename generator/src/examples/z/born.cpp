@@ -1,5 +1,4 @@
 #include "drell_yan.h"
-#include "couplings.h"
 
 #include "powheg_dy/math/bra_ket.h"
 
@@ -23,13 +22,13 @@ namespace powheg_dy
         const double qQ = (upType) ? 2.0 / 3.0 : -1.0 / 3.0;
         const double qL = -1.0;
 
-        const auto zQ = zCouplings(m_config, upType, qQ);
-        const auto zL = zCouplings(m_config, false, qL);
+        const auto zQ = m_config.zCouplings(upType, qQ);
+        const auto zL = m_config.zCouplings(false, qL);
 
         const double q2 = (pLMinus + pLPlus).square();
 
-        const std::complex<double> propGamma = photonPropagator(q2);
-        const std::complex<double> propZ     = zPropagator(m_config, q2);
+        const std::complex<double> propGamma = m_config.photonPropagator(q2);
+        const std::complex<double> propZ     = m_config.zPropagator(q2);
 
         double amp2 = 0.0;
         for (int helL = -1; helL <= +1; helL += 2)

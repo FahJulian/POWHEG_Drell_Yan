@@ -1,5 +1,6 @@
 #pragma once
 
+#include "config.h"
 #include "powheg_dy/process.h"
 
 namespace powheg_dy
@@ -7,12 +8,13 @@ namespace powheg_dy
     class DrellYanProcess : public Process
     {
     public:
-        enum RealChannelOld : int
+        DrellYanProcess()
+            : Process(std::make_unique<DrellYanConfig>()),
+            m_config(getConfig<DrellYanConfig>())
         {
-            QQBAR = 0,
-            GLUON_LEG1 = 1,
-            GLUON_LEG2 = 2,
-        };
+        }
+
+        void initConfig(ConfigParser& parser) const override;
 
         double bornAmp2(const BornPhSpPt& born, const BornChannel& bornChannel) const override;
         double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, const double amp2Born, const double muR2) const override;
@@ -51,6 +53,9 @@ namespace powheg_dy
         std::pair<double, double> sampleYBoson(const double sHat) const;
         std::pair<double, double> sampleCosTh() const;
         std::pair<double, double> samplePhi() const;
+    
+    private:
+        DrellYanConfig& m_config;
     };
 
 } // namespace powheg_dy

@@ -3,6 +3,7 @@
 #include "powheg_dy/base.h"
 #include "powheg_dy/event.h"
 #include "powheg_dy/config/config.h"
+#include "powheg_dy/config/config_parser.h"
 #include "powheg_dy/bbar/bbar_integrator.h"
 #include "powheg_dy/emission/emission_generator.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
@@ -12,6 +13,17 @@ namespace powheg_dy
 {
     class Process
     {
+    protected:
+        explicit Process(std::unique_ptr<Config> config)
+            : m_config(std::move(config))
+        {
+        }
+        
+        virtual void initConfig(ConfigParser& parser) const = 0;
+
+        template<typename ConfigType>
+        ConfigType& getConfig() { return static_cast<ConfigType&>(*m_config); }
+
     public:
         ~Process();
 
@@ -33,6 +45,7 @@ namespace powheg_dy
 
     private:
         void clear();
+        void initBaseConfig(ConfigParser& parser);
         void analyse();
         void generateEvents();
 
@@ -45,7 +58,7 @@ namespace powheg_dy
         std::shared_ptr<EmissionGenerator> m_emissionGenerator;
 
     protected:
-        Config m_config;
+        std::unique_ptr<Config> m_config;
     };  
 
 } // namespace powheg_dy

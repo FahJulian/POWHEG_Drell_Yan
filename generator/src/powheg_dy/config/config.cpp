@@ -7,6 +7,8 @@ namespace powheg_dy
 {
 namespace 
 {
+    double M_Z_FOR_LAMBDA_QCD_EXTRACTION = 91.1876;
+
     double lambda5FromAlphaSNNLO(int nF, double cA, double tF, double mZ, double alphaSMZ)
     {
         const double b0 = (11.0 * cA - 4.0 * tF * nF) / (12.0 * PI);
@@ -93,7 +95,7 @@ namespace
 
 } // anonymous namespace
 
-    void Config::initLHAPDF()
+    void Config::initPdf()
     {
         std::stringstream buffer;
 
@@ -109,24 +111,9 @@ namespace
             Log::info << line << Log::endl;
     }
 
-    void Config::setDependentParams()
-    {
-        S_W_SQ = 1.0 - M_W * M_W / M_Z / M_Z;
-        C_W_SQ = 1.0 - S_W_SQ;
-        S_W = std::sqrt(S_W_SQ);
-        C_W = std::sqrt(C_W_SQ);
-
-        M_Z_SQ = M_Z * M_Z;
-        M_W_SQ = M_W * M_W;
-
-        E_SQ = 4.0 * PI * ALPHA_EW;
-
-        S = SQRT_S * SQRT_S;
-    }
-
     void Config::extractLambdaFromPdf()
     {
-        const double alphaSMZ = PDF->alphasQ(M_Z);
+        const double alphaSMZ = PDF->alphasQ(M_Z_FOR_LAMBDA_QCD_EXTRACTION);
 
         // LHAPDF6 exposes the alpha_s order through info metadata.
         // Depending on the set/version this can be "AlphaS_Order".
@@ -135,15 +122,20 @@ namespace
         double lambdaMsb5;
         switch (iord)
         {
-        case 0:  lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z, alphaSMZ); break;
-        case 1:  lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z, alphaSMZ); break;
-        case 2:  lambdaMsb5 = lambda5FromAlphaSNNLO(5, C_A, T_F, M_Z, alphaSMZ); break;
-        default: lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z, alphaSMZ); break;
+        case 0:  lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z_FOR_LAMBDA_QCD_EXTRACTION, alphaSMZ); break;
+        case 1:  lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z_FOR_LAMBDA_QCD_EXTRACTION, alphaSMZ); break;
+        case 2:  lambdaMsb5 = lambda5FromAlphaSNNLO(5, C_A, T_F, M_Z_FOR_LAMBDA_QCD_EXTRACTION, alphaSMZ); break;
+        default: lambdaMsb5 = lambda5FromAlphaSNLO (5, C_A, T_F, M_Z_FOR_LAMBDA_QCD_EXTRACTION, alphaSMZ); break;
         }
 
         Log::info << "LAMBDA_QCD extracted from LHAPDF: " << lambdaMsb5 << Log::endl; 
         
         LAMBDA_MSB_5_SQ = lambdaMsb5 * lambdaMsb5;
+    }
+
+    double Config::beta0(int nF) const
+    {
+        return (11.0 * C_A - 4.0 * T_F * nF) / (12.0 * PI);
     }
 
     double Config::alphaS0(double qSq, int nF) const

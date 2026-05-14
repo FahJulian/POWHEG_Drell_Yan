@@ -16,6 +16,7 @@ namespace
     struct WeightedChannel
     {
         BornChannel channel;
+        double amp2Born;
         int weightSign;
         double absoluteWeight;
     };
@@ -30,16 +31,18 @@ namespace
         
         std::vector<WeightedChannel> weights = {};
         weights.reserve(channels.size());
-            
+        
         double totalAbsoluteWeight = 0.0;
         for (const auto& channel : channels)
         {
-            const double weight = bTilde(born, channel, unitCube);
+            const double amp2Born = m_process.bornAmp2(born, channel);
+
+            const double weight = bTilde(born, amp2Born, channel, unitCube);
             const double absoluteWeight = std::abs(weight);
             const int sign = weight >= 0;
 
             totalAbsoluteWeight += absoluteWeight;
-            weights.push_back({ channel, sign, absoluteWeight });
+            weights.push_back({ channel, amp2Born, sign, absoluteWeight });
         }
 
         // Sample the parton channel by their relative contribution to dSigma
@@ -47,7 +50,7 @@ namespace
         for (const WeightedChannel& weightedChannel : weights)
         {
             if (u < weightedChannel.absoluteWeight)
-                return { born, weightedChannel.channel, totalAbsoluteWeight, weightedChannel.weightSign };
+                return { born, weightedChannel.channel, weightedChannel.amp2Born, totalAbsoluteWeight, weightedChannel.weightSign };
 
             u -= weightedChannel.absoluteWeight;
         }
@@ -80,6 +83,7 @@ namespace
 
     double BBarIntegrator::bTilde(
         const BornPhSpPt& born,
+        const double amp2Born, 
         const BornChannel& bornChannel, 
         const std::array<double, 3>& unitCube
     ) const
@@ -87,7 +91,7 @@ namespace
         const double muF2 = born.sHat;
         const double muR2 = born.sHat;
 
-        const BBarIntegrationPoint point = generateIntegrationPoint(born, bornChannel, muF2, muR2, unitCube);
+        const BBarIntegrationPoint point = generateIntegrationPoint(born, bornChannel, amp2Born, muF2, muR2, unitCube);
 
         double dSigma = m_bornVirtual.dSigmaBorn(point);
 
@@ -170,6 +174,7 @@ namespace
     BBarIntegrationPoint BBarIntegrator::generateIntegrationPoint(
         const BornPhSpPt& born, 
         const BornChannel& bornChannel, 
+        const double amp2Born, 
         const double muF2,
         const double muR2,
         const std::array<double, 3>& unitCube
@@ -193,7 +198,7 @@ namespace
         point.f1Born = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar, muF2) / born.x1Bar; 
         point.f2Born = m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar, muF2) / born.x2Bar; 
 
-        #warning probably these real luminosities are only for collinear remnants, not for the real part
+        // TODO probably these real luminosities are only for collinear remnants, not for the real part
         point.f1RealQ = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar / point.zLeg1, muF2) / (born.x1Bar / point.zLeg1); 
         point.f2RealQ = m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar / point.zLeg2, muF2) / (born.x2Bar / point.zLeg2); 
 
@@ -202,7 +207,7 @@ namespace
         
         point.alphaS = m_config.alphaS(muR2);
 
-        point.amp2Born = m_process.bornAmp2(born, bornChannel);
+        point.amp2Born = amp2Born;
 
         return point;
     }

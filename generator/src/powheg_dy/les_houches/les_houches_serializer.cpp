@@ -2,7 +2,6 @@
 
 #include "powheg_dy/event.h"
 #include "powheg_dy/process.h"
-#include "powheg_dy/util/file.h"
 
 namespace powheg_dy
 {
@@ -46,7 +45,6 @@ namespace
     void writeParticle(std::stringstream& content, int id, int status, int mother1, 
         int mother2, int color1, int color2, const FourVector& p, double mass, double spin = 9.0)
     {
-
         std::string idString = (id < -9) ? std::to_string(id) 
             : (id < 0) ? " " + std::to_string(id) 
             : (id < 10) ? "  " + std::to_string(id) 
@@ -69,6 +67,14 @@ namespace
 
     void LesHouchesSerializer::serialize(const std::string& filePath)
     {
+        std::ofstream file(filePath);
+
+        if (!file)
+        {
+            Log::err << "Can't write LHE file: Could not open file " << filePath << Log::endl;
+            return;
+        }
+        
         std::stringstream content;
 
         writeHeader(content);
@@ -78,8 +84,6 @@ namespace
             writeEvent(event, content);
         
         content << "</LesHouchesEvents>\n";
-        
-        File(filePath).write(content.str());
     }
 
     void LesHouchesSerializer::writeEventHeader(std::stringstream& content, int sign, int nParticles, double scalup) const
@@ -97,21 +101,19 @@ namespace
 
     void LesHouchesSerializer::writeEvent(const Event& event, std::stringstream& content) const
     {
-        // if (event.emission.rejected)
-        // {
-        //     writeEventBorn(event, content);
-        // }
-        // else 
-        // {
-        //     if (event.emission.channel.outIDs[2] == 21)
-        //         writeEventqqbar(event, content);
-        //     else if (event.emission.channel.id1 == 21)
-        //         writeEventGluonLeg1(event, content);
-        //     else 
-        //         writeEventGluonLeg2(event, content);
-        // }
-
-        // writeEventHeader(content, event.weightSign, event.real.p)
+        if (event.emission.rejected)
+        {
+            writeEventBorn(event, content);
+        }
+        else 
+        {
+            if (event.emission.channel.outIDs[2] == 21)
+                writeEventqqbar(event, content);
+            else if (event.emission.channel.id1 == 21)
+                writeEventGluonLeg1(event, content);
+            else 
+                writeEventGluonLeg2(event, content);
+        }
     }
 
     void LesHouchesSerializer::writeEventBorn(const Event& event, std::stringstream& content) const
