@@ -2,30 +2,26 @@
 
 #include "powheg_dy/base.h"
 #include "powheg_dy/config/config.h"
+#include "powheg_dy/bbar/singular_region.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"
 
 namespace powheg_dy
 {
     class Process;
-
-    class BornVirtualHandler
+    
+    class RealMinusCTHandler
     {
     public:
-        BornVirtualHandler(const Process& process, 
+        RealMinusCTHandler(const Process& process, 
             const Config& config)
             : m_process(process), 
                 m_config(config)
         {
         }
 
-        double dSigmaBorn(
-            const BBarIntegrationPoint& point
-        ) const;
-        
-        double dSigmaVirtual(
-            const BBarIntegrationPoint& point, 
-            const double muF2,
-            const double muR2
+        double dSigmaRealMinusCT(
+            const BBarIntegrationPoint& point,
+            const SingularRegion& region
         ) const;
 
     private:

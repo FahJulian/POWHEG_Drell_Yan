@@ -98,7 +98,7 @@ namespace
         if (m_config.BTILDE_BORNONLY)
             return dSigma;
         
-        dSigma += m_bornVirtual.dSigmaVirtual(point, muR2);
+        dSigma += m_bornVirtual.dSigmaVirtual(point, muF2, muR2);
 
         for (const auto& realChannel : m_process.realChannels(bornChannel))
         {
