@@ -15,8 +15,6 @@ namespace powheg_dy
     void Process::initBaseConfig(ConfigParser& parser)
     {
         powheg_assert(parser.extract("SQRT_S", m_config->SQRT_S), "No value for SQRT_S found.");
-        powheg_assert(parser.extract("M_MIN", m_config->M_MIN), "No value for M_MIN found.");
-        powheg_assert(parser.extract("M_MAX", m_config->M_MAX), "No value for M_MAX found.");
         powheg_assert(parser.extract("PT_SQ_CUTOFF", m_config->PT_SQ_CUTOFF), "No value for PT_SQ_CUTOFF found.");
         powheg_assert(parser.extract("N_ACCEPTED_EVENTS", m_config->N_ACCEPTED_EVENTS), "No value for N_ACCEPTED_EVENTS found.");
         powheg_assert(parser.extract("PDF_NAME", m_config->PDF_NAME), "No value for PDF_NAME found.");

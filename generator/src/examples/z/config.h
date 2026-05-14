@@ -17,7 +17,11 @@ namespace powheg_dy
 
     struct DrellYanConfig : public Config 
     {
-        ///////// independent constants /////////
+        ////////// mandatory process params ///////////
+        double M_MIN;
+        double M_MAX;
+
+        //////////// independent constants ////////////
         double M_Z = 91.1876;
         double M_W = 80.398;
         double GAMMA_Z = 2.4952;
@@ -25,7 +29,7 @@ namespace powheg_dy
 
         double ALPHA_EW = 1.0 / 128.89;
 
-        ////////// dependent constants //////////
+        ///////////// dependent constants /////////////
         double M_Z_SQ;
         double M_W_SQ;
 

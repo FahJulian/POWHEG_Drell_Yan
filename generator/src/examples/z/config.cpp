@@ -4,6 +4,9 @@ namespace powheg_dy
 {
     void DrellYanProcess::initConfig(ConfigParser& parser) const
     {
+        powheg_assert(parser.extract("M_MIN", m_config.M_MIN), "No value for M_MIN found.");
+        powheg_assert(parser.extract("M_MAX", m_config.M_MAX), "No value for M_MAX found.");
+
         parser.extract("M_Z", m_config.M_Z);
         parser.extract("M_W", m_config.M_W);
         parser.extract("GAMMA_Z", m_config.GAMMA_Z);

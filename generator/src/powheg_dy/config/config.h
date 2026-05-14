@@ -11,9 +11,6 @@ namespace powheg_dy
         ////////// mandatory process params ///////////
         double SQRT_S;
 
-        double M_MIN;
-        double M_MAX;
-
         double PT_SQ_CUTOFF;
 
         size_t N_ACCEPTED_EVENTS;
