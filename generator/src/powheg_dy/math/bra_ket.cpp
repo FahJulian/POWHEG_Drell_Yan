@@ -12,7 +12,7 @@ namespace
         const std::array<std::complex<double>, 2>& ket, 
         int helicity)
     {
-        assert(helicity == 1 || helicity == -1);
+        powheg_assert(helicity == 1 || helicity == -1);
         const double h = static_cast<double>(helicity);
         
         const std::complex<double> pSlash11 = p.x0 - h * p.x3;
@@ -31,7 +31,7 @@ namespace
     //     const std::array<std::complex<double>, 2>& bra, 
     //     int helicity)
     // {
-    //     assert(helicity == 1 || helicity == -1);
+    //     powheg_assert(helicity == 1 || helicity == -1);
     //     const double h = static_cast<double>(helicity);
         
     //     const std::complex<double> pSlash11 = p.x0 - h * p.x3;
@@ -52,7 +52,7 @@ namespace
         const std::vector<FourVectorC>& momenta
     )
     {
-        assert(ketHel == 1 || ketHel == -1);
+        powheg_assert(ketHel == 1 || ketHel == -1);
 
         const int n = static_cast<int>(momenta.size());
         const int minusOneToN = (n % 2 == 0) ? 1 : -1;
@@ -79,10 +79,10 @@ namespace
 
         if (pol == 3)
         {
-            assert(p.square() > 0.0);     // Long. pol. not allowed for massless gauge boson
+            powheg_assert(p.square() > 0.0);     // Long. pol. not allowed for massless gauge boson
 
             const double absP = sqrt(p.getThreeVec().square());
-            assert(absP > 0.0);
+            powheg_assert(absP > 0.0);
             
             const double normal = mass / p.e / absP;
 
@@ -129,7 +129,7 @@ namespace
         }
         else 
         {
-            assert(false);          // Invariant pol. mode
+            powheg_assert(false);          // Invariant pol. mode
             epsilon = { };
         }
 
@@ -246,7 +246,7 @@ namespace
 
     FourVectorC braGammaKet(const WeylSpinors& bra, const WeylSpinors& ket, int helicity)
     {
-        assert(helicity == 1 || helicity == -1);
+        powheg_assert(helicity == 1 || helicity == -1);
         const std::complex<double> h = static_cast<double>(helicity);
 
         const auto& b = (helicity == 1) ? bra.plus  : bra.minus;

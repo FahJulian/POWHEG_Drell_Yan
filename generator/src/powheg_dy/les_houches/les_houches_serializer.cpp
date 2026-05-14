@@ -2,7 +2,6 @@
 
 #include "powheg_dy/event.h"
 #include "powheg_dy/process.h"
-#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/util/file.h"
 
 namespace powheg_dy
@@ -92,8 +91,8 @@ namespace
             << doubleToString(scalup, 5, true) << "  "
             // << doubleToString(m_config.ALPHA_EW, 5, true) << "  " 
             << doubleToString(-1.0, 5, true) << "  " 
-            << doubleToString(alphaSCMW(m_config, scalup * scalup), 5, true) << "\n";
-            // << doubleToString(alphaS(m_config, alphaSScale * alphaSScale), 5, true) << "\n";
+            << doubleToString(m_config.alphaSCMW(scalup * scalup), 5, true) << "\n";
+            // << doubleToString(m_config.alphaS(alphaSScale * alphaSScale), 5, true) << "\n";
     }
 
     void LesHouchesSerializer::writeEvent(const Event& event, std::stringstream& content) const

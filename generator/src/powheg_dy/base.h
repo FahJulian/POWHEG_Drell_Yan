@@ -19,23 +19,23 @@
 
 #include <LHAPDF/LHAPDF.h>
 
-#undef assert
+#undef powheg_assert
 
 #ifdef POWHEG_DEBUG
-# define assert2(expr, message) \
+# define powheg_assert2(expr, message) \
     if (!(expr)) \
     { \
         Log::err << message << std::endl; \
         throw std::runtime_error(""); \
     } 
-# define assert1(expr) assert2(expr, #expr) 
+# define powheg_assert1(expr) powheg_assert2(expr, #expr) 
 #else 
-#define assert2(expr, message)
-#define assert1(expr)
+#define powheg_assert2(expr, message)
+#define powheg_assert1(expr)
 #endif
 
 #define GET_MACRO(_1, _2, name, ...) name
-#define assert(...) GET_MACRO(__VA_ARGS__, assert2, assert1)(__VA_ARGS__) 
+#define powheg_assert(...) GET_MACRO(__VA_ARGS__, powheg_assert2, powheg_assert1)(__VA_ARGS__) 
 
 namespace powheg_dy
 {

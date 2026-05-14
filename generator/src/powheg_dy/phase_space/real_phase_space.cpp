@@ -54,7 +54,7 @@ namespace
             / (1.0 - rad.xi);
     }
 
-    void assertRealKinematics(
+    void powheg_assertRealKinematics(
         const BornPhSpPt& born,
         const RealPhSpPt& real
     ) 
@@ -72,12 +72,12 @@ namespace
         const double bosonMomentumMismatch = (dilepton - real.pBoson).square() / born.sHat;
         const double rapidityMismatch = real.pBoson.rapidity() - born.yB;
 
-        assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
-        assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
-        assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
-        assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
-        assert(abs(ktMismatch) < ALLOWED_MISMATCH);
-        assert(abs(rapidityMismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(totalMomentumMismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(gluonMassMismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(bosonMassMismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(bosonMomentumMismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(ktMismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(rapidityMismatch) < ALLOWED_MISMATCH);
     }
 
 } // anonymous namespace 
@@ -132,7 +132,7 @@ namespace
         real.pLMinus = born.pLMinus.boost(longBoost).boost(transvBoost).boost(-longBoost);  
         real.pLPlus  = born.pLPlus .boost(longBoost).boost(transvBoost).boost(-longBoost);  
         
-        assertRealKinematics(born, real);
+        powheg_assertRealKinematics(born, real);
 
         return real;
     }

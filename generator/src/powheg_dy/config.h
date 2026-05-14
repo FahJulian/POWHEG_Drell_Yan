@@ -62,6 +62,11 @@ namespace powheg_dy
         {
             return (11.0 * C_A - 4.0 * T_F * nF) / (12.0 * PI);
         }
+    
+        double alphaS0(double qSq, int nF) const;
+        double alphaS0customLambda(double qSq, int nF, double lambdaSq) const;
+        double alphaS(double qSq) const;
+        double alphaSCMW(double qSq) const;
 
     private:
         void initLHAPDF();

@@ -21,8 +21,8 @@ namespace powheg_dy
         for (auto [partonId, dSigma] : channels)
             totalWeight += dSigma;
 
-        assert(std::isfinite(totalWeight));
-        assert(totalWeight >= 0.0);
+        powheg_assert(std::isfinite(totalWeight));
+        powheg_assert(totalWeight >= 0.0);
 
         // Sample the parton channel by their relative contribution to dSigma
         double u = rand(0.0, totalWeight);

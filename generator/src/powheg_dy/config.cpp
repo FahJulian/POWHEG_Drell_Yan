@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "powheg_dy/base.h"
+#include "powheg_dy/alpha_s.h"
 
 namespace powheg_dy
 {
@@ -140,6 +141,26 @@ namespace
         Log::info << "LAMBDA_QCD extracted from LHAPDF: " << lambdaMsb5 << std::endl; 
         
         LAMBDA_MSB_5_SQ = lambdaMsb5 * lambdaMsb5;
+    }
+
+    double Config::alphaS0(double qSq, int nF) const
+    {
+        return powhegAlphaS0(*this, qSq, nF);
+    }
+
+    double Config::alphaS0customLambda(double qSq, int nF, double lambdaSq) const
+    {
+        return powhegAlphaS0customLambda(*this, qSq, nF, lambdaSq);
+    }
+
+    double Config::alphaS(double qSq) const
+    {
+        return powhegAlphaS(*this, qSq);
+    }
+
+    double Config::alphaSCMW(double qSq) const
+    {
+        return powhegAlphaSCMW(*this, qSq);
     }
 
 } // namespace powheg_dy

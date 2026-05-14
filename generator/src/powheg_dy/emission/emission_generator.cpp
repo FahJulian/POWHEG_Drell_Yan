@@ -1,7 +1,6 @@
 #include "emission_generator.h"
 
 #include "powheg_dy/process.h"
-#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/math/rand.h"
 #include "powheg_dy/matrix_elements.h"
 
@@ -45,7 +44,7 @@ namespace
     ) const
     {
         if (region != 1)
-            assert(false);      // Only ISR Radiation is implemented
+            powheg_assert(false);      // Only ISR Radiation is implemented
 
         return generateISREmission(born);
     }
@@ -124,7 +123,7 @@ namespace
 
     double EmissionGenerator::upperRadiationDensity(const RealPhSpPt& real, double kt2Trial) const
     {
-        const double alphaS = alphaSCMW(m_config, kt2Trial);
+        const double alphaS = m_config.alphaSCMW(kt2Trial);
 
         return N_Q
             * alphaS
@@ -149,7 +148,7 @@ namespace
         // This must match vExactOverVTilde
         const double xMin = std::min(born.x1Bar, born.x2Bar) / (2.0 * a);
 
-        assert(xMin < xMinus);
+        powheg_assert(xMin < xMinus);
 
         const double delta = xPlus - xMinus;
 
@@ -179,7 +178,7 @@ namespace
     // sample a k_T^2 after the procedure describes in Appendix D of ref. [22]
     double EmissionGenerator::sampleTrialKt2(const BornPhSpPt& born, double ptMax2, double& logR) const
     {
-        assert(ptMax2 >= m_config.PT_SQ_CUTOFF);
+        powheg_assert(ptMax2 >= m_config.PT_SQ_CUTOFF);
 
         const int nF = 5;
         const double LAMBDA2 = LAMBDA_SQ_OVEREST_FACTOR * m_config.LAMBDA_MSB_5_SQ;
@@ -217,16 +216,16 @@ namespace
                 maxIter
             );
 
-            assert(maxIter <= MAX_ITER);    // If maxIter > MAX_ITER, the solver failed
+            powheg_assert(maxIter <= MAX_ITER);    // If maxIter > MAX_ITER, the solver failed
 
             const double trialPt2 = 0.5 * (bracket.first + bracket.second);
 
             if (trialPt2 < m_config.PT_SQ_CUTOFF)
                 return -1.0;
             
-            const double alphaSCorr = alphaSCMW(m_config, trialPt2) / alphaS0customLambda(m_config, trialPt2, 5, LAMBDA2);
+            const double alphaSCorr = m_config.alphaSCMW(trialPt2) / m_config.alphaS0customLambda(trialPt2, 5, LAMBDA2);
             const double accRatio = alphaSCorr * vExactOverVTilde(born, trialPt2);
-            assert(accRatio <= 1.0);
+            powheg_assert(accRatio <= 1.0, "Acceptance Ratio" << accRatio << "exceeds one in emission generation");
 
             if (rand() < accRatio)
                 return trialPt2;
@@ -234,7 +233,7 @@ namespace
                 ptMax2 = trialPt2;
         }
 
-        assert(false); // Max trials exceeded!
+        powheg_assert(false); // Max trials exceeded!
         return -1.0;
     }
 
@@ -317,7 +316,7 @@ namespace
             const double lumReal = m_config.PDF->xfxQ2(realChannel.id1, real.x1, muF2) / real.x1
                 * m_config.PDF->xfxQ2(realChannel.id2, real.x2, muF2) / real.x2;
 
-            const double realAmp2 = m_process.realAmp2(real, realChannel, alphaSCMW(m_config, muR2));
+            const double realAmp2 = m_process.realAmp2(real, realChannel, m_config.alphaSCMW(muR2));
             const double realOverBornPartonic = real.radJacobian * born.sHat / real.sHatReal * realAmp2 / amp2Born;
             const double realOverBorn = lumReal / lumBorn * realOverBornPartonic;
 

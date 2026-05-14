@@ -100,12 +100,12 @@ namespace
     {
         Config config = { };
 
-        assert(extractDouble(params, "SQRT_S", config.SQRT_S), "No value for SQRT_S found.");
-        assert(extractDouble(params, "M_MIN", config.M_MIN), "No value for M_MIN found.");
-        assert(extractDouble(params, "M_MAX", config.M_MAX), "No value for M_MAX found.");
-        assert(extractDouble(params, "PT_SQ_CUTOFF", config.PT_SQ_CUTOFF), "No value for PT_SQ_CUTOFF found.");
-        assert(extractInt<size_t>(params, "N_ACCEPTED_EVENTS", config.N_ACCEPTED_EVENTS), "No value for N_ACCEPTED_EVENTS found.");
-        assert(extractString(params, "PDF_NAME", config.PDF_NAME), "No value for PDF_NAME found.");
+        powheg_assert(extractDouble(params, "SQRT_S", config.SQRT_S), "No value for SQRT_S found.");
+        powheg_assert(extractDouble(params, "M_MIN", config.M_MIN), "No value for M_MIN found.");
+        powheg_assert(extractDouble(params, "M_MAX", config.M_MAX), "No value for M_MAX found.");
+        powheg_assert(extractDouble(params, "PT_SQ_CUTOFF", config.PT_SQ_CUTOFF), "No value for PT_SQ_CUTOFF found.");
+        powheg_assert(extractInt<size_t>(params, "N_ACCEPTED_EVENTS", config.N_ACCEPTED_EVENTS), "No value for N_ACCEPTED_EVENTS found.");
+        powheg_assert(extractString(params, "PDF_NAME", config.PDF_NAME), "No value for PDF_NAME found.");
 
         bool bornVetoWeight = extractDouble(params, "BORN_VETO_WEIGHT", config.BORN_VETO_WEIGHT);
         bool nTrialEvents   = extractInt<size_t>(params, "N_TRIAL_EVENTS", config.N_TRIAL_EVENTS);

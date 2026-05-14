@@ -120,7 +120,7 @@ namespace
         const FourVector totalOut = born.pLMinus + born.pLPlus;
         double mismatch = dot(totalIn - totalOut, totalIn - totalOut) / born.sHat;
 
-        assert(abs(mismatch) < ALLOWED_MISMATCH);
+        powheg_assert(abs(mismatch) < ALLOWED_MISMATCH);
     }
 
 } // namespace powheg_dy

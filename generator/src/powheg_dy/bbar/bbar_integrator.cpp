@@ -1,7 +1,6 @@
 #include "bbar_integrator.h"
 
 #include "powheg_dy/process.h"
-#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/math/rand.h"
 #include "powheg_dy/bbar/singular_region.h"
 #include "powheg_dy/bbar/collinear_remnant_channel.h"
@@ -88,7 +87,7 @@ namespace
             
             computeWeightAndSampleChannel(born);
 
-            // assert(born.weight <= m_maxWeight, "Born weight " << born.weight << " exceeds max weight " << m_maxWeight);
+            // powheg_assert(born.weight <= m_maxWeight, "Born weight " << born.weight << " exceeds max weight " << m_maxWeight);
             if (born.weight > m_maxWeight)
             {
                 Log::warn << "Born weight " << born.weight << " exceeds max weight " << m_maxWeight << std::endl;
@@ -106,7 +105,7 @@ namespace
             }
         }
 
-        assert(false, "Bbar sampling stuck in loop.");
+        powheg_assert(false, "Bbar sampling stuck in loop.");
         return { };
     }
 
@@ -156,7 +155,7 @@ namespace
         };
 
         return sPlus(real.rad.y) * (1.0 - real.rad.y) * real.rad.xi * real.rad.xi 
-            * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
+            * m_process.realAmp2(real, channel, m_config.alphaS(muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AqqbarMinus(const RealPhSpPt& real, double muR2) const
@@ -169,7 +168,7 @@ namespace
         };
 
         return sMinus(real.rad.y) * (1.0 + real.rad.y) * real.rad.xi * real.rad.xi 
-            * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
+            * m_process.realAmp2(real, channel, m_config.alphaS(muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AqqbarPlusLimitAware(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
@@ -256,7 +255,7 @@ namespace
         const double prefactor = 16.0 * PI * m_config.C_F / born.sHat / born.sHat;
 
         return prefactor
-            * alphaS(m_config, muR2)
+            * m_config.alphaS(muR2)
             * m_process.bornAmp2(born)
             * z * (1 + z * z);
     }
@@ -267,7 +266,7 @@ namespace
         const double prefactor = 16.0 * PI * m_config.C_F / born.sHat / born.sHat;
 
         return prefactor
-            * alphaS(m_config, muR2)
+            * m_config.alphaS(muR2)
             * m_process.bornAmp2(born)
             * z * (1 + z * z);
     }
@@ -278,7 +277,7 @@ namespace
         const double prefactor = 64.0 * PI * m_config.C_F / born.sHat / born.sHat;
 
         return prefactor
-            * alphaS(m_config, muR2)
+            * m_config.alphaS(muR2)
             * m_process.bornAmp2(born)
             * angular;
     }
@@ -289,7 +288,7 @@ namespace
         const double prefactor = 64.0 * PI * m_config.C_F / born.sHat / born.sHat;
 
         return prefactor
-            * alphaS(m_config, muR2)
+            * m_config.alphaS(muR2)
             * m_process.bornAmp2(born)
             * angular;
     }
@@ -297,13 +296,13 @@ namespace
     double BBarIntegrator::AqqbarPlusSoftCollinearLimit(const BornPhSpPt& born, double muR2) const
     {
         const double prefactor = 32.0 * PI * m_config.C_F / born.sHat / born.sHat;
-        return prefactor * alphaS(m_config, muR2) * m_process.bornAmp2(born);
+        return prefactor * m_config.alphaS(muR2) * m_process.bornAmp2(born);
     }
 
     double BBarIntegrator::AqqbarMinusSoftCollinearLimit(const BornPhSpPt& born, double muR2) const
     {
         const double prefactor = 32.0 * PI * m_config.C_F / born.sHat / born.sHat;
-        return prefactor * alphaS(m_config, muR2) * m_process.bornAmp2(born);
+        return prefactor * m_config.alphaS(muR2) * m_process.bornAmp2(born);
     }
 
     double BBarIntegrator::AgluonLeg1Plus(const RealPhSpPt& real, double muR2) const
@@ -315,7 +314,7 @@ namespace
             .outIDs = { bornChannel.outIDs[0], bornChannel.outIDs[1], bornChannel.id2 } 
         };
 
-        return (1.0 - real.rad.y) * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
+        return (1.0 - real.rad.y) * m_process.realAmp2(real, channel, m_config.alphaS(muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AgluonLeg2Minus(const RealPhSpPt& real, double muR2) const
@@ -327,7 +326,7 @@ namespace
             .outIDs = { bornChannel.outIDs[0], bornChannel.outIDs[1], bornChannel.id1 } 
         };
 
-        return (1.0 + real.rad.y) * m_process.realAmp2(real, channel, alphaS(m_config, muR2)) / real.sHatReal;
+        return (1.0 + real.rad.y) * m_process.realAmp2(real, channel, m_config.alphaS(muR2)) / real.sHatReal;
     }
 
     double BBarIntegrator::AgluonLeg1PlusCollinearLimit(const BornPhSpPt& born, const RadiationVariables& rad, double muR2) const
@@ -337,7 +336,7 @@ namespace
 
         return m_process.bornAmp2(born)
             * prefactor
-            * alphaS(m_config, muR2)
+            * m_config.alphaS(muR2)
             * z
             * (z * z + (1.0 - z) * (1.0 - z))
             / (1.0 - z);
@@ -350,7 +349,7 @@ namespace
 
         return m_process.bornAmp2(born)
             * prefactor
-            * alphaS(m_config, muR2)
+            * m_config.alphaS(muR2)
             * z
             * (z * z + (1.0 - z) * (1.0 - z))
             / (1.0 - z);
@@ -675,7 +674,7 @@ namespace
         const double gluonLeg1 = collinearRemnantGluonLeg1(born, unitX[0], muF2);
         const double gluonLeg2 = collinearRemnantGluonLeg2(born, unitX[0], muF2);
 
-        return prefactor * born.jacobianOld * alphaS(m_config, muR2) / 2.0 / PI * (plusQQ + minusQQ + gluonLeg1 + gluonLeg2)
+        return prefactor * born.jacobianOld * m_config.alphaS(muR2) / 2.0 / PI * (plusQQ + minusQQ + gluonLeg1 + gluonLeg2)
             * m_process.bornAmp2(born);
     }
 
@@ -854,7 +853,7 @@ namespace
         point.f1RealG = m_config.PDF->xfxQ2(21, born.x1Bar / point.zLeg1, muF2) / (born.x1Bar / point.zLeg1); 
         point.f2RealG = m_config.PDF->xfxQ2(21, born.x2Bar / point.zLeg2, muF2) / (born.x2Bar / point.zLeg2); 
         
-        point.alphaS = alphaS(m_config, muR2);
+        point.alphaS = m_config.alphaS(muR2);
 
         point.amp2Born = m_process.bornAmp2(born);
 

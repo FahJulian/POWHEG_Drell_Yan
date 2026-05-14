@@ -2,7 +2,6 @@
 #include "couplings.h"
 
 #include "powheg_dy/config.h"
-#include "powheg_dy/alpha_s.h"
 #include "powheg_dy/math/bra_ket.h"
 
 namespace powheg_dy
@@ -127,7 +126,7 @@ namespace
         const FourVector pQbarBorn = leg1IsQuark ? born.p2Bar : born.p1Bar;
 
         // TODO: Change to the corrected alphaS
-        const double aS = useCMWALphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
+        const double aS = useCMWALphaS ? m_config.alphaSCMW(muR2) : m_config.alphaS(muR2);
 
         const double realamp = realAmp2_crossed(
             born.channel.flavour,
@@ -155,7 +154,7 @@ namespace
     {
         const BornPhSpPt& born = real.underlyingBorn;
 
-        const double aS = useCMWALphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
+        const double aS = useCMWALphaS ? m_config.alphaSCMW(muR2) : m_config.alphaS(muR2);
 
         FourVector qSlot;
         FourVector qbarSlot;
@@ -205,7 +204,7 @@ namespace
     {
         const BornPhSpPt& born = real.underlyingBorn;
 
-        const double aS = useCMWALphaS ? alphaSCMW(m_config, muR2) : alphaS(m_config, muR2);
+        const double aS = useCMWALphaS ? m_config.alphaSCMW(muR2) : m_config.alphaS(muR2);
 
         FourVector qSlot;
         FourVector qbarSlot;

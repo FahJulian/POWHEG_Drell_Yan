@@ -1,5 +1,7 @@
 #include "alpha_s.h"
 
+#include "powheg_dy/config.h"
+
 namespace powheg_dy
 {
 namespace 
@@ -22,7 +24,7 @@ namespace
     double alphaRawPowheg(const Config& config, double qSq, int nF)
     {
         const double L = std::log(qSq / config.LAMBDA_MSB_5_SQ);
-        assert(L > 0.0);
+        powheg_assert(L > 0.0);
 
         const double b  = config.beta0(nF);
         const double bp = betaPrimePowheg(nF);
@@ -32,17 +34,17 @@ namespace
 
 } // anonymous namespace
 
-    double alphaS0(const Config& config, double qSq, int nF)
+    double powhegAlphaS0(const Config& config, double qSq, int nF)
     {
         return 1.0 / (config.beta0(nF) * std::log(qSq / config.LAMBDA_MSB_5_SQ));
     }
 
-    double alphaS0customLambda(const Config& config, double qSq, int nF, double lambdaSq)
+    double powhegAlphaS0customLambda(const Config& config, double qSq, int nF, double lambdaSq)
     {
         return 1.0 / (config.beta0(nF) * std::log(qSq / lambdaSq));
     }
 
-    double alphaS(const Config& config, double qSq) 
+    double powhegAlphaS(const Config& config, double qSq) 
     {
         if (config.ALPHA_S_FROM_PDF)
             return config.PDF->alphasQ2(qSq);
@@ -75,14 +77,14 @@ namespace
         }
     }
 
-    double alphaSCMW(const Config& config, double qSq) 
+    double powhegAlphaSCMW(const Config& config, double qSq) 
     {
         const int nF = activeFlavours(config, qSq);
-        const double aS = alphaS(config, qSq);
+        const double alphaS = powhegAlphaS(config, qSq);
 
         const double K = (67.0 / 18.0 - PI * PI / 6.0) * config.C_A - 5.0 / 9.0 * nF;
 
-        return aS * (1.0 + aS / (2.0 * PI) * K);
+        return alphaS * (1.0 + alphaS / (2.0 * PI) * K);
     }
 
 } // namespace powheg_dy
