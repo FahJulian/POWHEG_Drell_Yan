@@ -1,6 +1,7 @@
 #pragma once
 
 #include "powheg_dy/base.h"
+#include "powheg_dy/phase_space/real_phase_space.h"
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 
 namespace powheg_dy
@@ -8,8 +9,9 @@ namespace powheg_dy
     // TODO: Split into CollRemnIntPoint and RealIntPoint
     struct BBarIntegrationPoint
     {
-        const BornPhSpPt& born;
-        const BornChannel& bornChannel;
+        BornPhSpPt born;
+        BornChannel bornChannel;
+        RealPhSpPt real;
 
         double u1 = 0.0;
         double u2 = 0.0;

@@ -4,6 +4,21 @@
 
 namespace powheg_dy
 {
+    double CollinearRemnantsHandler::dSigmaCollinearRemnants(
+        const BBarIntegrationPoint& point,
+        const CollinearRemnantChannel& channel,
+        const double muF2
+    ) const
+    {
+        if (channel.leg == 1)
+            return dSigmaCollinearRemnantsLeg1(point, channel.splitting, muF2);
+        else if (channel.leg == 2)
+            return dSigmaCollinearRemnantsLeg2(point, channel.splitting, muF2);
+            
+        throw std::runtime_error("Invalid collinear remnant leg");
+        return 0.0;
+    }
+
     double CollinearRemnantsHandler::dSigmaCollinearRemnantsLeg1(
         const BBarIntegrationPoint& point,
         const CollinearRemnantSplitting& splitting,

@@ -19,29 +19,25 @@ namespace powheg_dy
         {
         }
 
+        double dSigmaCollinearRemnants(
+            const BBarIntegrationPoint& point,
+            const CollinearRemnantChannel& channel,
+            const double muF2
+        ) const;
+        
+    private:
         double dSigmaCollinearRemnantsLeg1(
             const BBarIntegrationPoint& point,
-            const CollinearRemnantSplitting& channel,
+            const CollinearRemnantSplitting& splitting,
             const double muF2
         ) const;
 
         double dSigmaCollinearRemnantsLeg2(
             const BBarIntegrationPoint& point,
-            const CollinearRemnantSplitting& channel,
+            const CollinearRemnantSplitting& splitting,
             const double muF2
         ) const;
         
-    private:
-        double dSigmaCollinearRemnants(
-            const double z,
-            const double alphaS,
-            const double dSigmaBornPartonic,
-            const double luminosityOne,
-            const double luminosityZ,
-            const double oneMinusKernelOne,
-            const double oneMinusKernelZ
-        ) const;
-
         double oneMinusZTimesPqq(const double z) const;
         double oneMinusZTimesPqg(const double z) const;
         double oneMinusZTimesPgq(const double z) const;

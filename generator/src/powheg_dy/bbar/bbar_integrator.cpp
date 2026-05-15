@@ -2,7 +2,6 @@
 
 #include "powheg_dy/process.h"
 #include "powheg_dy/math/rand.h"
-#include "powheg_dy/bbar/singular_region.h"
 #include "powheg_dy/bbar/collinear_remnant_channel.h"
 
 namespace powheg_dy
@@ -20,6 +19,73 @@ namespace
         int weightSign;
         double absoluteWeight;
     };
+
+    // TODO: Generalize and move
+    std::vector<FKSRegion> drellYanRegions(const BornChannel& born, const RealChannel& real)  
+    {
+        std::vector<FKSRegion> regions;
+
+        const int emittedIndex = static_cast<int>(real.outIDs.size()) - 1;
+        const int emittedID = real.outIDs[emittedIndex];
+
+        // q qbar -> X g
+        if (real.id1 == born.id1
+            && real.id2 == born.id2
+            && real.outIDs.size() == born.outIDs.size() + 1
+            && emittedID == 21)
+        {
+            regions.push_back({
+                .fksPartonIdx = emittedIndex,   // if this indexes real.outIDs
+                .emitter = 0,                // both ISR legs
+                .hasSoft = true,
+                .hasCollinearLeg1 = true,
+                .hasCollinearLeg2 = true,
+                .hasCollinearFinal = false
+            });
+
+            return regions;
+        }
+
+        // q g -> X q
+        // leg 2: g -> born.id2 + emitted
+        if (real.id1 == born.id1
+            && real.id2 == 21
+            && real.outIDs.size() == born.outIDs.size() + 1
+            && emittedID == -born.id2)
+        {
+            regions.push_back({
+                .fksPartonIdx = emittedIndex,
+                .emitter = 2,
+                .hasSoft = false,
+                .hasCollinearLeg1 = false,
+                .hasCollinearLeg2 = true,
+                .hasCollinearFinal = false
+            });
+
+            return regions;
+        }
+
+        // g qbar -> X qbar
+        // leg 1: g -> born.id1 + emitted
+        if (real.id1 == 21
+            && real.id2 == born.id2
+            && real.outIDs.size() == born.outIDs.size() + 1
+            && emittedID == -born.id1)
+        {
+            regions.push_back({
+                .fksPartonIdx = emittedIndex,
+                .emitter = 1,
+                .hasSoft = false,
+                .hasCollinearLeg1 = true,
+                .hasCollinearLeg2 = false,
+                .hasCollinearFinal = false
+            });
+
+            return regions;
+        }
+
+        throw std::runtime_error("Real channel does not match expected DY real channels.");
+    }
 
 } // anonymous namespace 
     
@@ -102,20 +168,12 @@ namespace
 
         for (const auto& realChannel : m_process.realChannels(bornChannel))
         {
-            for (const auto& singularRegion : findSingularRegions(bornChannel, realChannel))
+            for (const auto& fksRegion : drellYanRegions(bornChannel, realChannel))
             {
-                dSigma += m_real.dSigmaRealMinusCT(point, singularRegion);
+                dSigma += m_real.dSigmaRealMinusCT(point, realChannel, fksRegion, muF2, muR2, *m_realPhaseSpace);
 
-                if (const auto& collinearChannel = remnantChannelFromRegion(bornChannel, realChannel, singularRegion); 
-                    collinearChannel.has_value())
-                {
-                    if (collinearChannel->leg == 1)
-                        dSigma += m_collRemn.dSigmaCollinearRemnantsLeg1(point, collinearChannel->splitting, muF2);
-                    else if (collinearChannel->leg == 2)
-                        dSigma += m_collRemn.dSigmaCollinearRemnantsLeg2(point, collinearChannel->splitting, muF2);
-                    else
-                        throw std::runtime_error("Invalid collinear remnant leg");
-                }
+                for (const auto& collinearChannel : remnantChannelsFromRegion(bornChannel, realChannel, fksRegion))
+                    dSigma += m_collRemn.dSigmaCollinearRemnants(point, collinearChannel, muF2);
             }
         }
 
@@ -124,7 +182,6 @@ namespace
 
     void BBarIntegrator::determineMaxWeight()
     {
-        
         if (m_config.BORN_VETO_WEIGHT != -1.0)
         {
             m_maxWeight = m_config.BORN_VETO_WEIGHT;
@@ -180,7 +237,7 @@ namespace
         const std::array<double, 3>& unitCube
     ) const
     {
-        BBarIntegrationPoint point = BBarIntegrationPoint{ born, bornChannel };
+        BBarIntegrationPoint point;
 
         point.u1 = unitCube[0];
         point.u2 = unitCube[1];
@@ -189,6 +246,10 @@ namespace
         point.y = -1.0 + 2.0 * point.u2;
         point.xi = m_realPhaseSpace->xiMax(born, point.y) * point.u1;
         point.phi = 2.0 * PI * point.u3;
+
+        point.born = born;
+        point.bornChannel = bornChannel;
+        point.real = m_realPhaseSpace->reconstruct(born, { point.xi, point.y, point.phi });
 
         point.unitCubeJacobian = 4.0 * PI * point.xi / point.u1;        
 

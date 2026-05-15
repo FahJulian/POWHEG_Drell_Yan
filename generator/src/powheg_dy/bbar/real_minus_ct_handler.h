@@ -2,8 +2,13 @@
 
 #include "powheg_dy/base.h"
 #include "powheg_dy/config/config.h"
-#include "powheg_dy/bbar/singular_region.h"
+#include "powheg_dy/bbar/fks_region.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"
+
+
+#include "powheg_dy/phase_space/real_phase_space.h"
+
+
 
 namespace powheg_dy
 {
@@ -21,24 +26,72 @@ namespace powheg_dy
 
         double dSigmaRealMinusCT(
             const BBarIntegrationPoint& point,
-            const SingularRegion& region
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2,
+            const double muR2,
+            const ISRRealPhaseSpace& phaseSpace     // For debugging
         ) const;
 
     private:
-        double dSigmaSoft(
+        double dSigmaReal(
             const BBarIntegrationPoint& point,
-            const SingularRegion& region
+            const RealChannel& realChannel,
+            const double muF2,
+            const double muR2
         ) const;
 
-        double dSigmaISRLeg1(
+        double softCTScaled(
             const BBarIntegrationPoint& point,
-            const SingularRegion& region
+            const RealChannel& realChannel,
+            const FKSRegion& region
         ) const;
 
-        double dSigmaISRLeg2(
+        double leg1CollinearCTScaled(
             const BBarIntegrationPoint& point,
-            const SingularRegion& region
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
         ) const;
+
+        double leg2CollinearCTScaled(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
+        ) const;
+
+        double leg1SoftCollinearCTScaled(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
+        ) const;
+
+        double leg2SoftCollinearCTScaled(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
+        ) const;
+
+        double integralBoundaryRemnant(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2,
+            const ISRRealPhaseSpace& phaseSpace
+        ) const;
+
+        double oneMinusZTimesPqq(const double z) const;
+        double oneMinusZTimesPqg(const double z) const;
+        double oneMinusZTimesPgq(const double z) const;
+        double oneMinusZTimesPgg(const double z) const;
+
+        double oneMinusZTimesPqqAtOne() const;
+        double oneMinusZTimesPqgAtOne() const;
+        double oneMinusZTimesPgqAtOne() const;
+        double oneMinusZTimesPggAtOne() const;
 
         const Process& m_process;
         const Config& m_config;

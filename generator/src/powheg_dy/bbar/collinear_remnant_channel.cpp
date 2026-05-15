@@ -2,46 +2,49 @@
 
 namespace powheg_dy
 {
-    std::optional<CollinearRemnantChannel> remnantChannelFromRegion(
+    std::vector<CollinearRemnantChannel> remnantChannelsFromRegion(
         const BornChannel& born,
         const RealChannel& real,
-        const SingularRegion& region
+        const FKSRegion& region
     )
     {
         // TODO: Implement other regions
 
-        if (region.type == SingularRegionType::ISR_LEG1)
+        std::vector<CollinearRemnantChannel> channels;
+
+        if (region.hasCollinearLeg1)
         {
-            const int emittedID = real.outIDs[region.index2];
+            const int emittedID = real.outIDs[region.fksPartonIdx];
 
             // q qbar -> X g, i.e. splitting q -> q g on leg 1
-            if (real.id1 == born.id1 && emittedID == 21)
-                return CollinearRemnantChannel { CollinearRemnantSplitting::QQ, 1 };
+            if (real.id1 == born.id1 && real.id2 == born.id2 && emittedID == 21)
+                channels.push_back({ CollinearRemnantSplitting::QQ, 1 });
 
             // g qbar -> X qbar, i.e. splitting g -> q qbar on leg 1
-            else if (real.id1 == 21 && real.id2 == born.id2 && emittedID == born.id2)
-                return CollinearRemnantChannel { CollinearRemnantSplitting::GQ, 1 };
+            else if (real.id1 == 21 && real.id2 == born.id2 && emittedID == -born.id1)
+                channels.push_back({ CollinearRemnantSplitting::GQ, 1 });
 
             else 
-                throw std::runtime_error("Invalid Singular Region.");
+                throw std::runtime_error("Invalid FKS Region.");
         }
-        else if (region.type == SingularRegionType::ISR_LEG2)
+
+        if (region.hasCollinearLeg2)
         {
-            const int emittedID = real.outIDs[region.index2];
+            const int emittedID = real.outIDs[region.fksPartonIdx];
 
             // q qbar -> X g, i.e. splitting q -> q g on leg 2
-            if (real.id2 == born.id2 && emittedID == 21)
-                return CollinearRemnantChannel { CollinearRemnantSplitting::QQ, 2 };
+            if (real.id1 == born.id1 && real.id2 == born.id2 && emittedID == 21)
+                channels.push_back({ CollinearRemnantSplitting::QQ, 2 });
 
             // q g -> X q, i.e. splitting g -> qbar q on leg 2
-            else if (real.id1 == born.id1 && real.id2 == 21 && emittedID == born.id1)
-                return CollinearRemnantChannel { CollinearRemnantSplitting::GQ, 2 };
+            else if (real.id1 == born.id1 && real.id2 == 21 && emittedID == -born.id2)
+                channels.push_back({ CollinearRemnantSplitting::GQ, 2 });
 
             else 
-                throw std::runtime_error("Invalid Singular Region.");
+                throw std::runtime_error("Invalid FKS Region.");
         }
 
-        return std::nullopt;
+        return channels;
     }
 
 } // namespace powheg_dy

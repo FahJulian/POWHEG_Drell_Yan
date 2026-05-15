@@ -1,7 +1,7 @@
 #pragma once
 
 #include "powheg_dy/base.h"
-#include "powheg_dy/bbar/singular_region.h"
+#include "powheg_dy/bbar/fks_region.h"
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
 
@@ -48,10 +48,16 @@ namespace powheg_dy
         int leg = 0;
     };
 
-    std::optional<CollinearRemnantChannel> remnantChannelFromRegion(
+    // std::optional<CollinearRemnantChannel> remnantChannelFromRegion(
+    //     const BornChannel& born,
+    //     const RealChannel& real,
+    //     const SingularRegion& region
+    // );
+
+    std::vector<CollinearRemnantChannel> remnantChannelsFromRegion(
         const BornChannel& born,
         const RealChannel& real,
-        const SingularRegion& region
+        const FKSRegion& region
     );
 
 } // namespace powheg_dy
