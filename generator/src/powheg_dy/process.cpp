@@ -46,7 +46,7 @@ namespace powheg_dy
         parser.extract("CMW_BOTTOM_TRSHLD_SQ", m_config->CMW_BOTTOM_TRSHLD_SQ);
 
         m_config->S = m_config->SQRT_S * m_config->SQRT_S;
-        m_config->CMW_CHARM_TRSHLD_SQ = m_config->CMW_CHARM_TRSHLD * m_config->CMW_CHARM_TRSHLD;
+        m_config->CMW_CHARM_TRSHLD_SQ  = m_config->CMW_CHARM_TRSHLD  * m_config->CMW_CHARM_TRSHLD;
         m_config->CMW_BOTTOM_TRSHLD_SQ = m_config->CMW_BOTTOM_TRSHLD * m_config->CMW_BOTTOM_TRSHLD;
     }
     

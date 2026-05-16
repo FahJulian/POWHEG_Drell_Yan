@@ -18,7 +18,7 @@ namespace
         return value < 0 ? str : " " + str;
     }
 
-    void writeHeader(std::stringstream& content)
+    void writeHeader(std::ostream& content)
     {
         content <<
             "<LesHouchesEvents version=\"3.0\">\n"
@@ -27,7 +27,7 @@ namespace
             "</header>\n";
     }
 
-    void writeInitBlock(std::stringstream& content, double eBeam, double sigma)
+    void writeInitBlock(std::ostream& content, double eBeam, double sigma)
     {
         content
             << "<init>\n"
@@ -42,7 +42,7 @@ namespace
             << "</init>\n";
     }
 
-    void writeParticle(std::stringstream& content, int id, int status, int mother1, 
+    void writeParticle(std::ostream& content, int id, int status, int mother1, 
         int mother2, int color1, int color2, const FourVector& p, double mass, double spin = 9.0)
     {
         std::string idString = (id < -9) ? std::to_string(id) 
@@ -75,18 +75,17 @@ namespace
             return;
         }
         
-        std::stringstream content;
-
-        writeHeader(content);
-        writeInitBlock(content, m_config.SQRT_S / 2.0, m_process.getSigma());
+        writeHeader(file);
+        writeInitBlock(file, m_config.SQRT_S / 2.0, m_process.getSigma());
 
         for (const auto& event : m_process.getEvents())
-            writeEvent(event, content);
+            writeEvent(event, file);
         
-        content << "</LesHouchesEvents>\n";
+        file << "</LesHouchesEvents>\n";
+
     }
 
-    void LesHouchesSerializer::writeEventHeader(std::stringstream& content, int sign, int nParticles, double scalup) const
+    void LesHouchesSerializer::writeEventHeader(std::ostream& content, int sign, int nParticles, double scalup) const
     {
         // Number of particles, process label, weight of the event
         content << "<event>\n" 
@@ -99,7 +98,7 @@ namespace
             // << doubleToString(m_config.alphaS(alphaSScale * alphaSScale), 5, true) << "\n";
     }
 
-    void LesHouchesSerializer::writeEvent(const Event& event, std::stringstream& content) const
+    void LesHouchesSerializer::writeEvent(const Event& event, std::ostream& content) const
     {
         if (event.emission.rejected)
         {
@@ -116,7 +115,7 @@ namespace
         }
     }
 
-    void LesHouchesSerializer::writeEventBorn(const Event& event, std::stringstream& content) const
+    void LesHouchesSerializer::writeEventBorn(const Event& event, std::ostream& content) const
     {
         const int color = 501;
         const int anticolor = 501;
@@ -143,7 +142,7 @@ namespace
         content << "</event>\n";
     }
 
-    void LesHouchesSerializer::writeEventqqbar(const Event& event, std::stringstream& content) const
+    void LesHouchesSerializer::writeEventqqbar(const Event& event, std::ostream& content) const
     {
         const int color1 = 501;
         const int color2 = 511;
@@ -171,7 +170,7 @@ namespace
         content << "</event>\n";
     }
 
-    void LesHouchesSerializer::writeEventGluonLeg1(const Event& event, std::stringstream& content) const
+    void LesHouchesSerializer::writeEventGluonLeg1(const Event& event, std::ostream& content) const
     {
         const int colorIn = 501;
         const int colorOut = 511;
@@ -202,7 +201,7 @@ namespace
         content << "</event>\n";
     }
 
-    void LesHouchesSerializer::writeEventGluonLeg2(const Event& event, std::stringstream& content) const
+    void LesHouchesSerializer::writeEventGluonLeg2(const Event& event, std::ostream& content) const
     {
         const int colorIn = 501;
         const int colorOut = 511;

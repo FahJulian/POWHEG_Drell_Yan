@@ -170,7 +170,7 @@ namespace
         {
             for (const auto& fksRegion : drellYanRegions(bornChannel, realChannel))
             {
-                dSigma += m_real.dSigmaRealMinusCT(point, realChannel, fksRegion, muF2, muR2, *m_realPhaseSpace);
+                dSigma += m_real.dSigmaRealMinusCT(point, realChannel, fksRegion, muF2);
 
                 for (const auto& collinearChannel : remnantChannelsFromRegion(bornChannel, realChannel, fksRegion))
                     dSigma += m_collRemn.dSigmaCollinearRemnants(point, collinearChannel, muF2);
@@ -268,19 +268,19 @@ namespace
         const double TINY_XI = 1.0e-6;
         const double TINY_Y = 1.0e-6;
 
-        double jacobian = 1.0;
+        double unitCubeJacobianTilde = 1.0;
 
         point.xiTilde = (3.0 - 2.0 * point.u1) * point.u1 * point.u1;
         point.xiTilde = point.xiTilde * (1.0 - 2.0 * TINY_XI) + TINY_XI;
-        jacobian *= 6.0 * (1.0 - point.u1) * point.u1;
+        unitCubeJacobianTilde *= 6.0 * (1.0 - point.u1) * point.u1;
 
         point.y = 1.0 - 2.0 * point.u2;
-        jacobian *= 2.0;
-        jacobian *= 1.5 * (1.0 - point.y * point.y);
+        unitCubeJacobianTilde *= 2.0;
+        unitCubeJacobianTilde *= 1.5 * (1.0 - point.y * point.y);
         point.y = 1.5 * (point.y - std::pow(point.y, 3) / 3) * (1.0 - TINY_Y);
 
         point.phi = 2.0 * PI * point.u3;
-        jacobian *= 2.0 * PI;
+        unitCubeJacobianTilde *= 2.0 * PI;
 
         point.xiMax = m_realPhaseSpace->xiMax(point.born, point.y);
         point.xiMaxLeg1 = 1.0 - point.born.x1Bar;
@@ -292,10 +292,14 @@ namespace
 
         point.real = m_realPhaseSpace->reconstruct(born, { point.xi, point.y, point.phi });
 
-        point.jacobianOverXi = jacobian * point.real.radJacobian / point.xi;
-        point.jacobianOverXiSoft = jacobian * point.born.sHat / std::pow(4.0 * PI, 3);
-        point.jacobianOverXiLeg1 = jacobian * (point.born.sHat / (1.0 - point.xiLeg1)) / std::pow(4.0 * PI, 3) / (1.0 - point.xiLeg1);
-        point.jacobianOverXiLeg2 = jacobian * (point.born.sHat / (1.0 - point.xiLeg2)) / std::pow(4.0 * PI, 3) / (1.0 - point.xiLeg2);
+        point.jacobian = point.born.jacobian * unitCubeJacobianTilde * point.xiMax * point.real.radJacobian;
+        point.jacobianOverXiSqSoft = point.born.jacobian * unitCubeJacobianTilde * point.born.sHat / std::pow(4.0 * PI, 3);
+
+        const double jacobianRadLeg1 = point.born.sHat / std::pow(4.0 * PI, 3) * point.xiLeg1 / (1.0 - point.xiLeg1);
+        const double jacobianRadLeg2 = point.born.sHat / std::pow(4.0 * PI, 3) * point.xiLeg2 / (1.0 - point.xiLeg2);
+
+        point.jacobianLeg1 = unitCubeJacobianTilde * point.xiMaxLeg1 * point.born.jacobian * jacobianRadLeg1;
+        point.jacobianLeg2 = unitCubeJacobianTilde * point.xiMaxLeg2 * point.born.jacobian * jacobianRadLeg2;
 
         return point;
     }

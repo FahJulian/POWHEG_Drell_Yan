@@ -19,12 +19,12 @@ namespace powheg_dy
         void serialize(const std::string& filePath);
 
     private:
-        void writeEvent(const Event& event, std::stringstream& content) const;
-        void writeEventHeader(std::stringstream& content, int sign, int nParticles, double scalup) const;
-        void writeEventBorn(const Event& event, std::stringstream& content) const;
-        void writeEventqqbar(const Event& event, std::stringstream& content) const;
-        void writeEventGluonLeg1(const Event& event, std::stringstream& content) const;
-        void writeEventGluonLeg2(const Event& event, std::stringstream& content) const;
+        void writeEvent(const Event& event, std::ostream& content) const;
+        void writeEventHeader(std::ostream& content, int sign, int nParticles, double scalup) const;
+        void writeEventBorn(const Event& event, std::ostream& content) const;
+        void writeEventqqbar(const Event& event, std::ostream& content) const;
+        void writeEventGluonLeg1(const Event& event, std::ostream& content) const;
+        void writeEventGluonLeg2(const Event& event, std::ostream& content) const;
 
     private:
         const Process& m_process;
