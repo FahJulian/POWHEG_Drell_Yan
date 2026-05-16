@@ -41,34 +41,34 @@ namespace powheg_dy
             const double muR2
         ) const;
 
-        double softCTScaled(
+        double softCounterterm(
             const BBarIntegrationPoint& point,
             const RealChannel& realChannel,
             const FKSRegion& region
         ) const;
 
-        double leg1CollinearCTScaled(
+        double leg1CollinearCounterterm(
             const BBarIntegrationPoint& point,
             const RealChannel& realChannel,
             const FKSRegion& region,
             const double muF2
         ) const;
 
-        double leg2CollinearCTScaled(
+        double leg2CollinearCounterterm(
             const BBarIntegrationPoint& point,
             const RealChannel& realChannel,
             const FKSRegion& region,
             const double muF2
         ) const;
 
-        double leg1SoftCollinearCTScaled(
+        double leg1SoftCollinearCounterterm(
             const BBarIntegrationPoint& point,
             const RealChannel& realChannel,
             const FKSRegion& region,
             const double muF2
         ) const;
 
-        double leg2SoftCollinearCTScaled(
+        double leg2SoftCollinearCounterterm(
             const BBarIntegrationPoint& point,
             const RealChannel& realChannel,
             const FKSRegion& region,
@@ -92,6 +92,17 @@ namespace powheg_dy
         double oneMinusZTimesPqgAtOne() const;
         double oneMinusZTimesPgqAtOne() const;
         double oneMinusZTimesPggAtOne() const;
+
+        // TODO: Remove form here
+        BBarIntegrationPoint generateIntegrationPoint(
+            const BornPhSpPt& born, 
+            const BornChannel& bornChannel, 
+            const double amp2Born, 
+            const double muF2,
+            const double muR2,
+            const std::array<double, 3>& unitCube,
+            const ISRRealPhaseSpace& phaseSpace   
+        ) const;
 
         const Process& m_process;
         const Config& m_config;

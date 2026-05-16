@@ -29,6 +29,11 @@ namespace powheg_dy
 
         parser.extract("NO_EMISSIONS", m_config->NO_EMISSIONS);
         parser.extract("BTILDE_BORNONLY", m_config->BTILDE_BORNONLY);
+        parser.extract("BTILDE_USE_BORN", m_config->BTILDE_USE_BORN);
+        parser.extract("BTILDE_USE_VIRTUAL", m_config->BTILDE_USE_VIRTUAL);
+        parser.extract("BTILDE_USE_REAL", m_config->BTILDE_USE_REAL);
+        parser.extract("BTILDE_USE_COUNTERTERMS", m_config->BTILDE_USE_COUNTERTERMS);
+        parser.extract("BTILDE_USE_COLL_REMNANTS", m_config->BTILDE_USE_COLL_REMNANTS);
         
         parser.extract("ALPHA_S_FROM_PDF", m_config->ALPHA_S_FROM_PDF);
 

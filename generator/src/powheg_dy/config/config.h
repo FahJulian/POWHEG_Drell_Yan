@@ -22,6 +22,12 @@ namespace powheg_dy
         bool NO_EMISSIONS = false;
         bool BTILDE_BORNONLY = false;
 
+        bool BTILDE_USE_BORN = true;
+        bool BTILDE_USE_VIRTUAL = true;
+        bool BTILDE_USE_REAL = true;
+        bool BTILDE_USE_COUNTERTERMS = true;
+        bool BTILDE_USE_COLL_REMNANTS = true;
+
         bool ALPHA_S_FROM_PDF = false;
 
         double BORN_VETO_WEIGHT = -1.0;

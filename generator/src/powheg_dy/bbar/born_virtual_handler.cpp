@@ -8,6 +8,9 @@ namespace powheg_dy
         const BBarIntegrationPoint& point 
     ) const
     {
+        if (!m_config.BTILDE_USE_BORN)
+            return 0.0;
+
         const double fluxFactor = 1.0 / (2.0 * point.born.sHat);
         const double luminosity = point.f1Born * point.f2Born;
         
@@ -20,6 +23,9 @@ namespace powheg_dy
         const double muR2
     ) const
     {
+        if (!m_config.BTILDE_USE_VIRTUAL)
+            return 0.0;
+
         const double fluxFactor = 1.0 / (2.0 * point.born.sHat);
         const double luminosity = point.f1Born * point.f2Born;
         const double virtAmp2 = m_process.virtAmp2(point.born, point.bornChannel, point.amp2Born, muR2);

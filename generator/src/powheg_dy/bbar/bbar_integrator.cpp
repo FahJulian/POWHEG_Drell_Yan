@@ -36,7 +36,7 @@ namespace
         {
             regions.push_back({
                 .fksPartonIdx = emittedIndex,   // if this indexes real.outIDs
-                .emitter = 0,                // both ISR legs
+                .emitter = 0,                   // both ISR legs
                 .hasSoft = true,
                 .hasCollinearLeg1 = true,
                 .hasCollinearLeg2 = true,
@@ -243,32 +243,59 @@ namespace
         point.u2 = unitCube[1];
         point.u3 = unitCube[2];
 
-        point.y = -1.0 + 2.0 * point.u2;
-        point.xi = m_realPhaseSpace->xiMax(born, point.y) * point.u1;
-        point.phi = 2.0 * PI * point.u3;
-
         point.born = born;
         point.bornChannel = bornChannel;
-        point.real = m_realPhaseSpace->reconstruct(born, { point.xi, point.y, point.phi });
 
-        point.unitCubeJacobian = 4.0 * PI * point.xi / point.u1;        
+        point.alphaS = m_config.alphaS(muR2);
+        point.amp2Born = amp2Born;
 
-        point.zLeg1 = born.x1Bar + (1.0 - born.x1Bar) * point.u1;
-        point.zLeg2 = born.x2Bar + (1.0 - born.x2Bar) * point.u1;
+        /////////////////////////////// For the Collinear Remnants ///////////////////////////////
+
+        point.zLeg1CollRemn = born.x1Bar + (1.0 - born.x1Bar) * point.u1;
+        point.zLeg2CollRemn = born.x2Bar + (1.0 - born.x2Bar) * point.u1;
 
         point.f1Born = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar, muF2) / born.x1Bar; 
         point.f2Born = m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar, muF2) / born.x2Bar; 
 
-        // TODO probably these real luminosities are only for collinear remnants, not for the real part
-        point.f1RealQ = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar / point.zLeg1, muF2) / (born.x1Bar / point.zLeg1); 
-        point.f2RealQ = m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar / point.zLeg2, muF2) / (born.x2Bar / point.zLeg2); 
+        point.f1RealQ = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar / point.zLeg1CollRemn, muF2) / (born.x1Bar / point.zLeg1CollRemn); 
+        point.f2RealQ = m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar / point.zLeg2CollRemn, muF2) / (born.x2Bar / point.zLeg2CollRemn); 
 
-        point.f1RealG = m_config.PDF->xfxQ2(21, born.x1Bar / point.zLeg1, muF2) / (born.x1Bar / point.zLeg1); 
-        point.f2RealG = m_config.PDF->xfxQ2(21, born.x2Bar / point.zLeg2, muF2) / (born.x2Bar / point.zLeg2); 
+        point.f1RealG = m_config.PDF->xfxQ2(21, born.x1Bar / point.zLeg1CollRemn, muF2) / (born.x1Bar / point.zLeg1CollRemn); 
+        point.f2RealG = m_config.PDF->xfxQ2(21, born.x2Bar / point.zLeg2CollRemn, muF2) / (born.x2Bar / point.zLeg2CollRemn); 
         
-        point.alphaS = m_config.alphaS(muR2);
+        ////////////////////////////////// For the Counterterms //////////////////////////////////
+        
+        const double TINY_XI = 1.0e-6;
+        const double TINY_Y = 1.0e-6;
 
-        point.amp2Born = amp2Born;
+        double jacobian = 1.0;
+
+        point.xiTilde = (3.0 - 2.0 * point.u1) * point.u1 * point.u1;
+        point.xiTilde = point.xiTilde * (1.0 - 2.0 * TINY_XI) + TINY_XI;
+        jacobian *= 6.0 * (1.0 - point.u1) * point.u1;
+
+        point.y = 1.0 - 2.0 * point.u2;
+        jacobian *= 2.0;
+        jacobian *= 1.5 * (1.0 - point.y * point.y);
+        point.y = 1.5 * (point.y - std::pow(point.y, 3) / 3) * (1.0 - TINY_Y);
+
+        point.phi = 2.0 * PI * point.u3;
+        jacobian *= 2.0 * PI;
+
+        point.xiMax = m_realPhaseSpace->xiMax(point.born, point.y);
+        point.xiMaxLeg1 = 1.0 - point.born.x1Bar;
+        point.xiMaxLeg2 = 1.0 - point.born.x2Bar;
+
+        point.xi = point.xiTilde * point.xiMax;
+        point.xiLeg1 = point.xiTilde * point.xiMaxLeg1;
+        point.xiLeg2 = point.xiTilde * point.xiMaxLeg2;
+
+        point.real = m_realPhaseSpace->reconstruct(born, { point.xi, point.y, point.phi });
+
+        point.jacobianOverXi = jacobian * point.real.radJacobian / point.xi;
+        point.jacobianOverXiSoft = jacobian * point.born.sHat / std::pow(4.0 * PI, 3);
+        point.jacobianOverXiLeg1 = jacobian * (point.born.sHat / (1.0 - point.xiLeg1)) / std::pow(4.0 * PI, 3) / (1.0 - point.xiLeg1);
+        point.jacobianOverXiLeg2 = jacobian * (point.born.sHat / (1.0 - point.xiLeg2)) / std::pow(4.0 * PI, 3) / (1.0 - point.xiLeg2);
 
         return point;
     }

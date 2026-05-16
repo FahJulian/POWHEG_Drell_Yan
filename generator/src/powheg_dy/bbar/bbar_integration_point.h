@@ -21,10 +21,21 @@ namespace powheg_dy
         double y = 0.0;
         double phi = 0.0;
 
-        double unitCubeJacobian = 0.0;
+        double xiTilde = 0.0;
+        double xiLeg1 = 0.0;
+        double xiLeg2 = 0.0;
 
-        double zLeg1 = 0.0;
-        double zLeg2 = 0.0;
+        double xiMax = 0.0;
+        double xiMaxLeg1 = 0.0;
+        double xiMaxLeg2 = 0.0;
+
+        double jacobianOverXi = 0.0;
+        double jacobianOverXiSoft = 0.0;
+        double jacobianOverXiLeg1 = 0.0;
+        double jacobianOverXiLeg2 = 0.0;
+
+        double zLeg1CollRemn = 0.0;
+        double zLeg2CollRemn = 0.0;
 
         double f1Born = 0.0;
         double f2Born = 0.0;

@@ -10,6 +10,9 @@ namespace powheg_dy
         const double muF2
     ) const
     {
+        if (!m_config.BTILDE_USE_COLL_REMNANTS)
+            return 0.0;
+
         if (channel.leg == 1)
             return dSigmaCollinearRemnantsLeg1(point, channel.splitting, muF2);
         else if (channel.leg == 2)
@@ -25,7 +28,7 @@ namespace powheg_dy
         const double muF2
     ) const
     {
-        const double z = point.zLeg1;
+        const double z = point.zLeg1CollRemn;
         const double s = point.born.sHat / z;
         const double dzdu = 1.0 - point.born.x1Bar;
 
@@ -93,7 +96,7 @@ namespace powheg_dy
         const double muF2
     ) const
     {
-        const double z = point.zLeg2;
+        const double z = point.zLeg2CollRemn;
         const double s = point.born.sHat / z;
         const double dzdu = 1.0 - point.born.x2Bar;
 
