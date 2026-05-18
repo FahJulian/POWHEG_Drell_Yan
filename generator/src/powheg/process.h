@@ -29,8 +29,8 @@ namespace powheg
         virtual ~BaseProcess();
 
         virtual double bornAmp2(const BornPhSpPt& born, const BornChannel& bornChannel) const = 0;
-        virtual double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, const double amp2Born, const double muR2) const = 0;
-        virtual double realAmp2(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const = 0;
+        virtual double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, double amp2Born, double muR2) const = 0;
+        virtual double realAmp2(const RealPhSpPt& real, const RealChannel& realChannel, double alphaS) const = 0;
 
         virtual std::vector<BornChannel> bornChannels() const = 0;
         virtual std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const = 0;
@@ -62,10 +62,12 @@ namespace powheg
         std::unique_ptr<Config> m_config;
 
         template<typename ConfigType>
+        requires(std::derived_from<ConfigType, Config>)
         friend class Process;
     };  
 
     template<typename ConfigType>
+    requires(std::derived_from<ConfigType, Config>)
     class Process : public BaseProcess
     {
     public:

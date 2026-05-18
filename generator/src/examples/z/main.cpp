@@ -4,7 +4,7 @@ using namespace powheg;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 3)
+    if (argc != 3)
     {
         std::cerr << "Usage: " << argv[0] << " <config-filepath> <export-filepath>" << std::endl;
         return 1;
@@ -18,4 +18,6 @@ int main(int argc, char* argv[])
     process.init(configPath);
     process.run();
     process.writeToFile(exportPath);
+
+    return 0;
 }

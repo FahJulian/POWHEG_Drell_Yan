@@ -30,14 +30,12 @@ namespace
 
     Emission EmissionGenerator::generateEmission(
         const BornPhSpPt& born,
-        const BornChannel& bornChannel,
-        const double amp2Born,
-        int region
+        const BornChannel& bornChannel
     ) const
     {
-        if (region != 1)
-            powheg_assert(false);      // Only ISR Radiation is implemented
-
+        // TODO: Implement FSR with highest-bid procedure 
+        
+        const double amp2Born = m_process.bornAmp2(born, bornChannel);
         return generateISREmission(born, bornChannel, amp2Born);
     }
 

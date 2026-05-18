@@ -141,41 +141,17 @@ namespace powheg
         {   
             BornEvent bornEvent = m_bbarIntegrator->sampleAccordingtoBTilde();
 
-            if (m_config->NO_EMISSIONS)
-            {
-                Emission emission = Emission().reject();
-                RealPhSpPt real = m_realPhSp->reconstruct(bornEvent.phaseSpace, emission.rad);
+            Emission emission = m_config->NO_EMISSIONS ? Emission().reject() : 
+                m_emissionGenerator->generateEmission(bornEvent.phaseSpace, bornEvent.channel);
+            RealPhSpPt real = m_realPhSp->reconstruct(bornEvent.phaseSpace, emission.rad);
 
-                m_events.push_back({ 
-                    bornEvent.phaseSpace, 
-                    bornEvent.channel, 
-                    bornEvent.weightSign,
-                    real, 
-                    emission 
-                });
-            }
-            else
-            {
-                Emission highestPtEm = Emission().reject();
-
-                // Highest bid procedure, for Drell Yan only ISR radiation 
-                for (int region = 1; region < 2; region++)
-                {
-                    Emission emission = m_emissionGenerator->generateEmission(bornEvent.phaseSpace, bornEvent.channel, bornEvent.amp2Born, region);
-                    if (emission.kt2 > highestPtEm.kt2)
-                        highestPtEm = emission;
-                }
-                
-                RealPhSpPt real = m_realPhSp->reconstruct(bornEvent.phaseSpace, highestPtEm.rad);
-
-                m_events.push_back({ 
-                    bornEvent.phaseSpace, 
-                    bornEvent.channel, 
-                    bornEvent.weightSign,
-                    real, 
-                    highestPtEm
-                });
-            }
+            m_events.push_back({ 
+                bornEvent.phaseSpace, 
+                bornEvent.channel, 
+                bornEvent.weightSign,
+                real, 
+                emission
+            });
 
             if (m_events.size() % 1000 == 0)
                 Log::info << m_events.size() << " Events generated." << Log::endl;

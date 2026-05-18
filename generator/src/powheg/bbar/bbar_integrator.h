@@ -16,9 +16,16 @@ namespace powheg
     {
         BornPhSpPt phaseSpace;
         BornChannel channel;
-        double amp2Born;
         double absoluteWeight;
         int weightSign;
+    };
+
+    struct WeightedChannel
+    {
+        BornChannel channel;
+        double amp2Born;
+        int weightSign;
+        double absoluteWeight;
     };
 
     class BBarIntegrator
@@ -61,9 +68,8 @@ namespace powheg
 
         double bTilde(
             const BornPhSpPt& born,
-            const double amp2Born, 
-            const BornChannel& bornChannel, 
-            const std::array<double, 3>& unitCube
+            const std::array<double, 3>& unitCube,
+            std::vector<WeightedChannel>& weights
         ) const;
 
     private:

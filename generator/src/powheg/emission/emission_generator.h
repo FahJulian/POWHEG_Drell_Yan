@@ -30,9 +30,7 @@ namespace powheg
 
         Emission generateEmission(
             const BornPhSpPt& born,
-            const BornChannel& bornChannel, 
-            const double amp2Born,
-            int region
+            const BornChannel& bornChannel
         ) const;
         
     private:

@@ -12,14 +12,6 @@ namespace
     static constexpr double SECURITY_FACTOR = 2.5;
     static constexpr int MAX_TRIALS = 10000;
 
-    struct WeightedChannel
-    {
-        BornChannel channel;
-        double amp2Born;
-        int weightSign;
-        double absoluteWeight;
-    };
-
     // TODO: Generalize and move
     std::vector<FKSRegion> drellYanRegions(const BornChannel& born, const RealChannel& real)  
     {
@@ -93,30 +85,15 @@ namespace
     {
         const std::array<double, 3> unitCube = { rand(), rand(), rand() };
 
-        std::vector<BornChannel> channels = m_process.bornChannels();
-        
         std::vector<WeightedChannel> weights = {};
-        weights.reserve(channels.size());
-        
-        double totalAbsoluteWeight = 0.0;
-        for (const auto& channel : channels)
-        {
-            const double amp2Born = m_process.bornAmp2(born, channel);
+        const double totalAbsoluteWeight = bTilde(born, unitCube, weights);
 
-            const double weight = bTilde(born, amp2Born, channel, unitCube);
-            const double absoluteWeight = std::abs(weight);
-            const int sign = weight >= 0;
-
-            totalAbsoluteWeight += absoluteWeight;
-            weights.push_back({ channel, amp2Born, sign, absoluteWeight });
-        }
-
-        // Sample the parton channel by their relative contribution to dSigma
+        // Sample the parton channel by the relative contribution to dSigma
         double u = rand(0.0, totalAbsoluteWeight);
         for (const WeightedChannel& weightedChannel : weights)
         {
             if (u < weightedChannel.absoluteWeight)
-                return { born, weightedChannel.channel, weightedChannel.amp2Born, totalAbsoluteWeight, weightedChannel.weightSign };
+                return { born, weightedChannel.channel, totalAbsoluteWeight, weightedChannel.weightSign };
 
             u -= weightedChannel.absoluteWeight;
         }
@@ -149,35 +126,48 @@ namespace
 
     double BBarIntegrator::bTilde(
         const BornPhSpPt& born,
-        const double amp2Born, 
-        const BornChannel& bornChannel, 
-        const std::array<double, 3>& unitCube
+        const std::array<double, 3>& unitCube,
+        std::vector<WeightedChannel>& weights
     ) const
     {
         const double muF2 = born.sHat;
         const double muR2 = born.sHat;
 
-        const BBarIntegrationPoint point = generateIntegrationPoint(born, bornChannel, amp2Born, muF2, muR2, unitCube);
-
-        double dSigma = m_bornVirtual.dSigmaBorn(point);
-
-        if (m_config.BTILDE_BORNONLY)
-            return dSigma;
+        std::vector<BornChannel> channels = m_process.bornChannels();
+        weights.reserve(channels.size());
         
-        dSigma += m_bornVirtual.dSigmaVirtual(point, muF2, muR2);
-
-        for (const auto& realChannel : m_process.realChannels(bornChannel))
+        double totalAbsoluteWeight = 0.0;
+        for (const auto& bornChannel : channels)
         {
-            for (const auto& fksRegion : drellYanRegions(bornChannel, realChannel))
-            {
-                dSigma += m_real.dSigmaRealMinusCT(point, realChannel, fksRegion, muF2);
+            const double amp2Born = m_process.bornAmp2(born, bornChannel);
+            const BBarIntegrationPoint point = generateIntegrationPoint(born, bornChannel, amp2Born, muF2, muR2, unitCube);
 
-                for (const auto& collinearChannel : remnantChannelsFromRegion(bornChannel, realChannel, fksRegion))
-                    dSigma += m_collRemn.dSigmaCollinearRemnants(point, collinearChannel, muF2);
+            double dSigma = m_bornVirtual.dSigmaBorn(point);
+
+            if (!m_config.BTILDE_BORNONLY)
+            {
+                dSigma += m_bornVirtual.dSigmaVirtual(point, muF2, muR2);
+
+                for (const auto& realChannel : m_process.realChannels(bornChannel))
+                {
+                    for (const auto& fksRegion : drellYanRegions(bornChannel, realChannel))
+                    {
+                        dSigma += m_real.dSigmaRealMinusCT(point, realChannel, fksRegion, muF2);
+
+                        for (const auto& collinearChannel : remnantChannelsFromRegion(bornChannel, realChannel, fksRegion))
+                            dSigma += m_collRemn.dSigmaCollinearRemnants(point, collinearChannel, muF2);
+                    }
+                }
             }
+
+            const double absoluteWeight = std::abs(dSigma);
+            const int sign = dSigma >= 0;
+
+            totalAbsoluteWeight += absoluteWeight;
+            weights.push_back({ bornChannel, amp2Born, sign, absoluteWeight });
         }
 
-        return dSigma;
+        return totalAbsoluteWeight;
     }
 
     void BBarIntegrator::determineMaxWeight()
