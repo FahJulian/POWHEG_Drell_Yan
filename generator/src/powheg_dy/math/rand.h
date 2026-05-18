@@ -2,7 +2,7 @@
 
 #include "powheg_dy/base.h"
 
-namespace powheg_dy
+namespace powheg
 {
     double rand();
     double rand(double min, double max);

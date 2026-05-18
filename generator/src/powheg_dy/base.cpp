@@ -1,6 +1,6 @@
 #include "base.h"
 
-namespace powheg_dy
+namespace powheg
 {
     const Log Log::info = ("\033[32m[INFO]    ");
     const Log Log::warn = ("\033[33m[WARNING] ");
@@ -22,4 +22,4 @@ namespace powheg_dy
         return duration.count();
     }
 
-} // namespace powheg_dy
+} // namespace powheg

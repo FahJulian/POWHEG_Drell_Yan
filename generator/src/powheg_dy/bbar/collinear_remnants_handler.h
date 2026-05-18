@@ -5,14 +5,14 @@
 #include "powheg_dy/bbar/bbar_integration_point.h"
 #include "powheg_dy/bbar/collinear_remnant_channel.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process;
+    class BaseProcess;
 
     class CollinearRemnantsHandler
     {
     public:
-        CollinearRemnantsHandler(const Process& process, 
+        CollinearRemnantsHandler(const BaseProcess& process, 
             const Config& config)
             : m_process(process), 
                 m_config(config)
@@ -49,7 +49,7 @@ namespace powheg_dy
         double derivativePgg(const double z) const;
     
     private:
-        const Process& m_process;
+        const BaseProcess& m_process;
         const Config& m_config;
     };
     

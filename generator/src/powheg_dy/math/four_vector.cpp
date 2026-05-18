@@ -1,6 +1,6 @@
 #include "four_vector.h"
 
-namespace powheg_dy
+namespace powheg
 {
     FourVector operator+(const FourVector& v1, const FourVector& v2)
     {

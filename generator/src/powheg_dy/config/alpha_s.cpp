@@ -2,7 +2,7 @@
 
 #include "powheg_dy/config/config.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {

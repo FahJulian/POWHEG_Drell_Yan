@@ -1,6 +1,6 @@
 #include "drell_yan.h"
 
-using namespace powheg_dy;
+using namespace powheg;
 
 int main(int argc, char* argv[])
 {

@@ -1,6 +1,6 @@
 #include "bra_ket.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {

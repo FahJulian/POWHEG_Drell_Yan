@@ -1,6 +1,6 @@
 #include "drell_yan.h"
 
-namespace powheg_dy
+namespace powheg
 {
     std::vector<BornChannel> DrellYanProcess::bornChannels() const
     {
@@ -30,4 +30,4 @@ namespace powheg_dy
         };
     }
 
-} // namespace powheg_dy
+} // namespace powheg

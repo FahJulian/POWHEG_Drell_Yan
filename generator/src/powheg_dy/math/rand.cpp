@@ -1,6 +1,6 @@
 #include "rand.h"
 
-namespace powheg_dy
+namespace powheg
 {
     double rand()
     {

@@ -8,9 +8,9 @@
 #include "powheg_dy/bbar/collinear_remnants_handler.h"
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process;
+    class BaseProcess;
 
     struct BornEvent
     {
@@ -24,7 +24,7 @@ namespace powheg_dy
     class BBarIntegrator
     {
     public: 
-        BBarIntegrator(const Process& process, 
+        BBarIntegrator(const BaseProcess& process, 
             const Config& config, 
             std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
             : m_process(process), 
@@ -67,7 +67,7 @@ namespace powheg_dy
         ) const;
 
     private:
-        const Process& m_process;
+        const BaseProcess& m_process;
         const Config& m_config;
         std::shared_ptr<ISRRealPhaseSpace> m_realPhaseSpace;
         

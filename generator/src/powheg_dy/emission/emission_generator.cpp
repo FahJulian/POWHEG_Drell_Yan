@@ -3,7 +3,7 @@
 #include "powheg_dy/process.h"
 #include "powheg_dy/math/rand.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {
@@ -108,7 +108,7 @@ namespace
             const double lumReal = m_config.PDF->xfxQ2(realChannel.id1, real.x1, muF2) / real.x1
                 * m_config.PDF->xfxQ2(realChannel.id2, real.x2, muF2) / real.x2;
 
-            const double realAmp2 = m_process.realAmp2(real, bornChannel, realChannel, m_config.alphaSCMW(muR2));
+            const double realAmp2 = m_process.realAmp2(real, realChannel, m_config.alphaSCMW(muR2));
             const double realOverBornPartonic = real.radJacobian * born.sHat / real.sHatReal * realAmp2 / amp2Born;
             const double realOverBorn = lumReal / lumBorn * realOverBornPartonic;
 

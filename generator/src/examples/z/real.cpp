@@ -3,7 +3,7 @@
 #include "powheg_dy/config/config.h"
 #include "powheg_dy/math/bra_ket.h"
 
-namespace powheg_dy
+namespace powheg
 {
     double DrellYanProcess::realAmp2_crossed(
         const int flavour,
@@ -69,13 +69,13 @@ namespace powheg_dy
         return amp2 * m_config.E_SQ * m_config.E_SQ * gs2 * colorFactor / 4.0 / m_config.N_C;
     }
 
-    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const
+    double DrellYanProcess::realAmp2qqbar(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
 
-        if (bornChannel.id1 > 0)
+        if (realChannel.id1 > 0)            // Quark on leg 1
         {
             qSlot     = real.p1In;
             qbarSlot  = real.p2In;
@@ -89,7 +89,7 @@ namespace powheg_dy
         }
 
         return realAmp2_crossed(
-            std::abs(bornChannel.id1),
+            std::abs(realChannel.id1),
             qSlot,
             qbarSlot,
             gluonSlot,
@@ -100,13 +100,13 @@ namespace powheg_dy
         );
     }
 
-    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const
+    double DrellYanProcess::realAmp2gluonLeg1(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
 
-        if (bornChannel.id1 > 0)
+        if (realChannel.id2 < 0)            // Quark on born leg 1
         {
             qSlot     = -real.pOut[2];
             qbarSlot  =  real.p2In;
@@ -120,7 +120,7 @@ namespace powheg_dy
         }
 
         return realAmp2_crossed(
-            std::abs(bornChannel.id1),
+            std::abs(realChannel.id2),
             qSlot,
             qbarSlot,
             gluonSlot,
@@ -131,13 +131,13 @@ namespace powheg_dy
         );
     }
 
-    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const
+    double DrellYanProcess::realAmp2gluonLeg2(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const
     {
         FourVector qSlot;
         FourVector qbarSlot;
         FourVector gluonSlot;
 
-        if (bornChannel.id1 > 0)
+        if (realChannel.id1 > 0)            // Quark on leg 1
         {
             qSlot     =  real.p1In;
             qbarSlot  = -real.pOut[2];
@@ -151,7 +151,7 @@ namespace powheg_dy
         }
 
         return realAmp2_crossed(
-            std::abs(bornChannel.id1),
+            std::abs(realChannel.id1),
             qSlot,
             qbarSlot,
             gluonSlot,
@@ -164,20 +164,19 @@ namespace powheg_dy
     
     double DrellYanProcess::realAmp2(
         const RealPhSpPt& real, 
-        const BornChannel& bornChannel,
         const RealChannel& realChannel, 
         const double alphaS) const 
     {
         if (std::abs(realChannel.id1) <= 5 && realChannel.id1 == -realChannel.id2 && realChannel.outIDs[2] == 21)
-            return realAmp2qqbar(real, bornChannel, alphaS);
+            return realAmp2qqbar(real, realChannel, alphaS);
         else if (realChannel.id1 == 21 && std::abs(realChannel.id2) <= 5)
-            return realAmp2gluonLeg1(real, bornChannel, alphaS);
+            return realAmp2gluonLeg1(real, realChannel, alphaS);
         else if (realChannel.id2 == 21 && std::abs(realChannel.id1) <= 5)
-            return realAmp2gluonLeg2(real, bornChannel, alphaS);
+            return realAmp2gluonLeg2(real, realChannel, alphaS);
         else
             throw std::runtime_error("Invalid real channel");
 
         return 0.0;
     }
 
-} // namespace powheg_dy
+} // namespace powheg

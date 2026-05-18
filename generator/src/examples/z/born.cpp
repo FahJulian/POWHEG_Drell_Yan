@@ -2,7 +2,7 @@
 
 #include "powheg_dy/math/bra_ket.h"
 
-namespace powheg_dy
+namespace powheg
 {
     double DrellYanProcess::bornAmp2(
         const int flavour,
@@ -66,4 +66,4 @@ namespace powheg_dy
         );
     }
 
-} // namespace powheg_dy
+} // namespace powheg

@@ -2,7 +2,7 @@
 
 #include "powheg_dy/process.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace
 {
@@ -71,7 +71,7 @@ namespace
         const double muF2
     ) const
     {
-        const double amp2 = m_process.realAmp2(point.real, point.bornChannel, realChannel, point.alphaS);
+        const double amp2 = m_process.realAmp2(point.real, realChannel, point.alphaS);
         const double fluxFactor = 1 / (2.0 * point.real.sHatReal);
 
         const double f1 = m_config.PDF->xfxQ2(realChannel.id1, point.real.x1, muF2) / point.real.x1;

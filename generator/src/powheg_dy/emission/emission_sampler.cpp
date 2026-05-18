@@ -5,7 +5,7 @@
 #include <boost/math/tools/roots.hpp>
 #include <boost/math/tools/toms748_solve.hpp>
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {

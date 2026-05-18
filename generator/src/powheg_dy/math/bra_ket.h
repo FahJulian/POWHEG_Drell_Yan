@@ -3,7 +3,7 @@
 #include "powheg_dy/base.h"
 #include "powheg_dy/math/four_vector.h"
 
-namespace powheg_dy
+namespace powheg
 {
     struct FourVectorC
     {

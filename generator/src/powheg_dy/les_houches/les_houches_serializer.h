@@ -4,14 +4,14 @@
 #include "powheg_dy/event.h"
 #include "powheg_dy/config/config.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process; 
+    class BaseProcess; 
 
     class LesHouchesSerializer
     {
     public:
-        LesHouchesSerializer(const Process& process, const Config& config)
+        LesHouchesSerializer(const BaseProcess& process, const Config& config)
             : m_process(process), m_config(config)
         {
         }
@@ -27,7 +27,7 @@ namespace powheg_dy
         void writeEventGluonLeg2(const Event& event, std::ostream& content) const;
 
     private:
-        const Process& m_process;
+        const BaseProcess& m_process;
         const Config& m_config;
     };
 

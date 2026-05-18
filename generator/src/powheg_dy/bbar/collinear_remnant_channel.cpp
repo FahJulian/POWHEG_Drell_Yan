@@ -1,6 +1,6 @@
 #include "collinear_remnant_channel.h"
 
-namespace powheg_dy
+namespace powheg
 {
     std::vector<CollinearRemnantChannel> remnantChannelsFromRegion(
         const BornChannel& born,

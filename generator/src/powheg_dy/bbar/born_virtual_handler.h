@@ -4,14 +4,14 @@
 #include "powheg_dy/config/config.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process;
+    class BaseProcess;
 
     class BornVirtualHandler
     {
     public:
-        BornVirtualHandler(const Process& process, 
+        BornVirtualHandler(const BaseProcess& process, 
             const Config& config)
             : m_process(process), 
                 m_config(config)
@@ -29,7 +29,7 @@ namespace powheg_dy
         ) const;
 
     private:
-        const Process& m_process;
+        const BaseProcess& m_process;
         const Config& m_config;
     };
     

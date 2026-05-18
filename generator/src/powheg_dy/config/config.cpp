@@ -3,7 +3,7 @@
 #include "powheg_dy/base.h"
 #include "powheg_dy/config/alpha_s.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {

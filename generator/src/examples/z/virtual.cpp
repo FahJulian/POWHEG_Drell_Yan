@@ -1,6 +1,6 @@
 #include "drell_yan.h"
 
-namespace powheg_dy
+namespace powheg
 {
     double DrellYanProcess::virtAmp2(
         const BornPhSpPt& born,

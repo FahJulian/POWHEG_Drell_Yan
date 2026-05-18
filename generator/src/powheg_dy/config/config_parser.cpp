@@ -1,6 +1,6 @@
 #include "config_parser.h"
 
-namespace powheg_dy
+namespace powheg
 {
     void ConfigParser::close()
     {

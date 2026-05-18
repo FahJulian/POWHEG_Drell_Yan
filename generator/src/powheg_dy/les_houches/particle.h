@@ -1,6 +1,6 @@
 #pragma once
 
-namespace powheg_dy
+namespace powheg
 {
     struct Particle
     {

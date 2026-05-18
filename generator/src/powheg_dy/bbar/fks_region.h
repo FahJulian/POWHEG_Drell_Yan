@@ -4,7 +4,7 @@
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
 
-namespace powheg_dy
+namespace powheg
 {
     struct FKSRegion
     {

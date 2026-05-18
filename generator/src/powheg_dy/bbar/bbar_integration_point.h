@@ -4,7 +4,7 @@
 #include "powheg_dy/phase_space/real_phase_space.h"
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 
-namespace powheg_dy
+namespace powheg
 {
     // TODO: Split into CollRemnIntPoint and RealIntPoint
     struct BBarIntegrationPoint

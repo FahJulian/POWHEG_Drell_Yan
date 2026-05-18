@@ -7,9 +7,9 @@
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 #include "powheg_dy/phase_space/real_phase_space.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process;
+    class BaseProcess;
 
     struct RealOverBornContributions
     {
@@ -20,7 +20,7 @@ namespace powheg_dy
     class EmissionGenerator
     {
     public:
-        EmissionGenerator(const Process& process, const Config& config, std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
+        EmissionGenerator(const BaseProcess& process, const Config& config, std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
             : m_process(process),
               m_config(config),
               m_sampler(config, realPhaseSpace),
@@ -52,7 +52,7 @@ namespace powheg_dy
         ) const;
         
     private:
-        const Process& m_process;
+        const BaseProcess& m_process;
         const Config& m_config;
         const EmissionSampler m_sampler;
         std::shared_ptr<ISRRealPhaseSpace> m_realPhaseSpace;

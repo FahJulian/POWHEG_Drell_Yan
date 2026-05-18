@@ -2,7 +2,7 @@
 
 #include "powheg_dy/process.h"
 
-namespace powheg_dy
+namespace powheg
 {
     double CollinearRemnantsHandler::dSigmaCollinearRemnants(
         const BBarIntegrationPoint& point,

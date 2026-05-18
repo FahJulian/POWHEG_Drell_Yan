@@ -2,7 +2,7 @@
 
 #include "powheg_dy/config/config.h"
 
-namespace powheg_dy
+namespace powheg
 {
     struct ZHelicityCouplings
     {
@@ -45,4 +45,4 @@ namespace powheg_dy
         ZHelicityCouplings zCouplings(const bool upType, const double charge) const;
     };
 
-} // namespace powheg_dy
+} // namespace powheg

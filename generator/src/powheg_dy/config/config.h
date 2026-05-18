@@ -2,7 +2,7 @@
 
 #include "powheg_dy/base.h"
 
-namespace powheg_dy
+namespace powheg
 {
     struct Config
     {
@@ -63,7 +63,7 @@ namespace powheg_dy
         void setDependentParams();
         void extractLambdaFromPdf();
 
-        friend class Process;
+        friend class BaseProcess;
     };
 
 

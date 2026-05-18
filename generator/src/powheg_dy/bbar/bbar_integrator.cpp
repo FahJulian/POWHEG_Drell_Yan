@@ -4,7 +4,7 @@
 #include "powheg_dy/math/rand.h"
 #include "powheg_dy/bbar/collinear_remnant_channel.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {

@@ -9,27 +9,28 @@
 #include "powheg_dy/phase_space/real_phase_space.h"
 #include "powheg_dy/phase_space/born_phase_space_point.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process
+    class BaseProcess
     {
-    protected:
-        explicit Process(std::unique_ptr<Config> config)
+    private:
+        explicit BaseProcess(std::unique_ptr<Config> config)
             : m_config(std::move(config))
         {
         }
-        
-        virtual void initConfig(ConfigParser& parser) const = 0;
 
         template<typename ConfigType>
         ConfigType& getConfig() { return static_cast<ConfigType&>(*m_config); }
+        
+    protected:
+        virtual void initConfig(ConfigParser& parser) const = 0;
 
     public:
-        ~Process();
+        virtual ~BaseProcess();
 
         virtual double bornAmp2(const BornPhSpPt& born, const BornChannel& bornChannel) const = 0;
         virtual double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, const double amp2Born, const double muR2) const = 0;
-        virtual double realAmp2(const RealPhSpPt& real, const BornChannel& bornChannel, const RealChannel& realChannel, const double alphaS) const = 0;
+        virtual double realAmp2(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const = 0;
 
         virtual std::vector<BornChannel> bornChannels() const = 0;
         virtual std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const = 0;
@@ -59,6 +60,23 @@ namespace powheg_dy
 
     protected:
         std::unique_ptr<Config> m_config;
+
+        template<typename ConfigType>
+        friend class Process;
     };  
+
+    template<typename ConfigType>
+    class Process : public BaseProcess
+    {
+    public:
+        Process()
+            : BaseProcess(std::make_unique<ConfigType>()),
+            m_config(getConfig<ConfigType>())
+        {
+        }
+    
+    protected:
+        ConfigType& m_config;
+    };
 
 } // namespace powheg_dy

@@ -37,7 +37,7 @@
 #define GET_MACRO(_1, _2, name, ...) name
 #define powheg_assert(...) GET_MACRO(__VA_ARGS__, powheg_assert2, powheg_assert1)(__VA_ARGS__) 
 
-namespace powheg_dy
+namespace powheg
 {
     class Log
     {

@@ -5,14 +5,14 @@
 #include "powheg_dy/bbar/fks_region.h"
 #include "powheg_dy/bbar/bbar_integration_point.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class Process;
+    class BaseProcess;
     
     class RealMinusCTHandler
     {
     public:
-        RealMinusCTHandler(const Process& process, 
+        RealMinusCTHandler(const BaseProcess& process, 
             const Config& config)
             : m_process(process), 
                 m_config(config)
@@ -75,7 +75,7 @@ namespace powheg_dy
         double oneMinusZTimesPgqAtOne() const;
         double oneMinusZTimesPggAtOne() const;
 
-        const Process& m_process;
+        const BaseProcess& m_process;
         const Config& m_config;
     };
     

@@ -2,7 +2,7 @@
 
 #include "powheg_dy/math/rand.h"
 
-namespace powheg_dy
+namespace powheg
 {
     BornPhSpPt DrellYanProcess::sampleBorn() const
     {
@@ -120,4 +120,4 @@ namespace powheg_dy
         return { phi, jacobianPhi };
     }
 
-} // namespace powheg_dy
+} // namespace powheg

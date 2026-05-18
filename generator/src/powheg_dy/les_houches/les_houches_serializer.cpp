@@ -3,7 +3,7 @@
 #include "powheg_dy/event.h"
 #include "powheg_dy/process.h"
 
-namespace powheg_dy
+namespace powheg
 {
 namespace 
 {

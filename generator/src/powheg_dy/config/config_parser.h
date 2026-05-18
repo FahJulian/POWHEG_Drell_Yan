@@ -3,7 +3,7 @@
 #include "powheg_dy/base.h"
 #include "powheg_dy/config/config.h"
 
-namespace powheg_dy
+namespace powheg
 {
     class ConfigParser
     {
@@ -37,7 +37,7 @@ namespace powheg_dy
         std::string m_filePath;
         std::unordered_map<std::string, std::string> m_params;
         
-        friend class Process;
+        friend class BaseProcess;
     }; 
 
 } // namespace powheg_dy

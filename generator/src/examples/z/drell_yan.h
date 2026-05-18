@@ -3,22 +3,17 @@
 #include "config.h"
 #include "powheg_dy/process.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    class DrellYanProcess : public Process
+    class DrellYanProcess : public Process<DrellYanConfig>
     {
-    public:
-        DrellYanProcess()
-            : Process(std::make_unique<DrellYanConfig>()),
-            m_config(getConfig<DrellYanConfig>())
-        {
-        }
-
+    private:
         void initConfig(ConfigParser& parser) const override;
 
+    public:
         double bornAmp2(const BornPhSpPt& born, const BornChannel& bornChannel) const override;
         double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, const double amp2Born, const double muR2) const override;
-        double realAmp2(const RealPhSpPt& real, const BornChannel& bornChannel, const RealChannel& realChannel, const double alphaS) const override;
+        double realAmp2(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const override;
 
         std::vector<BornChannel> bornChannels() const override;
         std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const override;
@@ -45,17 +40,14 @@ namespace powheg_dy
             const double colorFactor
         ) const;
 
-        double realAmp2qqbar(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const;
-        double realAmp2gluonLeg1(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const;
-        double realAmp2gluonLeg2(const RealPhSpPt& real, const BornChannel& bornChannel, const double alphaS) const;
+        double realAmp2qqbar(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const;
+        double realAmp2gluonLeg1(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const;
+        double realAmp2gluonLeg2(const RealPhSpPt& real, const RealChannel& realChannel, const double alphaS) const;
 
         std::pair<double, double> sampleMSq() const;
         std::pair<double, double> sampleYBoson(const double sHat) const;
         std::pair<double, double> sampleCosTh() const;
         std::pair<double, double> samplePhi() const;
-    
-    private:
-        DrellYanConfig& m_config;
     };
 
-} // namespace powheg_dy
+} // namespace powheg

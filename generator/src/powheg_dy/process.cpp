@@ -3,16 +3,16 @@
 #include "powheg_dy/emission/emission.h"
 #include "powheg_dy/les_houches/les_houches_serializer.h"
 
-namespace powheg_dy
+namespace powheg
 {
-    Process::~Process()
+    BaseProcess::~BaseProcess()
     {
         LHAPDF::setVerbosity(0);
         Log::info("Using LHAPDF. Please make sure to cite the paper:");
         Log::info("Eur.Phys.J. C75 (2015) 3, 132  (http://arxiv.org/abs/1412.7420)");
     }
 
-    void Process::initBaseConfig(ConfigParser& parser)
+    void BaseProcess::initBaseConfig(ConfigParser& parser)
     {
         powheg_assert(parser.extract("SQRT_S", m_config->SQRT_S), "No value for SQRT_S found.");
         powheg_assert(parser.extract("PT_SQ_CUTOFF", m_config->PT_SQ_CUTOFF), "No value for PT_SQ_CUTOFF found.");
@@ -50,7 +50,7 @@ namespace powheg_dy
         m_config->CMW_BOTTOM_TRSHLD_SQ = m_config->CMW_BOTTOM_TRSHLD * m_config->CMW_BOTTOM_TRSHLD;
     }
     
-    void Process::init(const std::string& configPath)
+    void BaseProcess::init(const std::string& configPath)
     {
         Timer::init();
 
@@ -87,7 +87,7 @@ namespace powheg_dy
         m_initialized = true;
     }
 
-    void Process::run()
+    void BaseProcess::run()
     {
         if (!m_initialized)
         {
@@ -110,7 +110,7 @@ namespace powheg_dy
         }
     }
 
-    void Process::writeToFile(const std::string& filePath) const
+    void BaseProcess::writeToFile(const std::string& filePath) const
     {
         if (!m_initialized)
         {
@@ -123,14 +123,14 @@ namespace powheg_dy
         Log::info << "Done generating LHE file" << Log::endl << Log::endl;
     }
 
-    void Process::clear()
+    void BaseProcess::clear()
     {
         m_events.clear();
         m_events.reserve(m_config->N_ACCEPTED_EVENTS);
         m_bbarIntegrator->clear();
     }
 
-    void Process::generateEvents()  
+    void BaseProcess::generateEvents()  
     {
         m_bbarIntegrator->determineMaxWeight();
 
@@ -185,7 +185,7 @@ namespace powheg_dy
         Log::info << "Event generation done." << Log::endl << Log::endl;
     }
 
-    void Process::analyse()
+    void BaseProcess::analyse()
     {   
         if (!m_config->NO_EMISSIONS)
         {

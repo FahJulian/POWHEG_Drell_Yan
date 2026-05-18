@@ -1,6 +1,6 @@
 #include "drell_yan.h"
 
-namespace powheg_dy
+namespace powheg
 {
     void DrellYanProcess::initConfig(ConfigParser& parser) const
     {
@@ -50,4 +50,4 @@ namespace powheg_dy
         return 1.0 / std::complex<double>(q2 - M_Z_SQ, M_Z * GAMMA_Z);
     }
     
-} // namespace powheg_dy
+} // namespace powheg
