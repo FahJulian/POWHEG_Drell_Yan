@@ -1,6 +1,7 @@
 #pragma once
 
 #include "powheg/base.h"
+#include "powheg/flavour/real_channel.h"
 #include "powheg/phase_space/real_phase_space.h"
 
 namespace powheg

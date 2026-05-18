@@ -23,10 +23,9 @@ namespace powheg
         bool BTILDE_BORNONLY = false;
 
         bool BTILDE_USE_BORN = true;
-        bool BTILDE_USE_VIRTUAL = true;
+        bool BTILDE_USE_VIRT = true;
         bool BTILDE_USE_REAL = true;
-        bool BTILDE_USE_COUNTERTERMS = true;
-        bool BTILDE_USE_COLL_REMNANTS = true;
+        bool BTILDE_USE_COLL = true;
 
         bool ALPHA_S_FROM_PDF = false;
 

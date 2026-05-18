@@ -2,7 +2,8 @@
 
 #include "powheg/base.h"
 #include "powheg/config/config.h"
-#include "powheg/bbar/bbar_integration_point.h"
+#include "powheg/bbar/bbar_cache.h"
+#include "powheg/flavour/fks_region.h"
 #include "powheg/bbar/collinear_remnant_channel.h"
 
 namespace powheg
@@ -20,22 +21,23 @@ namespace powheg
         }
 
         double dSigmaCollinearRemnants(
-            const BBarIntegrationPoint& point,
-            const CollinearRemnantChannel& channel,
-            const double muF2
+            const BBarCache& cache,
+            size_t channelIdx
         ) const;
         
     private:
         double dSigmaCollinearRemnantsLeg1(
-            const BBarIntegrationPoint& point,
-            const CollinearRemnantSplitting& splitting,
-            const double muF2
+            const ISRSplitting& splitting,
+            const BBarCache& cache, 
+            size_t channelIdx,
+            size_t realChannelIdx
         ) const;
 
         double dSigmaCollinearRemnantsLeg2(
-            const BBarIntegrationPoint& point,
-            const CollinearRemnantSplitting& splitting,
-            const double muF2
+            const ISRSplitting& splitting,
+            const BBarCache& cache, 
+            size_t channelIdx,
+            size_t realChannelIdx
         ) const;
         
         double oneMinusZTimesPqq(const double z) const;

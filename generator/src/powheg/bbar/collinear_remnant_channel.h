@@ -2,8 +2,8 @@
 
 #include "powheg/base.h"
 #include "powheg/bbar/fks_region.h"
-#include "powheg/phase_space/born_phase_space_point.h"
 #include "powheg/phase_space/real_phase_space.h"
+#include "powheg/phase_space/born_phase_space_point.h"
 
 namespace powheg
 {
@@ -57,7 +57,7 @@ namespace powheg
     std::vector<CollinearRemnantChannel> remnantChannelsFromRegion(
         const BornChannel& born,
         const RealChannel& real,
-        const FKSRegion& region
+        const FKSRegionOld& region
     );
 
 } // namespace powheg

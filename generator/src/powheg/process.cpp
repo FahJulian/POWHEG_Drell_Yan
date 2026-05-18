@@ -28,12 +28,23 @@ namespace powheg
             Log::info("Both N_TRIAL_EVENTS and BORN_VETO_WEIGHT found. Ignoring N_TRIAL_EVENTS");
 
         parser.extract("NO_EMISSIONS", m_config->NO_EMISSIONS);
-        parser.extract("BTILDE_BORNONLY", m_config->BTILDE_BORNONLY);
-        parser.extract("BTILDE_USE_BORN", m_config->BTILDE_USE_BORN);
-        parser.extract("BTILDE_USE_VIRTUAL", m_config->BTILDE_USE_VIRTUAL);
-        parser.extract("BTILDE_USE_REAL", m_config->BTILDE_USE_REAL);
-        parser.extract("BTILDE_USE_COUNTERTERMS", m_config->BTILDE_USE_COUNTERTERMS);
-        parser.extract("BTILDE_USE_COLL_REMNANTS", m_config->BTILDE_USE_COLL_REMNANTS);
+        const bool useBorn = parser.extract("BTILDE_USE_BORN", m_config->BTILDE_USE_BORN);
+        const bool useVirt = parser.extract("BTILDE_USE_VIRT", m_config->BTILDE_USE_VIRT);
+        const bool useReal = parser.extract("BTILDE_USE_REAL", m_config->BTILDE_USE_REAL);
+        const bool useColl = parser.extract("BTILDE_USE_COLL", m_config->BTILDE_USE_COLL);
+
+        if (parser.extract("BTILDE_BORNONLY", m_config->BTILDE_BORNONLY); m_config->BTILDE_BORNONLY)
+        {
+            if (useBorn && !m_config->BTILDE_USE_BORN) Log::warn("BTILDE_BORNONLY overwrite BTILDE_USE_BORN");
+            if (useVirt && m_config->BTILDE_USE_VIRT) Log::warn("BTILDE_BORNONLY overwrite BTILDE_USE_VIRT");
+            if (useReal && m_config->BTILDE_USE_REAL) Log::warn("BTILDE_BORNONLY overwrite BTILDE_USE_REAL");
+            if (useColl && m_config->BTILDE_USE_COLL) Log::warn("BTILDE_BORNONLY overwrite BTILDE_USE_COLL");
+
+            m_config->BTILDE_USE_BORN = true;
+            m_config->BTILDE_USE_VIRT = false;
+            m_config->BTILDE_USE_REAL = false;
+            m_config->BTILDE_USE_COLL = false;
+        }
         
         parser.extract("ALPHA_S_FROM_PDF", m_config->ALPHA_S_FROM_PDF);
 
@@ -80,8 +91,10 @@ namespace powheg
 
         m_realPhSp = std::make_shared<ISRRealPhaseSpace>(*m_config);
         m_emissionGenerator = std::make_shared<EmissionGenerator>(*this, *m_config, m_realPhSp);
-        m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, *m_config, m_realPhSp);
+        m_bbarIntegrator = std::make_shared<BBarIntegrator>(*this, *m_config, *m_realPhSp);
 
+        m_channels = findChannels(bornChannels(), realChannels());
+        
         Log::info << "Intitialization complete" << Log::endl << Log::endl;
         
         m_initialized = true;

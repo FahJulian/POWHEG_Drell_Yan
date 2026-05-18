@@ -5,12 +5,28 @@
 
 namespace powheg
 {
-    std::vector<FKSRegion> findSingularRegions(
+    std::vector<ISRSingularRegion> findISRSingularRegions(
         const BornChannel& born,
         const RealChannel& real
     )
     {
-        throw std::runtime_error("Not yet implemented.");
+        std::vector<ISRSingularRegion> regions;
+
+        // for (int outID : real.outIDs)
+        // {
+        //     if (outID == 21)
+        //     {
+        //         if (real.id1)
+        //     }
+        // }
+    }
+
+    std::vector<FSRSingularRegion> findFSRSingularRegions(
+        const BornChannel& born,
+        const RealChannel& real
+    )
+    {
+        // TODO: Implement
         return { };
     }
 

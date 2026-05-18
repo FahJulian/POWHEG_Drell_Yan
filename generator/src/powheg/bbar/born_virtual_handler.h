@@ -2,7 +2,7 @@
 
 #include "powheg/base.h"
 #include "powheg/config/config.h"
-#include "powheg/bbar/bbar_integration_point.h"
+#include "powheg/bbar/bbar_cache.h"
 
 namespace powheg
 {
@@ -19,13 +19,13 @@ namespace powheg
         }
 
         double dSigmaBorn(
-            const BBarIntegrationPoint& point
+            const BBarCache& cache,
+            size_t channelIdx
         ) const;
         
         double dSigmaVirtual(
-            const BBarIntegrationPoint& point, 
-            const double muF2,
-            const double muR2
+            const BBarCache& cache,
+            size_t channelIdx
         ) const;
 
     private:

@@ -14,7 +14,8 @@ namespace powheg
         double realAmp2(const RealPhSpPt& real, const RealChannel& realChannel, double alphaS) const override;
 
         std::vector<BornChannel> bornChannels() const override;
-        std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const override;
+        std::vector<RealChannel> realChannels() const override;
+        std::vector<RealChannel> realChannelsOld(const BornChannel& bornChannel) const override;
 
         BornPhSpPt sampleBorn() const override;
 

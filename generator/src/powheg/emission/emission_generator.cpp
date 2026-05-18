@@ -101,7 +101,7 @@ namespace
         const double lumBorn = m_config.PDF->xfxQ2(bornChannel.id1, born.x1Bar, muF2) / born.x1Bar
             * m_config.PDF->xfxQ2(bornChannel.id2, born.x2Bar, muF2) / born.x2Bar;
 
-        for (const auto& realChannel: m_process.realChannels(bornChannel))
+        for (const auto& realChannel: m_process.realChannelsOld(bornChannel))
         {
             const double lumReal = m_config.PDF->xfxQ2(realChannel.id1, real.x1, muF2) / real.x1
                 * m_config.PDF->xfxQ2(realChannel.id2, real.x2, muF2) / real.x2;

@@ -2,8 +2,8 @@
 
 #include "powheg/base.h"
 #include "powheg/config/config.h"
-#include "powheg/bbar/fks_region.h"
-#include "powheg/bbar/bbar_integration_point.h"
+#include "powheg/bbar/bbar_cache.h"
+#include "powheg/flavour/fks_region.h"
 
 namespace powheg
 {
@@ -12,57 +12,63 @@ namespace powheg
     class RealMinusCTHandler
     {
     public:
-        RealMinusCTHandler(const BaseProcess& process, 
-            const Config& config)
+        RealMinusCTHandler(
+            const BaseProcess& process, 
+            const Config& config, 
+            const ISRRealPhaseSpace& realPhaseSpace)
             : m_process(process), 
-                m_config(config)
+                m_config(config),
+                m_realPhaseSpace(realPhaseSpace)
         {
         }
 
         double dSigmaRealMinusCT(
-            const BBarIntegrationPoint& point,
-            const RealChannel& realChannel,
-            const FKSRegion& region,
-            const double muF2
+            const BBarCache& cache,
+            size_t channelIdx
         ) const;
 
     private:
         double dSigmaReal(
-            const BBarIntegrationPoint& point,
+            const BBarCacheOld& cache,
             const RealChannel& realChannel,
             const double muF2
         ) const;
 
         double softCounterterm(
-            const BBarIntegrationPoint& point,
-            const RealChannel& realChannel,
+            const BBarCache& cache,
+            size_t channelIdx,
             const FKSRegion& region
         ) const;
 
         double leg1CollinearCounterterm(
-            const BBarIntegrationPoint& point,
-            const RealChannel& realChannel,
-            const FKSRegion& region,
-            const double muF2
+            const BBarCache& cache,
+            size_t channelIdx,
+            size_t realChannelIdx,
+            const FKSRegion& region
         ) const;
 
         double leg2CollinearCounterterm(
-            const BBarIntegrationPoint& point,
-            const RealChannel& realChannel,
-            const FKSRegion& region,
-            const double muF2
+            const BBarCache& cache,
+            size_t channelIdx,
+            size_t realChannelIdx,
+            const FKSRegion& region
         ) const;
 
         double leg1SoftCollinearCounterterm(
-            const BBarIntegrationPoint& point,
-            const RealChannel& realChannel,
+            const BBarCache& cache,
+            size_t channelIdx,
             const FKSRegion& region
         ) const;
 
         double leg2SoftCollinearCounterterm(
-            const BBarIntegrationPoint& point,
-            const RealChannel& realChannel,
+            const BBarCache& cache,
+            size_t channelIdx,
             const FKSRegion& region
+        ) const;
+
+        double fksPartition(
+            const FKSRegion& region,
+            double y
         ) const;
 
         double oneMinusZTimesPqq(const double z) const;
@@ -77,6 +83,7 @@ namespace powheg
 
         const BaseProcess& m_process;
         const Config& m_config;
+        const ISRRealPhaseSpace& m_realPhaseSpace;
     };
     
 } // namespace powheg

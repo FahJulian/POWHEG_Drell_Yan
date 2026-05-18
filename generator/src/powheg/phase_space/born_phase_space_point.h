@@ -5,14 +5,6 @@
 
 namespace powheg
 {
-    struct BornChannel
-    {
-        int id1;
-        int id2;
-
-        std::vector<int> outIDs;
-    };
-
     struct BornPhSpPt
     {
         double sHat;

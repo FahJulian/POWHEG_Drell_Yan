@@ -3,6 +3,8 @@
 #include "powheg/base.h"
 #include "powheg/event.h"
 #include "powheg/config/config.h"
+#include "powheg/flavour/channel.h"
+#include "powheg/flavour/fks_region.h"
 #include "powheg/config/config_parser.h"
 #include "powheg/bbar/bbar_integrator.h"
 #include "powheg/emission/emission_generator.h"
@@ -25,6 +27,9 @@ namespace powheg
     protected:
         virtual void initConfig(ConfigParser& parser) const = 0;
 
+        virtual std::vector<BornChannel> bornChannels() const = 0;
+        virtual std::vector<RealChannel> realChannels() const = 0;
+
     public:
         virtual ~BaseProcess();
 
@@ -32,11 +37,10 @@ namespace powheg
         virtual double virtAmp2(const BornPhSpPt& born, const BornChannel& bornChannel, double amp2Born, double muR2) const = 0;
         virtual double realAmp2(const RealPhSpPt& real, const RealChannel& realChannel, double alphaS) const = 0;
 
-        virtual std::vector<BornChannel> bornChannels() const = 0;
-        virtual std::vector<RealChannel> realChannels(const BornChannel& bornChannel) const = 0;
-
         virtual BornPhSpPt sampleBorn() const = 0;
-        
+        virtual std::vector<RealChannel> realChannelsOld(const BornChannel& bornChannel) const = 0;
+
+    public:
         void init(const std::string& configPath);
         void run();
         void writeToFile(const std::string& filePath) const;
@@ -44,11 +48,14 @@ namespace powheg
         double getSigma() const { return m_bbarIntegrator->getTotalCrossSection(); }
         auto getEvents() const { return m_events; }
 
+        const std::vector<Channel>& getChannels() const { return m_channels; }
+        
     private:
         void clear();
         void initBaseConfig(ConfigParser& parser);
         void analyse();
         void generateEvents();
+        void initChannels();
 
     private:
         bool m_initialized = false;
@@ -57,6 +64,12 @@ namespace powheg
         std::shared_ptr<ISRRealPhaseSpace> m_realPhSp;
         std::shared_ptr<BBarIntegrator> m_bbarIntegrator;
         std::shared_ptr<EmissionGenerator> m_emissionGenerator;
+
+        std::vector<BornChannel> m_bornChannels;
+        std::vector<RealChannel> m_realChannels;
+        std::vector<std::vector<FKSRegion>> m_fksRegions;
+        
+        std::vector<Channel> m_channels;
 
     protected:
         std::unique_ptr<Config> m_config;

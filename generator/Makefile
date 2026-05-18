@@ -20,7 +20,7 @@ DBG_TARGET := build/debug/main
 
 INCLUDES := -Isrc 
 
-all: $(TARGET)
+release: $(TARGET)
 
 $(TARGET): $(OBJ)
 	@mkdir -p $(dir $@)

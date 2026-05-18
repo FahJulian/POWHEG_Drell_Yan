@@ -1,9 +1,10 @@
 #pragma once
 
 #include "powheg/config/config.h"
+#include "powheg/bbar/bbar_cache.h"
+#include "powheg/flavour/fks_region.h"
 #include "powheg/bbar/born_virtual_handler.h"
 #include "powheg/bbar/real_minus_ct_handler.h"
-#include "powheg/bbar/bbar_integration_point.h"
 #include "powheg/phase_space/real_phase_space.h"
 #include "powheg/bbar/collinear_remnants_handler.h"
 #include "powheg/phase_space/born_phase_space_point.h"
@@ -33,11 +34,11 @@ namespace powheg
     public: 
         BBarIntegrator(const BaseProcess& process, 
             const Config& config, 
-            std::shared_ptr<ISRRealPhaseSpace> realPhaseSpace)
+            const ISRRealPhaseSpace& realPhaseSpace)
             : m_process(process), 
                 m_config(config), 
-                m_realPhaseSpace(std::move(realPhaseSpace)),
-                m_real(process, config),
+                m_realPhaseSpace(realPhaseSpace),
+                m_real(process, config, realPhaseSpace),
                 m_bornVirtual(process, config),
                 m_collRemn(process, config)
         {
@@ -53,11 +54,33 @@ namespace powheg
         double getAbsCrossSection() const;
 
     private:
+        BBarCache prepareCache(
+            const std::array<double, 3>& unitCube,
+            const BornPhSpPt& born
+        ) const;
+
+        ChannelCache prepareChannelCache(
+            const BBarCache& cache, 
+            const Channel& channel
+        ) const;
+
+        void prepareCollinearLuminosities(
+            ChannelCache& cache,
+            const BornPhSpPt& born, 
+            const Channel& channel,
+            double muF2
+        ) const;
+
+        RadiationCache sampleRadiationVariables(
+            const std::array<double, 3>& unitCube,
+            const BornPhSpPt& born
+        ) const;
+
         BornEvent computeWeightAndSampleChannel(
             const BornPhSpPt& born
         ) const;
 
-        BBarIntegrationPoint generateIntegrationPoint(
+        BBarCacheOld prepareCache(
             const BornPhSpPt& born, 
             const BornChannel& bornChannel, 
             const double amp2Born,
@@ -75,7 +98,7 @@ namespace powheg
     private:
         const BaseProcess& m_process;
         const Config& m_config;
-        std::shared_ptr<ISRRealPhaseSpace> m_realPhaseSpace;
+        const ISRRealPhaseSpace& m_realPhaseSpace;
         
         const RealMinusCTHandler m_real;
         const BornVirtualHandler m_bornVirtual;

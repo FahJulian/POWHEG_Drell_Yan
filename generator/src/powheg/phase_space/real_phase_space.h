@@ -16,14 +16,6 @@ namespace powheg
         double xiMax = 0.0;
     };
 
-    struct RealChannel
-    {
-        int id1;
-        int id2;
-
-        std::vector<int> outIDs;
-    };
-
     struct RealPhSpPt
     {
         double x1 = 0.0;

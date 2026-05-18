@@ -5,156 +5,161 @@
 namespace powheg
 {
     double CollinearRemnantsHandler::dSigmaCollinearRemnants(
-        const BBarIntegrationPoint& point,
-        const CollinearRemnantChannel& channel,
-        const double muF2
+        const BBarCache& cache,
+        size_t channelIdx
     ) const
     {
-        if (!m_config.BTILDE_USE_COLL_REMNANTS)
-            return 0.0;
+        double dSigma = 0.0;
+        
+        const ChannelCache& channelCache = cache.channels[channelIdx];
+        
+        const auto& realChannels = channelCache.channel.relevantRealChannels;
+        for (size_t realChannelIdx = 0; realChannelIdx < realChannels.size(); realChannelIdx++)
+        {
+            for (const FKSRegion& region : channelCache.channel.fksRegions[realChannelIdx])
+            {
+                if (!region.isrRegion.has_value())
+                    continue;
 
-        if (channel.leg == 1)
-            return dSigmaCollinearRemnantsLeg1(point, channel.splitting, muF2);
-        else if (channel.leg == 2)
-            return dSigmaCollinearRemnantsLeg2(point, channel.splitting, muF2);
-            
-        throw std::runtime_error("Invalid collinear remnant leg");
-        return 0.0;
+                if (region.isrRegion->leg == Leg::LEG1)
+                    dSigma += dSigmaCollinearRemnantsLeg1(region.isrRegion->splitting, cache, channelIdx, realChannelIdx);
+                else if (region.isrRegion->leg == Leg::LEG2)
+                    dSigma += dSigmaCollinearRemnantsLeg2(region.isrRegion->splitting, cache, channelIdx, realChannelIdx);
+                else
+                    throw std::runtime_error("Invalid collinear remnant leg");
+            }
+        }
+
+        return dSigma;
     }
 
     double CollinearRemnantsHandler::dSigmaCollinearRemnantsLeg1(
-        const BBarIntegrationPoint& point,
-        const CollinearRemnantSplitting& splitting,
-        const double muF2
+        const ISRSplitting& splitting,
+        const BBarCache& cache, 
+        size_t channelIdx,
+        size_t realChannelIdx
     ) const
     {
-        const double z = point.zLeg1CollRemn;
-        const double s = point.born.sHat / z;
-        const double dzdu = 1.0 - point.born.x1Bar;
+        const ChannelCache& channel = cache.channels[channelIdx];
 
-        const double dSigmaBornPartonic = 1.0 / (2.0 * point.born.sHat) * point.born.jacobian * point.amp2Born;
-        const double luminosityOne = point.f1Born * point.f2Born;
+        const double z = cache.rad.zLeg1;
+        const double s = cache.born.sHat / z;
+
+        const double dSigmaBornPartonic = cache.fluxFactorBorn * cache.born.jacobian * channel.amp2Born;
+        const double luminosityOne = channel.f1Born * channel.f2Born;
         
         double luminosityZ;
         double oneMinusZTimesPOne;
         double oneMinusZTimesPZ;
         double derivativePZ;
 
-        if (splitting == CollinearRemnantSplitting::QQ)
+        if (splitting == ISRSplitting::QQ)
         {
-            luminosityZ        = point.f1RealQ * point.f2Born;
-            oneMinusZTimesPOne = oneMinusZTimesPqq(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPqq(z);
+            luminosityZ        = channel.f1Coll[realChannelIdx] * channel.f2Born;
+            oneMinusZTimesPZ   = m_config.C_F * (1.0 + z * z);
+            oneMinusZTimesPOne = 2.0 * m_config.C_F;
             derivativePZ       = derivativePqq(z);
         }
-        else if (splitting == CollinearRemnantSplitting::QG)
+        else if (splitting == ISRSplitting::GQ)
         {
-            luminosityZ        = point.f1RealQ * point.f2Born;
-            oneMinusZTimesPOne = oneMinusZTimesPqg(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPqg(z);
-            derivativePZ       = derivativePqg(z);
+            luminosityZ        = channel.f1Coll[realChannelIdx] * channel.f2Born;
+            oneMinusZTimesPZ   = m_config.T_F * (1.0 - 2.0 * z * (1.0 - z)) * (1.0 - z);
+            oneMinusZTimesPOne = 0.0;
+            derivativePZ       = -m_config.T_F * 2.0 * z * (1.0 - z);
         }
-        else if (splitting == CollinearRemnantSplitting::GQ)
-        {
-            luminosityZ        = point.f1RealG * point.f2Born;
-            oneMinusZTimesPOne = oneMinusZTimesPgq(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPgq(z);
-            derivativePZ       = derivativePgq(z);
-        }
-        else if (splitting == CollinearRemnantSplitting::GG)
-        {
-            luminosityZ        = point.f1RealG * point.f2Born;
-            oneMinusZTimesPOne = oneMinusZTimesPgg(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPgg(z);
-            derivativePZ       = derivativePgg(z);
-        }
+        else if (splitting == ISRSplitting::QG)
+            throw std::runtime_error("QG splittings not implemented");
+        else if (splitting == ISRSplitting::GG)
+            throw std::runtime_error("GG splittings not implemented");
         else
             throw std::runtime_error("Invalid Collinear Remnant Splitting");
 
-        const double logS = std::log(s / muF2);
-        const double logSHat = std::log(point.born.sHat / muF2);
+        const double logS = std::log(s / cache.muF2);
+        const double logSHat = std::log(cache.born.sHat / cache.muF2);
 
-        const double fZ = luminosityZ * oneMinusZTimesPZ / z
-            * (logS / (1.0 - z) + 2.0 * std::log(1.0 - z) / (1.0 - z));
-        const double f1 = luminosityOne * oneMinusZTimesPOne
-            * (logSHat / (1.0 - z) + 2.0 * std::log(1.0 - z) / (1.0 - z));
+        // the distribution coefficient at z and z=1 in eq. (2.102)
+        const double bracketZ = (logS + 2.0 * std::log(1.0 - z)) / (1.0 - z);
+        const double bracketOne = (logSHat + 2.0 * std::log(1.0 - z)) / (1.0 - z);
+
+        // the full distribution term in eq. (2.102)
+        const double distribution = luminosityZ * oneMinusZTimesPZ * bracketZ / z
+            - luminosityOne * oneMinusZTimesPOne * bracketOne;
         
+        // the regular term in eq. (2.102)
         const double regular = - luminosityZ * derivativePZ / z;
         
-        const double logZEndpoint = std::log(1.0 - point.born.x1Bar);
+        // because the z-integral is over z\in[x1bar, 1], there is a boundary term
+        const double logZEndpoint = std::log(1.0 - cache.born.x1Bar);
         const double endpoint = luminosityOne * oneMinusZTimesPOne 
             * (logSHat * logZEndpoint + logZEndpoint * logZEndpoint);
 
-        return point.alphaS / (2.0 * PI) 
-            * (dzdu * (fZ - f1 + regular) + endpoint)
+        return cache.alphaS / (2.0 * PI)
+            * (cache.rad.dzduLeg1 * (distribution + regular) + endpoint)
             * dSigmaBornPartonic;
     }
 
     double CollinearRemnantsHandler::dSigmaCollinearRemnantsLeg2(
-        const BBarIntegrationPoint& point,
-        const CollinearRemnantSplitting& splitting,
-        const double muF2
+        const ISRSplitting& splitting,
+        const BBarCache& cache, 
+        size_t channelIdx,
+        size_t realChannelIdx
     ) const
     {
-        const double z = point.zLeg2CollRemn;
-        const double s = point.born.sHat / z;
-        const double dzdu = 1.0 - point.born.x2Bar;
+        const ChannelCache& channel = cache.channels[channelIdx];
 
-        const double dSigmaBornPartonic = 1.0 / (2.0 * point.born.sHat) * point.born.jacobian * point.amp2Born;
-        const double luminosityOne = point.f1Born * point.f2Born;
+        const double z = cache.rad.zLeg2;
+        const double s = cache.born.sHat / z;
+
+        const double dSigmaBornPartonic = cache.fluxFactorBorn * cache.born.jacobian * channel.amp2Born;
+        const double luminosityOne = channel.f1Born * channel.f2Born;
         
         double luminosityZ;
         double oneMinusZTimesPOne;
         double oneMinusZTimesPZ;
         double derivativePZ;
 
-        if (splitting == CollinearRemnantSplitting::QQ)
+        if (splitting == ISRSplitting::QQ)
         {
-            luminosityZ        = point.f1Born * point.f2RealQ;
-            oneMinusZTimesPOne = oneMinusZTimesPqq(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPqq(z);
+            luminosityZ        = channel.f1Born * channel.f2Coll[realChannelIdx];
+            oneMinusZTimesPZ   = m_config.C_F * (1.0 + z * z);
+            oneMinusZTimesPOne = 2.0 * m_config.C_F;
             derivativePZ       = derivativePqq(z);
         }
-        else if (splitting == CollinearRemnantSplitting::QG)
+        else if (splitting == ISRSplitting::GQ)
         {
-            luminosityZ        = point.f1Born * point.f2RealQ;
-            oneMinusZTimesPOne = oneMinusZTimesPqg(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPqg(z);
-            derivativePZ       = derivativePqg(z);
+            luminosityZ        = channel.f1Born * channel.f2Coll[realChannelIdx];
+            oneMinusZTimesPZ   = m_config.T_F * (1.0 - 2.0 * z * (1.0 - z)) * (1.0 - z);
+            oneMinusZTimesPOne = 0.0;
+            derivativePZ       = -m_config.T_F * 2.0 * z * (1.0 - z);
         }
-        else if (splitting == CollinearRemnantSplitting::GQ)
-        {
-            luminosityZ        = point.f1Born * point.f2RealG;
-            oneMinusZTimesPOne = oneMinusZTimesPgq(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPgq(z);
-            derivativePZ       = derivativePgq(z);
-        }
-        else if (splitting == CollinearRemnantSplitting::GG)
-        {
-            luminosityZ        = point.f1Born * point.f2RealG;
-            oneMinusZTimesPOne = oneMinusZTimesPgg(1.0);
-            oneMinusZTimesPZ   = oneMinusZTimesPgg(z);
-            derivativePZ       = derivativePgg(z);
-        }
+        else if (splitting == ISRSplitting::QG)
+            throw std::runtime_error("QG splittings not implemented");
+        else if (splitting == ISRSplitting::GG)
+            throw std::runtime_error("GG splittings not implemented");
         else
             throw std::runtime_error("Invalid Collinear Remnant Splitting");
 
-        const double logS = std::log(s / muF2);
-        const double logSHat = std::log(point.born.sHat / muF2);
+        const double logS = std::log(s / cache.muF2);
+        const double logSHat = std::log(cache.born.sHat / cache.muF2);
 
-        const double fZ = luminosityZ * oneMinusZTimesPZ / z
-            * (logS / (1.0 - z) + 2.0 * std::log(1.0 - z) / (1.0 - z));
-        const double f1 = luminosityOne * oneMinusZTimesPOne
-            * (logSHat / (1.0 - z) + 2.0 * std::log(1.0 - z) / (1.0 - z));
+        // the distribution coefficient at z and z=1 in eq. (2.102)
+        const double bracketZ = (logS + 2.0 * std::log(1.0 - z)) / (1.0 - z);
+        const double bracketOne = (logSHat + 2.0 * std::log(1.0 - z)) / (1.0 - z);
+
+        // the full distribution term in eq. (2.102)
+        const double distribution = luminosityZ * oneMinusZTimesPZ * bracketZ / z
+            - luminosityOne * oneMinusZTimesPOne * bracketOne;
         
+        // the regular term in eq. (2.102)
         const double regular = - luminosityZ * derivativePZ / z;
         
-        const double logZEndpoint = std::log(1.0 - point.born.x2Bar);
+        // because the z-integral is over z\in[x1bar, 1], there is a boundary term
+        const double logZEndpoint = std::log(1.0 - cache.born.x2Bar);
         const double endpoint = luminosityOne * oneMinusZTimesPOne 
             * (logSHat * logZEndpoint + logZEndpoint * logZEndpoint);
 
-        return point.alphaS / (2.0 * PI) 
-            * (dzdu * (fZ - f1 + regular) + endpoint)
+        return cache.alphaS / (2.0 * PI)
+            * (cache.rad.dzduLeg1 * (distribution + regular) + endpoint)
             * dSigmaBornPartonic;
     }
 
