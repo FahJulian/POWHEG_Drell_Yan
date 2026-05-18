@@ -1,0 +1,82 @@
+#pragma once
+
+#include "powheg/base.h"
+#include "powheg/config/config.h"
+#include "powheg/bbar/fks_region.h"
+#include "powheg/bbar/bbar_integration_point.h"
+
+namespace powheg
+{
+    class BaseProcess;
+    
+    class RealMinusCTHandler
+    {
+    public:
+        RealMinusCTHandler(const BaseProcess& process, 
+            const Config& config)
+            : m_process(process), 
+                m_config(config)
+        {
+        }
+
+        double dSigmaRealMinusCT(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
+        ) const;
+
+    private:
+        double dSigmaReal(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const double muF2
+        ) const;
+
+        double softCounterterm(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region
+        ) const;
+
+        double leg1CollinearCounterterm(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
+        ) const;
+
+        double leg2CollinearCounterterm(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region,
+            const double muF2
+        ) const;
+
+        double leg1SoftCollinearCounterterm(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region
+        ) const;
+
+        double leg2SoftCollinearCounterterm(
+            const BBarIntegrationPoint& point,
+            const RealChannel& realChannel,
+            const FKSRegion& region
+        ) const;
+
+        double oneMinusZTimesPqq(const double z) const;
+        double oneMinusZTimesPqg(const double z) const;
+        double oneMinusZTimesPgq(const double z) const;
+        double oneMinusZTimesPgg(const double z) const;
+
+        double oneMinusZTimesPqqAtOne() const;
+        double oneMinusZTimesPqgAtOne() const;
+        double oneMinusZTimesPgqAtOne() const;
+        double oneMinusZTimesPggAtOne() const;
+
+        const BaseProcess& m_process;
+        const Config& m_config;
+    };
+    
+} // namespace powheg

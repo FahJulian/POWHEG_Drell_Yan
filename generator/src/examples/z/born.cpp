@@ -1,6 +1,6 @@
 #include "drell_yan.h"
 
-#include "powheg_dy/math/bra_ket.h"
+#include "powheg/math/bra_ket.h"
 
 namespace powheg
 {

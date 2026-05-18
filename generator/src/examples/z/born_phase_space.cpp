@@ -1,6 +1,6 @@
 #include "drell_yan.h"
 
-#include "powheg_dy/math/rand.h"
+#include "powheg/math/rand.h"
 
 namespace powheg
 {

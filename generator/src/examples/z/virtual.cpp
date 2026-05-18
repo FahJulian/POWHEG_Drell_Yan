@@ -15,4 +15,4 @@ namespace powheg
             * (PI * PI - 8 - 3 * logMuS - logMuS * logMuS) * amp2Born;
     }
 
-} // namespace powheg_dy
+} // namespace powheg

@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "powheg_dy/config/config.h"
+#include "powheg/config/config.h"
 
 namespace powheg
 {

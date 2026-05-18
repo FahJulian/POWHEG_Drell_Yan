@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config.h"
-#include "powheg_dy/process.h"
+#include "powheg/process.h"
 
 namespace powheg
 {
